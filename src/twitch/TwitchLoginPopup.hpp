@@ -23,6 +23,7 @@ protected:
     void openDashboard();
     void resetToLogin();
     bool checkTwitchChannelExists();
+    std::string getAuthenticatedUsername();
 public:
     ~TwitchLoginPopup();
     static TwitchLoginPopup* create();

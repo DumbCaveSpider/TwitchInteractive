@@ -12,9 +12,26 @@ bool TwitchLoginPopup::setup() {
     
     this->setTitle("Twitch Connection");
     
-    // Create login button
+    // Get channel name first to determine button text
+    std::string channelName = "";
+    try {
+        auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+        if (twitchMod) {
+            auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
+            if (!savedChannel.empty()) {
+                channelName = savedChannel;
+            }
+        }
+    } catch (const std::exception& e) {
+        log::error("Exception while getting Twitch channel name: {}", e.what());
+    } catch (...) {
+        log::error("Unknown exception while getting Twitch channel name");
+    }
+    
+    // Create login button with appropriate text
+    std::string buttonText = channelName.empty() ? "Connect to Twitch" : "Open Dashboard";
     auto loginBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Connect to Twitch", "bigFont.fnt", "GJ_button_01.png", 0.6f),
+        ButtonSprite::create(buttonText.c_str(), "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
         menu_selector(TwitchLoginPopup::onLoginPressed)
     );
@@ -27,9 +44,18 @@ bool TwitchLoginPopup::setup() {
     m_loginMenu->setPosition(layerSize.width / 2, layerSize.height / 2);
     this->m_mainLayer->addChild(m_loginMenu);
     
+    if (!channelName.empty()) {
+        // Create a label to show the authenticated channel
+        auto userLabel = CCLabelBMFont::create(("Login as: " + channelName).c_str(), "bigFont.fnt");
+        userLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 50);
+        userLabel->setScale(0.4f);
+        userLabel->setAlignment(kCCTextAlignmentCenter);
+        this->m_mainLayer->addChild(userLabel);
+    }
+    
     // Create status label for showing login status
     m_statusLabel = CCLabelBMFont::create("Ready to connect", "bigFont.fnt");
-    m_statusLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 15);
+    m_statusLabel->setPosition(layerSize.width / 2, layerSize.height / 2);
     m_statusLabel->setScale(0.5f);
     m_statusLabel->setAlignment(kCCTextAlignmentCenter);
     m_statusLabel->setVisible(false);
@@ -65,7 +91,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
     // Check if Twitch channel is configured - if so, proceed directly to dashboard
     if (checkTwitchChannelExists()) {
         log::debug("Channel name exists, proceeding directly to dashboard");
-        m_statusLabel->setString("Channel configured!\nOpening dashboard...");
+        m_statusLabel->setString("Opening dashboard...");
         
         // Proceed directly to dashboard after a short delay
         auto delayAction = CCDelayTime::create(1.0f);
@@ -187,7 +213,7 @@ void TwitchLoginPopup::checkExistingConnection() {
     }
     
     // Update status and loop back to authorization check
-    m_statusLabel->setString("Timeout reached, retrying authorization...");
+    m_statusLabel->setString("Timeout reached.\nRetrying authorization...");
     
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
@@ -235,7 +261,7 @@ void TwitchLoginPopup::checkExistingConnection() {
                 return;
             }
             
-            m_statusLabel->setString("Authenticated! Opening dashboard...");
+            m_statusLabel->setString("Authenticated!\nOpening dashboard...");
             
             // Now that user is authenticated and channel is configured, proceed to dashboard
             auto delayAction = CCDelayTime::create(1.0f);
@@ -315,7 +341,7 @@ void TwitchLoginPopup::onAuthenticationCompleted() {
         return;
     }
     
-    m_statusLabel->setString("Authenticated! Opening dashboard...");
+    m_statusLabel->setString("Authenticated!\nOpening dashboard...");
     
     // Now that user is authenticated, proceed directly to dashboard
     auto delayAction = CCDelayTime::create(1.0f);
@@ -357,7 +383,7 @@ void TwitchLoginPopup::onAuthenticationTimeout() {
     
     // User is authenticated and channel is configured, proceed directly to dashboard
     log::debug("User already authenticated and channel is configured, proceeding to dashboard");
-    m_statusLabel->setString("Already authenticated! Opening dashboard...");
+    m_statusLabel->setString("Already authenticated!\nOpening dashboard...");
     
     auto delayAction = CCDelayTime::create(1.0f);
     auto openDashboardAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::openDashboard));
@@ -453,7 +479,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
                 return;
             }
             
-            m_statusLabel->setString("Authenticated! Opening dashboard...");
+            m_statusLabel->setString("Authenticated!\nOpening dashboard...");
             
             // Now that user is authenticated and channel is configured, proceed to dashboard
             auto delayAction = CCDelayTime::create(1.0f);
@@ -489,6 +515,36 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
         log::error("Unknown exception during retry authentication");
         m_statusLabel->setString("Connection error occurred!");
         resetToLogin();
+    }
+}
+
+std::string TwitchLoginPopup::getAuthenticatedUsername() {
+    try {
+        // Get the TwitchChatAPI mod
+        auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+        if (!twitchMod) {
+            log::error("TwitchChatAPI mod not found");
+            return "";
+        }
+        
+        // Get the saved Twitch username value
+        auto username = twitchMod->getSavedValue<std::string>("twitch-username");
+        
+        // Check if the username exists and is not empty
+        if (username.empty()) {
+            log::debug("Twitch username is not configured or is empty");
+            return "";
+        }
+        
+        log::debug("Twitch username found: {}", username);
+        return username;
+        
+    } catch (const std::exception& e) {
+        log::error("Exception while getting Twitch username: {}", e.what());
+        return "";
+    } catch (...) {
+        log::error("Unknown exception while getting Twitch username");
+        return "";
     }
 }
 
