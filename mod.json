@@ -11,6 +11,14 @@
 	"version": "v1.0.0",
 	"developer": "ArcticWoof",
 	"description": "Allows Twitch viewers to interact in game",
+	"tags": [
+		"online",
+		"gameplay",
+		"cheat"
+	],
+	"links": {
+		"source": "https://github.com/DumbCaveSpider/TwitchInteractive"
+	},
 	"dependencies": {
 		"geode.node-ids": {
 			"importance": "required",
