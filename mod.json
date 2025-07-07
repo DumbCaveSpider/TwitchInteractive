@@ -6,8 +6,8 @@
 		"mac": "2.2074",
 		"ios": "2.2074"
 	},
-	"id": "arcticwoof.interactive_twitch_stream",
-	"name": "Interactive Twitch Stream",
+	"id": "arcticwoof.twitch_interactive",
+	"name": "Twitch Interactive",
 	"version": "v1.0.0",
 	"developer": "ArcticWoof",
 	"description": "Allows Twitch viewers to interact in game",
