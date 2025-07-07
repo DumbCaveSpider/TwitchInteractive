@@ -1,6 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
-#include "twitch/TwitchLoginPopup.hpp"
+#include "./twitch/TwitchLoginPopup.hpp"
 
 using namespace geode::prelude;
 
@@ -28,6 +28,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
             auto newMenu = CCMenu::create();
             newMenu->addChild(twitchBtn);
             newMenu->setPosition(CCDirector::sharedDirector()->getWinSize().width - 50, 50);
+
             this->addChild(newMenu);
         };
 
@@ -37,6 +38,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
     void onTwitchPressed(CCObject*) {
         // Check if Twitch Chat API mod is loaded
         auto mod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+
         if (!mod || !mod->isEnabled()) {
             FLAlertLayer::create(
                 "Mod Missing",

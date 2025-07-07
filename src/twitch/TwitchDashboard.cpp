@@ -13,6 +13,7 @@ bool TwitchDashboard::setup() {
 
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
+
     if (!api) {
         log::error("TwitchChatAPI is not available in TwitchDashboard::setup");
         return false;
@@ -22,6 +23,7 @@ bool TwitchDashboard::setup() {
     std::string channelName = "Unknown";
     try {
         auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+
         if (twitchMod) {
             auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
             if (!savedChannel.empty()) {
