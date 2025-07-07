@@ -1,0 +1,24 @@
+{
+	"geode": "4.6.3",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
+	},
+	"id": "arcticwoof.interactive_twitch_stream",
+	"name": "Interactive Twitch Stream",
+	"version": "v1.0.0",
+	"developer": "ArcticWoof",
+	"description": "Allows Twitch viewers to interact in game",
+	"dependencies": {
+		"geode.node-ids": {
+			"importance": "required",
+			"version": ">=1.21.0"
+		},
+		"alphalaneous.twitch_chat_api": {
+			"importance": "required",
+			"version": ">=0.1.0-alpha.1"
+		}
+	}
+}
