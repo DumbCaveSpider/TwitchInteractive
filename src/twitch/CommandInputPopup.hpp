@@ -12,11 +12,11 @@ protected:
     CCLabelBMFont* m_titleLabel = nullptr;
     CCLabelBMFont* m_descLabel = nullptr;
     std::function<void(const std::string&, const std::string&)> m_callback;
-    
+
     bool setup() override;
     void onAdd(CCObject* sender);
     void onCancel(CCObject* sender);
-    
+
 public:
     static CommandInputPopup* create(std::function<void(const std::string&, const std::string&)> callback);
     void setCallback(std::function<void(const std::string&, const std::string&)> callback);

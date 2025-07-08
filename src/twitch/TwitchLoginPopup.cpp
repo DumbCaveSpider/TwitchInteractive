@@ -3,9 +3,10 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
-#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
-#include <memory>
 
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+
+#include <memory>
 
 bool TwitchLoginPopup::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -13,7 +14,7 @@ bool TwitchLoginPopup::setup() {
     setTitle("Twitch Connection");
 
     // Set IDs for the login popup elements
-    this->setID("twitch-login-popup");
+    setID("twitch-login-popup");
     m_mainLayer->setID("twitch-login-main-layer");
 
     // Get channel name first to determine button text
@@ -25,9 +26,7 @@ bool TwitchLoginPopup::setup() {
         if (twitchMod) {
             auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
 
-            if (!savedChannel.empty()) {
-                channelName = savedChannel;
-            };
+            if (!savedChannel.empty()) channelName = savedChannel;
         };
     } catch (const std::exception& e) {
         log::error("Exception while getting Twitch channel name: {}", e.what());
@@ -37,6 +36,7 @@ bool TwitchLoginPopup::setup() {
 
     // Create login button with appropriate text
     std::string buttonText = channelName.empty() ? "Connect to Twitch" : "Open Dashboard";
+
     auto loginBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create(buttonText.c_str(), "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
@@ -44,13 +44,13 @@ bool TwitchLoginPopup::setup() {
     );
     loginBtn->setID("twitch-login-main-button");
 
-    m_loginMenu = CCMenu::create();
-    m_loginMenu->addChild(loginBtn);
-
     // Center the menu within the popup's main layer
     auto layerSize = m_mainLayer->getContentSize();
-    m_loginMenu->setPosition(layerSize.width / 2, layerSize.height / 2);
+
+    m_loginMenu = CCMenu::create();
     m_loginMenu->setID("twitch-login-menu");
+    m_loginMenu->addChild(loginBtn);
+    m_loginMenu->setPosition(layerSize.width / 2, layerSize.height / 2);
 
     m_mainLayer->addChild(m_loginMenu);
 
@@ -61,6 +61,7 @@ bool TwitchLoginPopup::setup() {
         userLabel->setScale(0.4f);
         userLabel->setAlignment(kCCTextAlignmentCenter);
         userLabel->setID("twitch-login-user-label");
+
         m_mainLayer->addChild(userLabel);
     };
 
@@ -88,8 +89,10 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
     auto api = TwitchChatAPI::get();
     if (!api) {
         log::error("TwitchChatAPI is not available");
+
         m_statusLabel->setVisible(true);
         m_statusLabel->setString("Twitch API not available!");
+
         return;
     };
 
@@ -110,6 +113,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
         auto delayAction = CCDelayTime::create(1.0f);
         auto openDashboardAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::openDashboard));
         auto sequence = CCSequence::create(delayAction, openDashboardAction, nullptr);
+
         runAction(sequence);
         return;
     };
@@ -142,9 +146,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
                 auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
                 auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) {
-                    runAction(sequence);
-                };
+                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) runAction(sequence);
 
                 return;
             };
@@ -176,7 +178,6 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
         stopActionByTag(999); // Stop any previous timeout
         timeoutSequence->setTag(999);
         runAction(timeoutSequence);
-
     } catch (const std::exception& e) {
         log::error("Exception during connection check: {}", e.what());
         m_statusLabel->setString("Connection error occurred!");
@@ -220,9 +221,7 @@ void TwitchLoginPopup::checkExistingConnection() {
         auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
         auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-        if (m_isActive && m_statusLabel) {
-            runAction(sequence);
-        };
+        if (m_isActive && m_statusLabel) runAction(sequence);
 
         return;
     };
@@ -351,9 +350,7 @@ void TwitchLoginPopup::onAuthenticationCompleted() {
         auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
         auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-        if (m_isActive && m_statusLabel) {
-            runAction(sequence);
-        };
+        if (m_isActive && m_statusLabel) runAction(sequence);
 
         return;
     };
