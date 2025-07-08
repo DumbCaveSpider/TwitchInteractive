@@ -7,8 +7,7 @@
 
 using namespace geode::prelude;
 
-bool TwitchDashboard::setup()
-{
+bool TwitchDashboard::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     setTitle("Twitch Dashboard");
@@ -17,39 +16,31 @@ bool TwitchDashboard::setup()
     // No need to scale here since create() already handles proper sizing
 
     // Set ID for the main popup layer
-    this->setID("twitch-dashboard-popup");
+    setID("twitch-dashboard-popup");
     m_mainLayer->setID("twitch-dashboard-main-layer");
 
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
 
-    if (!api)
-    {
+    if (!api) {
         log::error("TwitchChatAPI is not available in TwitchDashboard::setup");
         return false;
     };
 
     // Get the Twitch channel name for the welcome message
     std::string channelName = "Unknown";
-    try
-    {
+    try {
         auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
 
-        if (twitchMod)
-        {
+        if (twitchMod) {
             auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
-            if (!savedChannel.empty())
-            {
+            if (!savedChannel.empty()) {
                 channelName = savedChannel;
             };
         };
-    }
-    catch (const std::exception &e)
-    {
+    } catch (const std::exception& e) {
         log::error("Exception while getting Twitch channel name: {}", e.what());
-    }
-    catch (...)
-    {
+    } catch (...) {
         log::error("Unknown exception while getting Twitch channel name");
     };
 
@@ -79,11 +70,11 @@ bool TwitchDashboard::setup()
 
     // Create a column layout for organizing commands vertically
     auto columnLayout = ColumnLayout::create()
-                            ->setAxisReverse(true)
-                            ->setAxisAlignment(AxisAlignment::End)
-                            ->setCrossAxisAlignment(AxisAlignment::Center) // Center items horizontally
-                            ->setAutoGrowAxis(scrollHeight)                // Allow vertical growth
-                            ->setGap(5.0f);
+        ->setAxisReverse(true)
+        ->setAxisAlignment(AxisAlignment::End)
+        ->setCrossAxisAlignment(AxisAlignment::Center) // Center items horizontally
+        ->setAutoGrowAxis(scrollHeight)                // Allow vertical growth
+        ->setGap(5.0f);
 
     // Set the layout to the content layer
     m_commandLayer = m_commandScrollLayer->m_contentLayer;
@@ -107,32 +98,29 @@ bool TwitchDashboard::setup()
     return true;
 };
 
-void TwitchDashboard::setupCommandsList()
-{
+void TwitchDashboard::setupCommandsList() {
     // Clear existing commands
     m_commandLayer->removeAllChildren();
 
     // Add some default commands
     auto commandManager = TwitchCommandManager::getInstance();
-    if (commandManager->getCommands().empty())
-    {
+    if (commandManager->getCommands().empty()) {
         // Add default commands
         TwitchCommand helloCmd("hello", "Greets the user", "Hello {username}!");
         commandManager->addCommand(helloCmd);
 
         TwitchCommand helpCmd("help", "Shows available commands", "Available commands: !hello, !help");
         commandManager->addCommand(helpCmd);
-    }
+    };
 
     refreshCommandsList();
-}
+};
 
-CCMenuItem* TwitchDashboard::createDeleteButton(const std::string& commandName) 
-{
+CCMenuItem* TwitchDashboard::createDeleteButton(const std::string& commandName) {
     // Create delete button sprite with proper scaling
     auto deleteSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
     deleteSprite->setScale(0.65f);
-    
+
     // Create button with proper delegate and selector
     auto deleteBtn = CCMenuItemSpriteExtra::create(
         deleteSprite,
@@ -140,59 +128,55 @@ CCMenuItem* TwitchDashboard::createDeleteButton(const std::string& commandName)
         menu_selector(TwitchDashboard::onDeleteCommand)
     );
     deleteBtn->setID("delete-btn-" + commandName);
-    
+
     // Store the command name for deletion in the user object
     deleteBtn->setUserObject(CCString::create(commandName));
-    
-    // Make the hit area fill the entire menu size
-    deleteBtn->setContentSize({40, 40});
-    
-    // Center the sprite within the larger hit area
-    auto sprite = deleteBtn->getNormalImage();
-    if (sprite) {
-        sprite->setPosition(20, 20); // Center position within 40x40 area
-    }
-    
-    return deleteBtn;
-}
 
-void TwitchDashboard::ensureMenusRegistered() 
-{
+    // Make the button slightly larger for easier clicking
+    auto btnSize = deleteBtn->getContentSize();
+    deleteBtn->setContentSize({ btnSize.width * 1.5f, btnSize.height * 1.5f });
+
+    return deleteBtn;
+};
+
+void TwitchDashboard::ensureMenusRegistered() {
     // This function makes sure all delete button menus are properly registered with the touch dispatcher
     auto children = m_commandLayer->getChildren();
-    
-    if (!children) {
-        return;
-    }
-    
+
+    if (!children) return;
+
     CCObject* child;
     CCARRAY_FOREACH(children, child) {
         auto commandItem = dynamic_cast<CCNode*>(child);
+
         if (commandItem) {
             // Find the menu within this command item
             auto itemChildren = commandItem->getChildren();
+
             if (itemChildren) {
                 CCObject* itemChild;
                 CCARRAY_FOREACH(itemChildren, itemChild) {
                     auto menu = dynamic_cast<CCMenu*>(itemChild);
+
                     if (menu && menu->getID().find("delete-menu-") != std::string::npos) {
                         menu->registerWithTouchDispatcher();
-                        log::debug("Re-registered menu: {}", menu->getID().c_str());
-                    }
-                }
-            }
-        }
-    }
-}
 
-void TwitchDashboard::refreshCommandsList()
-{
+                        // Log for debugging
+                        log::debug("Re-registered menu: {}", menu->getID().c_str());
+                    };
+                };
+            };
+        };
+    };
+};
+
+void TwitchDashboard::refreshCommandsList() {
     // Remove all existing command items
     m_commandLayer->removeAllChildren();
 
     auto commandManager = TwitchCommandManager::getInstance();
-    auto &commands = commandManager->getCommands();
-    
+    auto& commands = commandManager->getCommands();
+
     // Reset the column layout to ensure proper spacing
     auto columnLayout = ColumnLayout::create()
         ->setAxisReverse(true)
@@ -200,23 +184,22 @@ void TwitchDashboard::refreshCommandsList()
         ->setCrossAxisAlignment(AxisAlignment::Center) // Center items horizontally
         ->setAutoGrowAxis(m_commandScrollLayer->getContentSize().height)  // Allow vertical growth
         ->setGap(7.0f); // Slightly larger gap between items
-        
+
     m_commandLayer->setLayout(columnLayout);
 
     // Create command items using ColumnLayout
-    for (const auto &command : commands)
-    {
+    for (const auto& command : commands) {
         // Create command item container
         auto commandItem = CCNode::create();
         commandItem->setID("command-item-" + command.name);
-        
+
         // Set standard item height
         const float itemHeight = 40.0f;
-        
+
         // Calculate width to center within scroll layer
         float scrollWidth = m_commandScrollLayer->getContentSize().width;
         float itemWidth = scrollWidth - 10; // Less margin for better filling
-        
+
         // Set item size for layout to work properly - use full width of scroll layer
         commandItem->setContentSize(CCSize(scrollWidth, itemHeight));
 
@@ -229,48 +212,48 @@ void TwitchDashboard::refreshCommandsList()
 
         // Left side padding
         float leftPadding = 15.f;
-        
+
         // Command name label - positioned on the left side
         auto nameLabel = CCLabelBMFont::create(("!" + command.name).c_str(), "bigFont.fnt");
-        nameLabel->setScale(0.5f);
-        nameLabel->setAnchorPoint({0.0f, 0.5f}); // Left-aligned
-        nameLabel->setPosition(leftPadding, itemHeight/2 + 5); // Top half of container
+        nameLabel->setScale(0.4f);
+        nameLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
+        nameLabel->setPosition(leftPadding, itemHeight / 2 + 5); // Top half of container
         commandItem->addChild(nameLabel);
 
         // Command description label - positioned on the left side below the name
         auto descLabel = CCLabelBMFont::create(command.description.c_str(), "chatFont.fnt");
-        descLabel->setScale(0.5f);
-        descLabel->setAnchorPoint({0.0f, 0.5f}); // Left-aligned
-        descLabel->setPosition(leftPadding, itemHeight/2 - 8); // Bottom half of container
+        descLabel->setScale(0.35f);
+        descLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
+        descLabel->setPosition(leftPadding, itemHeight / 2 - 8); // Bottom half of container
         commandItem->addChild(descLabel);
-        
+
         // Create delete button
         auto deleteBtn = createDeleteButton(command.name);
-        
+
         // Create menu with sufficient padding for better touch detection
         auto deleteMenu = CCMenu::create();
         deleteMenu->setID("delete-menu-" + command.name);
         deleteMenu->addChild(deleteBtn);
-        
+
         // Position menu at right side of the item, center vertically
-        deleteMenu->setPosition(scrollWidth - 30, itemHeight / 2);
-        
-        // Make menu size match the button size
-        deleteMenu->setContentSize({40, 40});
-        
+        deleteMenu->setPosition(scrollWidth - 25, itemHeight / 2);
+
+        // Make sure menu has sufficient size for hit detection
+        deleteMenu->setContentSize({ 45, 45 });
+
         // Set high touch priority to ensure buttons are clickable
         deleteMenu->setTouchPriority(-130); // Higher priority than default
         // CCMenu doesn't use ccTouchesMode, it has its own handling
-        
+
         commandItem->addChild(deleteMenu);
 
         // Add to the command layer - ColumnLayout will handle vertical positioning
         m_commandLayer->addChild(commandItem);
-    }
+    };
 
     // Let the layout position all items
     m_commandLayer->updateLayout();
-    
+
     // Make sure all menus are properly registered after a small delay
     // This gives Cocos2d time to properly layout everything
     runAction(CCSequence::create(
@@ -278,122 +261,113 @@ void TwitchDashboard::refreshCommandsList()
         CCCallFunc::create(this, callfunc_selector(TwitchDashboard::ensureMenusRegistered)),
         nullptr
     ));
-}
+};
 
-void TwitchDashboard::setupCommandInput()
-{
+void TwitchDashboard::setupCommandInput() {
     // Create "Add Command" button that opens a popup
     m_commandControlsMenu = CCMenu::create();
     m_commandControlsMenu->setID("command-controls-menu");
-    
+
     // Set content size to be same width as popup and 25 in height
     auto layerSize = m_mainLayer->getContentSize();
     m_commandControlsMenu->setContentSize(CCSize(layerSize.width, 25.f));
-    
+
     // Create the button with the same height as the menu
     auto addCommandBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Add Command", "goldFont.fnt", "GJ_button_01.png", 0.5f),
         this,
-        menu_selector(TwitchDashboard::onAddCustomCommand));
+        menu_selector(TwitchDashboard::onAddCustomCommand)
+    );
     addCommandBtn->setID("add-command-btn");
-    
+
     // Set content size to match the menu's height
     auto btnSprite = static_cast<ButtonSprite*>(addCommandBtn->getNormalImage());
+
     if (btnSprite) {
         auto btnSize = btnSprite->getContentSize();
         btnSprite->setContentSize(CCSize(btnSize.width, 25.0f));
-    }
-    
+    };
+
     m_commandControlsMenu->addChild(addCommandBtn);
-    
+
     // Position the menu at the bottom center of the screen
     m_commandControlsMenu->setPosition(layerSize.width / 2, 10.f);
-    
-    m_mainLayer->addChild(m_commandControlsMenu);
-}
 
-void TwitchDashboard::setupCommandListening()
-{
+    m_mainLayer->addChild(m_commandControlsMenu);
+};
+
+void TwitchDashboard::setupCommandListening() {
     auto api = TwitchChatAPI::get();
-    if (!api)
-    {
+    if (!api) {
         log::error("TwitchChatAPI is not available for command listening");
         return;
-    }
+    };
 
     // Register message callback to listen for custom commands
-    api->registerOnMessageCallback([this](const ChatMessage &chatMessage)
-                                   {
+    api->registerOnMessageCallback([this](const ChatMessage& chatMessage) {
         std::string message = chatMessage.getMessage();
         std::string username = chatMessage.getUsername();
         std::string messageId = chatMessage.getMessageID();
-        
+
         // Check if message starts with '!' (command prefix)
-        if (message.empty() || message[0] != '!') {
-            return;
-        }
-        
+        if (message.empty() || message[0] != '!') return;
+
         // Extract command name (everything after '!' until first space)
         std::string command = message.substr(1); // Remove '!'
         size_t spacePos = command.find(' ');
         std::string commandName = command.substr(0, spacePos);
         std::string args = (spacePos != std::string::npos) ? command.substr(spacePos + 1) : "";
-        
+
         // Get command manager and check if command exists
         auto commandManager = TwitchCommandManager::getInstance();
         auto& commands = commandManager->getCommands();
-        
+
         for (const auto& cmd : commands) {
             if (cmd.name == commandName && cmd.enabled) {
-                log::info("Command '{}' triggered by user '{}' (message ID: {}) with args: '{}'", 
-                         commandName, username, messageId, args);
+                log::info("Command '{}' triggered by user '{}' (message ID: {}) with args: '{}'",
+                          commandName, username, messageId, args);
                 // use Notification::create when user uses the command
                 Notification::create(
                     fmt::format("Command '{}' triggered by user '{}'", commandName, username),
                     NotificationIcon::Success
                 )->show();
-                
+
                 // Execute command callback if available
-                if (cmd.callback) {
-                    cmd.callback(args);
-                }
+                if (cmd.callback) cmd.callback(args);
                 break;
-            }
-        } });
+            };
+        }; });
 
-    log::info("Command listening setup complete");
-}
+        log::info("Command listening setup complete");
+};
 
-void TwitchDashboard::onClose(CCObject *sender)
-{
+void TwitchDashboard::onClose(CCObject* sender) {
     // Make sure to unschedule any delayed refreshes when closing
-    this->unschedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList));
-    
-    // Stop any pending actions
-    this->stopAllActions();
-    
-    Popup::onClose(sender);
-}
+    unschedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList));
 
-void TwitchDashboard::onAddCustomCommand(CCObject *sender)
-{
+    // Stop any pending actions
+    stopAllActions();
+
+    Popup::onClose(sender);
+};
+
+void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
     // Open the command input popup
-    auto popup = CommandInputPopup::create([this](const std::string &commandName, const std::string &commandDesc)
-                                           {
+    auto popup = CommandInputPopup::create([this](const std::string& commandName, const std::string& commandDesc) {
         // This callback is called when user adds a command
         auto commandManager = TwitchCommandManager::getInstance();
-        
+
         // Create a new command that logs when triggered
         TwitchCommand newCmd(commandName, commandDesc, "Custom command: " + commandDesc);
         newCmd.callback = [commandName, commandDesc](const std::string& args) {
             log::info("Custom command '{}' ({}) triggered with args: '{}'", commandName, commandDesc, args);
-        };
-        
+            };
+
         commandManager->addCommand(newCmd);
         refreshCommandsList();
-        
+
         log::info("Added custom command: {} - {}", commandName, commandDesc);
-        
+
         // Show success message
         FLAlertLayer::create(
             "Success",
@@ -401,49 +375,43 @@ void TwitchDashboard::onAddCustomCommand(CCObject *sender)
             "OK"
         )->show(); });
 
-    if (popup)
-    {
-        popup->show();
-    }
-}
+    if (popup) popup->show();
+};
 
-void TwitchDashboard::onDeleteCommand(CCObject* sender)
-{
+void TwitchDashboard::onDeleteCommand(CCObject* sender) {
     // Sound effect is handled automatically by CCMenuItemSpriteExtra
-    
+
     // Get the menu item that was clicked
     auto menuItem = static_cast<CCMenuItem*>(sender);
-    if (!menuItem || !menuItem->getUserObject())
-    {
+    if (!menuItem || !menuItem->getUserObject()) {
         log::error("Invalid delete button clicked");
         return;
-    }
+    };
 
     // Get the command name from the user object
     auto commandNameObj = static_cast<CCString*>(menuItem->getUserObject());
     std::string commandName = commandNameObj->getCString();
-    
+
     // Temporarily disable the button to prevent double clicks
     menuItem->setEnabled(false);
-    
+
     // Also find and disable the entire parent menu
     auto parent = menuItem->getParent();
-    if (auto menu = typeinfo_cast<CCMenu*>(parent)) {
-        menu->setEnabled(false);
-    }
-    
+    if (auto menu = typeinfo_cast<CCMenu*>(parent)) menu->setEnabled(false);
+
     // Find and visually disable the parent command item as well
     auto commandItem = menuItem->getParent()->getParent();
+
     if (commandItem) {
         // Add a slight fade effect to indicate deletion
         commandItem->runAction(CCFadeTo::create(0.2f, 120));
-    }
-    
+    };
+
     log::info("Deleting command: {}", commandName);
-    
+
     // Store the command name to delete in a member variable
     m_commandToDelete = commandName;
-    
+
     // Process command deletion after a brief delay to allow the click to fully register
     // and for the fade animation to be visible
     runAction(CCSequence::create(
@@ -451,47 +419,40 @@ void TwitchDashboard::onDeleteCommand(CCObject* sender)
         CCCallFunc::create(this, callfunc_selector(TwitchDashboard::processDeleteCommand)),
         nullptr
     ));
-}
+};
 
-void TwitchDashboard::processDeleteCommand()
-{
+void TwitchDashboard::processDeleteCommand() {
     // Get the stored command name and clear it
     std::string commandName = m_commandToDelete;
     m_commandToDelete = "";
-    
+
     if (commandName.empty()) {
         log::error("No command to delete");
         return;
-    }
-    
+    };
+
     // Delete the command
     auto commandManager = TwitchCommandManager::getInstance();
     commandManager->removeCommand(commandName);
-    
-    log::info("Command deleted: {}", commandName);
-    
-    // Schedule a refresh with a slightly longer delay to ensure all events are processed
-    this->schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
-}
 
-void TwitchDashboard::delayedRefreshCommandsList(float dt)
-{
+    log::info("Command deleted: {}", commandName);
+
+    // Schedule a refresh with a slightly longer delay to ensure all events are processed
+    schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
+};
+
+void TwitchDashboard::delayedRefreshCommandsList(float dt) {
     // Unschedule to ensure this only runs once
-    this->unschedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList));
-    
+    unschedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList));
+
     // Refresh the commands list
     refreshCommandsList();
-    
+
     // Log for debugging
     log::debug("Commands list refreshed via delayed callback");
-}
+};
 
-
-
-
-
-TwitchDashboard *TwitchDashboard::create()
-{
+TwitchDashboard* TwitchDashboard::create() {
     auto ret = new TwitchDashboard();
 
     // Calculate appropriate size based on window size (same logic as in setup())
@@ -505,7 +466,7 @@ TwitchDashboard *TwitchDashboard::create()
     float scaleX = winSize.width / baseWidth;
     float scaleY = winSize.height / baseHeight;
     float scaleFactor = std::min(scaleX, scaleY) * 0.8f; // Use 80% of available space
-    scaleFactor = std::min(scaleFactor, 1.0f);           // Don't scale up, only down if needed
+    scaleFactor = std::min(scaleFactor, 1.0f); // Don't scale up, only down if needed
 
     // Apply scale factor to get final size
     float width = baseWidth * scaleFactor;
@@ -515,8 +476,7 @@ TwitchDashboard *TwitchDashboard::create()
     width = std::max(width, 525.f);
     height = std::max(height, 280.f);
 
-    if (ret && ret->initAnchored(width, height))
-    {
+    if (ret && ret->initAnchored(width, height)) {
         ret->autorelease();
         return ret;
     };
@@ -525,7 +485,6 @@ TwitchDashboard *TwitchDashboard::create()
     return nullptr;
 };
 
-TwitchDashboard::~TwitchDashboard()
-{
+TwitchDashboard::~TwitchDashboard() {
     log::debug("TwitchDashboard destructor called");
-}
+};

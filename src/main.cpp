@@ -16,8 +16,8 @@ class $modify(MyCreatorLayer, CreatorLayer) {
         );
 
         // Find an existing menu to add our button to, or create a new one
-        auto menu = this->getChildByID("creator-buttons-menu");
-        if (!menu) menu = this->getChildByID("social-media-menu");
+        auto menu = getChildByID("creator-buttons-menu");
+        if (!menu) menu = getChildByID("social-media-menu");
 
         if (menu) {
             static_cast<CCMenu*>(menu)->addChild(twitchBtn);
@@ -29,7 +29,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
             newMenu->addChild(twitchBtn);
             newMenu->setPosition(CCDirector::sharedDirector()->getWinSize().width - 50, 50);
 
-            this->addChild(newMenu);
+            addChild(newMenu);
         };
 
         return true;
