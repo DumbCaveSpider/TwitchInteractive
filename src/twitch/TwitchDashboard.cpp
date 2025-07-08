@@ -144,9 +144,14 @@ CCMenuItem* TwitchDashboard::createDeleteButton(const std::string& commandName)
     // Store the command name for deletion in the user object
     deleteBtn->setUserObject(CCString::create(commandName));
     
-    // Make the button slightly larger for easier clicking
-    auto btnSize = deleteBtn->getContentSize();
-    deleteBtn->setContentSize({btnSize.width * 1.5f, btnSize.height * 1.5f});
+    // Make the hit area fill the entire menu size
+    deleteBtn->setContentSize({40, 40});
+    
+    // Center the sprite within the larger hit area
+    auto sprite = deleteBtn->getNormalImage();
+    if (sprite) {
+        sprite->setPosition(20, 20); // Center position within 40x40 area
+    }
     
     return deleteBtn;
 }
@@ -171,11 +176,7 @@ void TwitchDashboard::ensureMenusRegistered()
                 CCARRAY_FOREACH(itemChildren, itemChild) {
                     auto menu = dynamic_cast<CCMenu*>(itemChild);
                     if (menu && menu->getID().find("delete-menu-") != std::string::npos) {
-                        // Register with high priority - don't need to unregister first
-                        // as CCMenu handles that internally with its registerWithTouchDispatcher
                         menu->registerWithTouchDispatcher();
-                        
-                        // Log for debugging
                         log::debug("Re-registered menu: {}", menu->getID().c_str());
                     }
                 }
@@ -231,14 +232,14 @@ void TwitchDashboard::refreshCommandsList()
         
         // Command name label - positioned on the left side
         auto nameLabel = CCLabelBMFont::create(("!" + command.name).c_str(), "bigFont.fnt");
-        nameLabel->setScale(0.4f);
+        nameLabel->setScale(0.5f);
         nameLabel->setAnchorPoint({0.0f, 0.5f}); // Left-aligned
         nameLabel->setPosition(leftPadding, itemHeight/2 + 5); // Top half of container
         commandItem->addChild(nameLabel);
 
         // Command description label - positioned on the left side below the name
         auto descLabel = CCLabelBMFont::create(command.description.c_str(), "chatFont.fnt");
-        descLabel->setScale(0.35f);
+        descLabel->setScale(0.5f);
         descLabel->setAnchorPoint({0.0f, 0.5f}); // Left-aligned
         descLabel->setPosition(leftPadding, itemHeight/2 - 8); // Bottom half of container
         commandItem->addChild(descLabel);
@@ -252,10 +253,10 @@ void TwitchDashboard::refreshCommandsList()
         deleteMenu->addChild(deleteBtn);
         
         // Position menu at right side of the item, center vertically
-        deleteMenu->setPosition(scrollWidth - 25, itemHeight/2);
+        deleteMenu->setPosition(scrollWidth - 30, itemHeight / 2);
         
-        // Make sure menu has sufficient size for hit detection
-        deleteMenu->setContentSize({45, 45});
+        // Make menu size match the button size
+        deleteMenu->setContentSize({40, 40});
         
         // Set high touch priority to ensure buttons are clickable
         deleteMenu->setTouchPriority(-130); // Higher priority than default
