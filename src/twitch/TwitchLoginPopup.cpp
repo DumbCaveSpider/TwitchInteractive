@@ -12,6 +12,10 @@ bool TwitchLoginPopup::setup() {
 
     setTitle("Twitch Connection");
 
+    // Set IDs for the login popup elements
+    this->setID("twitch-login-popup");
+    m_mainLayer->setID("twitch-login-main-layer");
+
     // Get channel name first to determine button text
     std::string channelName = "";
 
@@ -38,6 +42,7 @@ bool TwitchLoginPopup::setup() {
         this,
         menu_selector(TwitchLoginPopup::onLoginPressed)
     );
+    loginBtn->setID("twitch-login-main-button");
 
     m_loginMenu = CCMenu::create();
     m_loginMenu->addChild(loginBtn);
@@ -45,6 +50,7 @@ bool TwitchLoginPopup::setup() {
     // Center the menu within the popup's main layer
     auto layerSize = m_mainLayer->getContentSize();
     m_loginMenu->setPosition(layerSize.width / 2, layerSize.height / 2);
+    m_loginMenu->setID("twitch-login-menu");
 
     m_mainLayer->addChild(m_loginMenu);
 
@@ -54,6 +60,7 @@ bool TwitchLoginPopup::setup() {
         userLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 50);
         userLabel->setScale(0.4f);
         userLabel->setAlignment(kCCTextAlignmentCenter);
+        userLabel->setID("twitch-login-user-label");
         m_mainLayer->addChild(userLabel);
     };
 
@@ -63,12 +70,14 @@ bool TwitchLoginPopup::setup() {
     m_statusLabel->setScale(0.5f);
     m_statusLabel->setAlignment(kCCTextAlignmentCenter);
     m_statusLabel->setVisible(false);
+    m_statusLabel->setID("twitch-login-status-label");
     m_mainLayer->addChild(m_statusLabel);
 
     // Create empty menu for logged in state (no refresh button)
     m_loggedInMenu = CCMenu::create();
     m_loggedInMenu->setPosition(layerSize.width / 2, layerSize.height / 2 - 25);
     m_loggedInMenu->setVisible(false);
+    m_loggedInMenu->setID("twitch-login-logged-in-menu");
     m_mainLayer->addChild(m_loggedInMenu);
 
     return true;
