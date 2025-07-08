@@ -75,11 +75,11 @@ bool CommandInputPopup::setup() {
     m_mainLayer->addChild(buttonMenu);
 
     return true;
-}
+};
 
 void CommandInputPopup::setCallback(std::function<void(const std::string&, const std::string&)> callback) {
     m_callback = callback;
-}
+};
 
 void CommandInputPopup::onAdd(CCObject* sender) {
     // Get the command name from the text input
@@ -101,13 +101,12 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             "Please enter a command name",
             "OK"
         )->show();
+
         return;
-    }
+    };
 
     // Remove any '!' prefix if user added it
-    if (commandName.front() == '!') {
-        commandName = commandName.substr(1);
-    }
+    if (commandName.front() == '!') commandName = commandName.substr(1);
 
     // Check if still empty after removing '!'
     if (commandName.empty()) {
@@ -116,8 +115,9 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             "Please enter a valid command name",
             "OK"
         )->show();
+
         return;
-    }
+    };
 
     // Check for illegal characters in command name
     const std::string illegalChars = "!@#$%^&*()+={}[]|\\:;\"'<>,?/~`";
@@ -127,8 +127,9 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             "Command name contains illegal characters.\nPlease use only letters, numbers, and underscores.",
             "OK"
         )->show();
+
         return;
-    }
+    };
 
     // Check if command already exists
     auto commandManager = TwitchCommandManager::getInstance();
@@ -139,36 +140,35 @@ void CommandInputPopup::onAdd(CCObject* sender) {
                 "A command with this name already exists.\nPlease choose a different name.",
                 "OK"
             )->show();
+
             return;
-        }
-    }
+        };
+    };
 
     // Use default description if none provided
-    if (commandDesc.empty()) {
-        commandDesc = "No description provided";
-    }
+    if (commandDesc.empty()) commandDesc = "No description provided";
 
     // Call the callback with the command name and description
-    if (m_callback) {
-        m_callback(commandName, commandDesc);
-    }
+    if (m_callback) m_callback(commandName, commandDesc);
 
     // Close the popup
     onClose(nullptr);
-}
+};
 
 void CommandInputPopup::onCancel(CCObject* sender) {
     onClose(nullptr);
-}
+};
 
 CommandInputPopup* CommandInputPopup::create(std::function<void(const std::string&, const std::string&)> callback) {
     auto ret = new CommandInputPopup();
+
     if (ret && ret->initAnchored(300.f, 240.f)) { // Increased height for extra field
         ret->autorelease();
         ret->setCallback(callback);
 
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};

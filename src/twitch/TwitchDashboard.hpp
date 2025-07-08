@@ -12,19 +12,19 @@ protected:
     // Commands scroll layer
     ScrollLayer* m_commandScrollLayer = nullptr;
     CCLayer* m_commandLayer = nullptr;
-    
+
     // Command input elements
     CCMenu* m_commandControlsMenu = nullptr;
-    
+
     // Command management state
     std::string m_commandToDelete;
 
     bool setup() override;
     void onClose(CCObject* sender) override;
-    
+
     // Destructor for cleanup
     ~TwitchDashboard();
-    
+
     // Command management
     void setupCommandsList();
     void setupCommandInput();
@@ -33,10 +33,9 @@ protected:
     void delayedRefreshCommandsList(float dt);
     void onAddCustomCommand(CCObject* sender);
     void onDeleteCommand(CCObject* sender);
-    void processDeleteCommand();
-    void ensureMenusRegistered();
-    CCMenuItem* createDeleteButton(const std::string& commandName);
-    
+
 public:
+    void processDeleteCommand(TwitchCommand command);
+
     static TwitchDashboard* create();
 };

@@ -1,5 +1,6 @@
 #include "TwitchDashboard.hpp"
 #include "TwitchCommandManager.hpp"
+#include "CommandNode.hpp"
 #include "CommandInputPopup.hpp"
 
 #include <Geode/Geode.hpp>
@@ -55,7 +56,7 @@ bool TwitchDashboard::setup() {
 
     // Create single scroll layer for commands (centered)
     float scrollWidth = layerSize.width * 0.9f;  // Use 90% of width for single column
-    float scrollHeight = layerSize.height - 80; // Leave space for buttons
+    float scrollHeight = layerSize.height - 80.f; // Leave space for buttons
 
     // Create background as parent container
     auto scrollBg = CCScale9Sprite::create("square02_001.png");
@@ -119,62 +120,6 @@ void TwitchDashboard::setupCommandsList() {
     refreshCommandsList();
 };
 
-CCMenuItem* TwitchDashboard::createDeleteButton(const std::string& commandName) {
-    // Create delete button sprite with proper scaling
-    auto deleteSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
-    deleteSprite->setScale(0.7f); // Slightly larger icon
-
-    // Create button with proper delegate and selector
-    auto deleteBtn = CCMenuItemSpriteExtra::create(
-        deleteSprite,
-        this,
-        menu_selector(TwitchDashboard::onDeleteCommand)
-    );
-    deleteBtn->setID("delete-btn-" + commandName);
-
-    // Store the command name for deletion in the user object
-    deleteBtn->setUserObject(CCString::create(commandName));
-
-    // Make the button have a consistent size for better hit detection
-    // This will be exactly the size of our menu (40x40)
-    deleteBtn->setContentSize({ 40.0f, 40.0f });
-
-    // Center the sprite within the button for better appearance
-    auto btnSprite = deleteBtn->getNormalImage();
-    if (btnSprite) btnSprite->setPosition(20.0f, 20.0f); // Center within the 40x40 area
-
-    return deleteBtn;
-};
-
-void TwitchDashboard::ensureMenusRegistered() {
-    // This function makes sure all delete button menus are properly registered with the touch dispatcher
-    auto children = m_commandLayer->getChildren();
-
-    if (!children) return;
-
-    CCObject* child;
-    CCARRAY_FOREACH(children, child) {
-        auto commandItem = dynamic_cast<CCNode*>(child);
-
-        if (commandItem) {
-            // Find the menu within this command item
-            auto itemChildren = commandItem->getChildren();
-
-            if (itemChildren) {
-                CCObject* itemChild;
-                CCARRAY_FOREACH(itemChildren, itemChild) {
-                    auto menu = dynamic_cast<CCMenu*>(itemChild);
-
-                    if (menu && menu->getID().find("delete-menu-") != std::string::npos) {
-                        menu->registerWithTouchDispatcher();
-                        log::debug("Re-registered menu: {}", menu->getID().c_str());
-                    };
-                };
-            };
-        };
-    };
-};
-
 void TwitchDashboard::refreshCommandsList() {
     // Remove all existing command items
     m_commandLayer->removeAllChildren();
@@ -202,6 +147,7 @@ void TwitchDashboard::refreshCommandsList() {
         noCommandsLabel->setPosition(m_commandLayer->getContentSize().width / 2, m_commandLayer->getContentSize().height / 2);
         noCommandsLabel->setAlignment(kCCTextAlignmentCenter);
         noCommandsLabel->setID("no-commands-label");
+
         m_commandLayer->addChild(noCommandsLabel);
 
         log::warn("No commands found");
@@ -211,85 +157,14 @@ void TwitchDashboard::refreshCommandsList() {
         log::debug("Recreating {} commands", commands.size());
     };
 
-    // Create command items using ColumnLayout
+    // Create command items
     for (const auto& command : commands) {
-        // Create command item container
-        auto commandItem = CCNode::create();
-        commandItem->setID("command-item-" + command.name);
-
-        // Set standard item height
-        const float itemHeight = 40.0f;
-
-        // Calculate width to center within scroll layer
-        float scrollWidth = m_commandScrollLayer->getContentSize().width;
-        float itemWidth = scrollWidth - 10; // Less margin for better filling
-
-        // Set item size for layout to work properly - use full width of scroll layer
-        commandItem->setContentSize(CCSize(scrollWidth, itemHeight));
-
-        // Background - fill the entire command item space
-        auto commandBg = CCScale9Sprite::create("square02_small.png");
-        commandBg->setContentSize(CCSize(itemWidth, itemHeight - 1));
-        commandBg->setPosition(scrollWidth / 2, itemHeight / 2); // Center in the command item
-        commandBg->setOpacity(100);
-
-        commandItem->addChild(commandBg);
-
-        // Left side padding
-        float leftPadding = 15.f;
-
-        // Command name label - positioned on the left side
-        auto nameLabel = CCLabelBMFont::create(("!" + command.name).c_str(), "bigFont.fnt");
-        nameLabel->setScale(0.4f);
-        nameLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
-        nameLabel->setPosition(leftPadding, itemHeight / 2 + 5); // Top half of container
-
-        commandItem->addChild(nameLabel);
-
-        // Command description label - positioned on the left side below the name
-        auto descLabel = CCLabelBMFont::create(command.description.c_str(), "chatFont.fnt");
-        descLabel->setScale(0.35f);
-        descLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
-        descLabel->setPosition(leftPadding, itemHeight / 2 - 8); // Bottom half of container
-
-        commandItem->addChild(descLabel);
-
-        // Create menu with sufficient padding for better touch detection
-        auto deleteMenu = CCMenu::create();
-        deleteMenu->setID("delete-menu-" + command.name);
-
-        // Make sure menu has consistent size for hit detection
-        deleteMenu->setContentSize({ 40, 40 });
-
-        // Create delete button exactly matching the menu's size
-        auto deleteBtn = createDeleteButton(command.name);
-
-        // Add button to menu
-        deleteMenu->addChild(deleteBtn);
-
-        // Position menu at right side of the item, center vertically
-        deleteMenu->setPosition(scrollWidth - 30, itemHeight / 2);
-
-        // Set high touch priority to ensure buttons are clickable
-        deleteMenu->setTouchPriority(-130); // Higher priority than default
-        // CCMenu doesn't use ccTouchesMode, it has its own handling
-
-        commandItem->addChild(deleteMenu);
-
-        // Add to the command layer - ColumnLayout will handle vertical positioning
-        m_commandLayer->addChild(commandItem);
+        // Add to the command layer
+        m_commandLayer->addChild(CommandNode::create(this, command, m_mainLayer->getContentWidth() * 0.9f));
     };
 
     // Let the layout position all items
     m_commandLayer->updateLayout();
-
-    // Make sure all menus are properly registered after a small delay
-    // This gives Cocos2d time to properly layout everything
-    runAction(CCSequence::create(
-        CCDelayTime::create(0.05f),
-        CCCallFunc::create(this, callfunc_selector(TwitchDashboard::ensureMenusRegistered)),
-        nullptr
-    ));
 };
 
 void TwitchDashboard::setupCommandInput() {
@@ -427,61 +302,12 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
     if (popup) popup->show();
 };
 
-void TwitchDashboard::onDeleteCommand(CCObject* sender) {
-    // Sound effect is handled automatically by CCMenuItemSpriteExtra
-
-    // Get the menu item that was clicked
-    auto menuItem = static_cast<CCMenuItem*>(sender);
-
-    if (!menuItem || !menuItem->getUserObject()) {
-        log::error("Invalid delete button clicked");
-        return;
-    };
-
-    // Get the command name from the user object
-    auto commandNameObj = static_cast<CCString*>(menuItem->getUserObject());
-    std::string commandName = commandNameObj->getCString();
-
-    // Temporarily disable the button to prevent double clicks
-    menuItem->setEnabled(false);
-
-    // Also find and disable the entire parent menu
-    auto parent = menuItem->getParent();
-    if (auto menu = typeinfo_cast<CCMenu*>(parent)) menu->setEnabled(false);
-
-    // Find and visually disable the parent command item as well
-    auto commandItem = menuItem->getParent()->getParent();
-    if (commandItem) commandItem->runAction(CCFadeTo::create(0.2f, 120)); // Add a slight fade effect to indicate deletion
-
-    log::info("Deleting command: {}", commandName);
-
-    // Store the command name to delete in a member variable
-    m_commandToDelete = commandName;
-
-    // Process command deletion after a brief delay to allow the click to fully register
-    // and for the fade animation to be visible
-    runAction(CCSequence::create(
-        CCDelayTime::create(0.15f),
-        CCCallFunc::create(this, callfunc_selector(TwitchDashboard::processDeleteCommand)),
-        nullptr
-    ));
-};
-
-void TwitchDashboard::processDeleteCommand() {
-    // Get the stored command name and clear it
-    std::string commandName = m_commandToDelete;
-    m_commandToDelete = "";
-
-    if (commandName.empty()) {
-        log::error("No command to delete");
-        return;
-    };
-
+void TwitchDashboard::processDeleteCommand(TwitchCommand command) {
     // Delete the command
     auto commandManager = TwitchCommandManager::getInstance();
-    commandManager->removeCommand(commandName);
+    commandManager->removeCommand(command.name);
 
-    log::info("Command deleted: {}", commandName);
+    log::info("Command deleted: {}", command.name);
 
     // Schedule a refresh with a slightly longer delay to ensure all events are processed
     schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
@@ -497,10 +323,6 @@ void TwitchDashboard::delayedRefreshCommandsList(float dt) {
     // Log for debugging
     log::debug("Commands list refreshed via delayed callback");
 };
-
-
-
-
 
 TwitchDashboard* TwitchDashboard::create() {
     auto ret = new TwitchDashboard();
