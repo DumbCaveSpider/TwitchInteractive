@@ -10,7 +10,7 @@ using namespace geode::prelude;
 class CommandNode : public CCNode {
 protected:
     TwitchDashboard* m_parent = nullptr;
-    TwitchCommand m_command = TwitchCommand("hello", "Greets the user", "Hello {username}!", 0);
+    TwitchCommand m_command = TwitchCommand("Command Name", "Command Description", "This arguement has no use but the int is the cooldown", 0);
 
     // Cooldown state
     int m_cooldownRemaining = 0;
