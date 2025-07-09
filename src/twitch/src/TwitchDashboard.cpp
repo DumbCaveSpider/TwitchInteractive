@@ -1,7 +1,7 @@
-#include "TwitchDashboard.hpp"
-#include "TwitchCommandManager.hpp"
-#include "CommandNode.hpp"
-#include "CommandInputPopup.hpp"
+#include "../TwitchDashboard.hpp"
+#include "../TwitchCommandManager.hpp"
+#include "../CommandNode.hpp"
+#include "../CommandInputPopup.hpp"
 
 #include <Geode/Geode.hpp>
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>

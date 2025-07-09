@@ -1,6 +1,6 @@
-#include "CommandInputPopup.hpp"
-#include "TwitchCommandManager.hpp"
-#include "TwitchDashboard.hpp"
+#include "../CommandInputPopup.hpp"
+#include "../TwitchCommandManager.hpp"
+#include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
 

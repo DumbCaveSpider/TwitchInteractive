@@ -1,5 +1,5 @@
-#include "TwitchLoginPopup.hpp"
-#include "TwitchDashboard.hpp"
+#include "../TwitchLoginPopup.hpp"
+#include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CreatorLayer.hpp>

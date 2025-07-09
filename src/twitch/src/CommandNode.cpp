@@ -1,5 +1,5 @@
-#include "CommandNode.hpp"
-#include "TwitchDashboard.hpp"
+#include "../CommandNode.hpp"
+#include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
 

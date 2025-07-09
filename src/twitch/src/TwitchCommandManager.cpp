@@ -1,5 +1,5 @@
-#include "TwitchCommandManager.hpp"
-#include "TwitchDashboard.hpp"
+#include "../TwitchCommandManager.hpp"
+#include "../TwitchDashboard.hpp"
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 #include <algorithm>
