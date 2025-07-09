@@ -18,7 +18,7 @@ struct TwitchCommand {
     std::function<void(const std::string&)> callback;
 
     TwitchCommand(const std::string& cmdName, const std::string& cmdDesc, const std::string& cmdResponse, int cooldown = 0)
-        : name(cmdName), description(cmdDesc), response(cmdResponse), cooldownSeconds(cooldown) {}
+        : name(cmdName), description(cmdDesc), response(cmdResponse), cooldownSeconds(cooldown) {};
 };
 
 class TwitchCommandManager {

@@ -22,7 +22,8 @@ void TwitchCommandManager::addCommand(const TwitchCommand& command) {
         if (it->description != command.description) {
             it->description = command.description;
             log::info("Updated command description: {}", command.name);
-        }
+        };
+
         // Update other fields as needed (response, callback, enabled, etc.)
         *it = command;
         log::info("Updated command: {}", command.name);
@@ -35,29 +36,29 @@ void TwitchCommandManager::addCommand(const TwitchCommand& command) {
 
 void TwitchCommandManager::removeCommand(const std::string& name) {
     log::info("TwitchCommandManager::removeCommand called with name: '{}'", name);
-    
+
     // List all commands before removal
     log::info("Current commands before removal:");
     for (const auto& cmd : m_commands) {
         log::info("  - Command: '{}', Description: '{}'", cmd.name, cmd.description);
-    }
-    
+    };
+
     size_t initialSize = m_commands.size();
     auto it = std::remove_if(m_commands.begin(), m_commands.end(),
-                             [&name](const TwitchCommand& cmd) { 
+                             [&name](const TwitchCommand& cmd) {
                                  log::info("Checking command: '{}' against '{}'", cmd.name, name);
-                                 return cmd.name == name; 
+                                 return cmd.name == name;
                              });
 
     if (it != m_commands.end()) {
         m_commands.erase(it, m_commands.end());
         log::info("Removed command: '{}' (removed {} command(s))", name, initialSize - m_commands.size());
-        
+
         // List all commands after removal
         log::info("Current commands after removal:");
         for (const auto& cmd : m_commands) {
             log::info("  - Command: '{}', Description: '{}'", cmd.name, cmd.description);
-        }
+        };
     } else {
         log::warn("Command '{}' not found for removal", name);
     };
@@ -82,7 +83,7 @@ std::unordered_map<std::string, time_t> commandCooldowns;
 
 void resetCommandCooldown(const std::string& commandName) {
     commandCooldowns.erase(commandName);
-}
+};
 
 void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
     std::string message = chatMessage.getMessage();
@@ -124,19 +125,20 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         if (cooldownIt != commandCooldowns.end() && cooldownIt->second > now) {
             log::info("Command '{}' is currently on cooldown ({}s remaining)", commandName, cooldownIt->second - now);
             return;
-        }
+        };
+
         // Set cooldown if needed
         if (it->cooldownSeconds > 0) {
             commandCooldowns[commandName] = now + it->cooldownSeconds;
             log::info("Command '{}' is now on cooldown for {}s", commandName, it->cooldownSeconds);
-        }
+        };
 
         log::info("Executing command: {} for user: {} (Message ID: {})", commandName, username, messageID);
 
         // Notify dashboard to trigger cooldown for this command
         if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup"))) {
             dashboard->triggerCommandCooldown(commandName);
-        }
+        };
 
         // Execute command callback if it exists
         if (it->callback) {
@@ -149,9 +151,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             std::string response = it->response;
             size_t pos = response.find("{username}");
 
-            if (pos != std::string::npos) {
-                response.replace(pos, 10, username);
-            };
+            if (pos != std::string::npos) response.replace(pos, 10, username);
 
             // Log the response (in a real implementation, this would be sent to chat)
             log::info("Command response: {}", response);

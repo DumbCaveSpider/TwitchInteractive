@@ -24,11 +24,13 @@ protected:
 
 public:
     static CommandInputPopup* create(std::function<void(const std::string&, const std::string&)> callback);
+
     static CommandInputPopup* createForEdit(
-        const std::string& commandName, 
+        const std::string& commandName,
         const std::string& commandDesc,
         std::function<void(const std::string&, const std::string&)> editCallback
     );
+
     void setCallback(std::function<void(const std::string&, const std::string&)> callback);
     void setupForEdit(const std::string& commandName, const std::string& commandDesc);
 };

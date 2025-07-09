@@ -12,9 +12,9 @@ bool TwitchLoginPopup::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     setTitle("Twitch Connection");
+    setID("twitch-login-popup");
 
     // Set IDs for the login popup elements
-    setID("twitch-login-popup");
     m_mainLayer->setID("twitch-login-main-layer");
 
     // Get channel name first to determine button text
@@ -25,7 +25,6 @@ bool TwitchLoginPopup::setup() {
 
         if (twitchMod) {
             auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
-
             if (!savedChannel.empty()) channelName = savedChannel;
         };
     } catch (const std::exception& e) {
@@ -72,6 +71,7 @@ bool TwitchLoginPopup::setup() {
     m_statusLabel->setAlignment(kCCTextAlignmentCenter);
     m_statusLabel->setVisible(false);
     m_statusLabel->setID("twitch-login-status-label");
+
     m_mainLayer->addChild(m_statusLabel);
 
     // Create empty menu for logged in state (no refresh button)
@@ -79,6 +79,7 @@ bool TwitchLoginPopup::setup() {
     m_loggedInMenu->setPosition(layerSize.width / 2, layerSize.height / 2 - 25);
     m_loggedInMenu->setVisible(false);
     m_loggedInMenu->setID("twitch-login-logged-in-menu");
+
     m_mainLayer->addChild(m_loggedInMenu);
 
     return true;
@@ -121,6 +122,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
     try {
         // Register callback for when connection is established (for new logins)
         auto validityFlag = m_validityFlag; // Capture the shared_ptr by value
+
         api->registerOnConnectedCallback([this, validityFlag]() {
             // Check if this object is still valid using the shared validity flag
             if (!validityFlag || !*validityFlag) {
@@ -201,6 +203,7 @@ void TwitchLoginPopup::checkExistingConnection() {
 
     // Check if the status label still shows "Checking connection status..."
     std::string currentStatus = m_statusLabel->getString();
+
     if (currentStatus != "Checking connection status...") {
         log::debug("Connection check timeout but status already changed to: {}", currentStatus);
         return;
@@ -303,7 +306,6 @@ void TwitchLoginPopup::checkExistingConnection() {
         stopActionByTag(999); // Stop any previous timeout
         timeoutSequence->setTag(999);
         runAction(timeoutSequence);
-
     } catch (const std::exception& e) {
         log::error("Exception during timeout retry: {}", e.what());
         m_statusLabel->setString("Connection error occurred!");
@@ -404,9 +406,7 @@ void TwitchLoginPopup::onAuthenticationTimeout() {
     auto openDashboardAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::openDashboard));
     auto sequence = CCSequence::create(delayAction, openDashboardAction, nullptr);
 
-    if (m_isActive && m_statusLabel) {
-        runAction(sequence);
-    };
+    if (m_isActive && m_statusLabel) runAction(sequence);
 };
 
 bool TwitchLoginPopup::checkTwitchChannelExists() {
@@ -522,7 +522,6 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
         stopActionByTag(999); // Stop any previous timeout
         timeoutSequence->setTag(999);
         runAction(timeoutSequence);
-
     } catch (const std::exception& e) {
         log::error("Exception during retry authentication: {}", e.what());
         m_statusLabel->setString("Connection error occurred!");
@@ -538,6 +537,7 @@ std::string TwitchLoginPopup::getAuthenticatedUsername() {
     try {
         // Get the TwitchChatAPI mod
         auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+
         if (!twitchMod) {
             log::error("TwitchChatAPI mod not found");
             return "";
@@ -566,9 +566,7 @@ std::string TwitchLoginPopup::getAuthenticatedUsername() {
 TwitchLoginPopup::~TwitchLoginPopup() {
     m_isActive = false;
 
-    if (m_validityFlag) {
-        *m_validityFlag = false;
-    };
+    if (m_validityFlag) *m_validityFlag = false;
 
     log::debug("TwitchLoginPopup destructor called");
 };

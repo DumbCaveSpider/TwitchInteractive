@@ -64,7 +64,7 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
         m_cooldownLabel->setString(fmt::format("Cooldown: {}s", m_command.cooldownSeconds).c_str());
     } else {
         m_cooldownLabel->setString("");
-    }
+    };
 
     // Command description label - positioned on the left side below the name
     auto descLabel = CCLabelBMFont::create(m_command.description.c_str(), "chatFont.fnt");
@@ -158,8 +158,6 @@ void CommandNode::onDeleteCommand(CCObject* sender) {
 
     // Delete the command
     m_parent->handleCommandDelete(m_command.name);
-
-
 };
 
 void CommandNode::onEditCommand(CCObject* sender) {
@@ -189,18 +187,21 @@ void CommandNode::triggerCommand() {
         if (m_isOnCooldown) {
             log::info("Command '{}' is currently on cooldown ({}s remaining)", m_command.name, m_cooldownRemaining);
             return;
-        }
+        };
+
         startCooldown();
-    }
-}
+    };
+};
 
 void CommandNode::startCooldown() {
     m_cooldownRemaining = m_command.cooldownSeconds;
     m_isOnCooldown = true;
-    if (m_commandBg) m_commandBg->setColor({255, 0, 0}); // Red
+
+    if (m_commandBg) m_commandBg->setColor({ 255, 0, 0 }); // Red
+
     schedule(schedule_selector(CommandNode::updateCooldown), 1.0f);
     updateCooldown(0);
-}
+};
 
 void CommandNode::updateCooldown(float dt) {
     if (m_cooldownRemaining > 0) {
@@ -208,23 +209,26 @@ void CommandNode::updateCooldown(float dt) {
         m_cooldownRemaining--;
     } else {
         resetCooldown();
-    }
-}
+    };
+};
 
 void CommandNode::resetCooldown() {
     unschedule(schedule_selector(CommandNode::updateCooldown));
     m_isOnCooldown = false;
-    if (m_commandBg) m_commandBg->setColor({255, 255, 255}); // White
+
+    if (m_commandBg) m_commandBg->setColor({ 255, 255, 255 }); // White
+
     if (m_command.cooldownSeconds > 0) {
         m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldownSeconds).c_str());
     } else {
         m_cooldownLabel->setString("");
-    }
-}
+    };
+};
 
 void CommandNode::onCopyCommandName(CCObject* sender) {
     std::string cmd = "!" + m_command.name;
+
     // Copy to clipboard (Geode API)
     geode::utils::clipboard::write(cmd);
     Notification::create(fmt::format("Copied '{}' to clipboard!", cmd), NotificationIcon::Success)->show();
-}
+};

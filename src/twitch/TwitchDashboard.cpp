@@ -303,7 +303,7 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
         TwitchCommand newCmd(commandName, desc, "Custom command: " + desc, cooldown);
         newCmd.callback = [commandName, desc](const std::string& args) {
             log::info("Custom command '{}' ({}) triggered with args: '{}'", commandName, desc, args);
-        };
+            };
 
         commandManager->addCommand(newCmd);
         refreshCommandsList();
@@ -316,7 +316,7 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
             ("Command '!" + commandName + "' added successfully!").c_str(),
             "OK"
         )->show();
-    });
+                                           });
 
     if (popup) popup->show();
 };
@@ -330,7 +330,7 @@ void TwitchDashboard::handleCommandDelete(const std::string& commandName) {
 
     // Schedule a refresh with a slightly longer delay to ensure all events are processed
     schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
-    
+
     // Show success message
     FLAlertLayer::create(
         "Success",
@@ -431,7 +431,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     TwitchCommand newCmd(finalName, desc, "Custom command: " + desc, cooldown);
     newCmd.callback = [finalName, desc](const std::string& args) {
         log::info("Custom command '{}' ({}) triggered with args: '{}'", finalName, desc, args);
-    };
+        };
     newCmd.enabled = oldCommand.enabled;
     // Add the new command
     commandManager->addCommand(newCmd);
@@ -469,10 +469,10 @@ void TwitchDashboard::onEditCommand(CCObject* sender) {
                     if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep) {
                         std::string newName = nameDescCooldown.substr(0, firstSep);
                         std::string newDesc = nameDescCooldown.substr(firstSep + 1);
-                        this->handleCommandEdit(originalName, newName, newDesc);
+                        handleCommandEdit(originalName, newName, newDesc);
                     } else {
                         // Fallback: treat as name|desc
-                        this->handleCommandEdit(originalName, nameDescCooldown.substr(0, firstSep), nameDescCooldown.substr(firstSep + 1));
+                        handleCommandEdit(originalName, nameDescCooldown.substr(0, firstSep), nameDescCooldown.substr(firstSep + 1));
                     }
                 }
             );
