@@ -60,8 +60,8 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     addChild(m_cooldownLabel);
 
     // Set initial cooldown label
-    if (m_command.cooldownSeconds > 0) {
-        m_cooldownLabel->setString(fmt::format("Cooldown: {}s", m_command.cooldownSeconds).c_str());
+    if (m_command.cooldown > 0) {
+        m_cooldownLabel->setString(fmt::format("Cooldown: {}s", m_command.cooldown).c_str());
     } else {
         m_cooldownLabel->setString("");
     };
@@ -183,7 +183,7 @@ CommandNode* CommandNode::create(TwitchDashboard* parent, TwitchCommand command,
 };
 
 void CommandNode::triggerCommand() {
-    if (m_command.cooldownSeconds > 0) {
+    if (m_command.cooldown > 0) {
         if (m_isOnCooldown) {
             log::info("Command '{}' is currently on cooldown ({}s remaining)", m_command.name, m_cooldownRemaining);
             return;
@@ -194,7 +194,7 @@ void CommandNode::triggerCommand() {
 };
 
 void CommandNode::startCooldown() {
-    m_cooldownRemaining = m_command.cooldownSeconds;
+    m_cooldownRemaining = m_command.cooldown;
     m_isOnCooldown = true;
 
     if (m_commandBg) m_commandBg->setColor({ 255, 0, 0 }); // Red
@@ -218,8 +218,8 @@ void CommandNode::resetCooldown() {
 
     if (m_commandBg) m_commandBg->setColor({ 255, 255, 255 }); // White
 
-    if (m_command.cooldownSeconds > 0) {
-        m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldownSeconds).c_str());
+    if (m_command.cooldown > 0) {
+        m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldown).c_str());
     } else {
         m_cooldownLabel->setString("");
     };

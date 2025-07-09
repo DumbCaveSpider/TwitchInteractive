@@ -176,14 +176,14 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     if (commandDesc.empty()) commandDesc = "No description provided";
 
     // Validate cooldown input
-    int cooldownSeconds = 0;
+    int cooldown = 0;
     if (!cooldownStr.empty()) {
         try {
             size_t idx = 0;
-            cooldownSeconds = std::stoi(cooldownStr, &idx);
+            cooldown = std::stoi(cooldownStr, &idx);
 
             if (idx != cooldownStr.size()) throw std::invalid_argument("not int");
-            if (cooldownSeconds < 0) cooldownSeconds = 0;
+            if (cooldown < 0) cooldown = 0;
         } catch (...) {
             FLAlertLayer::create(
                 "Invalid Cooldown",
@@ -195,7 +195,7 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         };
     };
 
-    m_cooldownSeconds = cooldownSeconds;
+    m_cooldownSeconds = cooldown;
 
     // When editing, check if any field has changed (name, desc, or cooldown)
     if (m_isEditing) {

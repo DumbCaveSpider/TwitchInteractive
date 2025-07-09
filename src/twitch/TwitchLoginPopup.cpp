@@ -12,7 +12,7 @@ bool TwitchLoginPopup::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     setTitle("Twitch Connection");
-    setID("twitch-login-popup");
+    setID("twitch-login-popup"_spr);
 
     // Set IDs for the login popup elements
     m_mainLayer->setID("twitch-login-main-layer");

@@ -128,9 +128,9 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         };
 
         // Set cooldown if needed
-        if (it->cooldownSeconds > 0) {
-            commandCooldowns[commandName] = now + it->cooldownSeconds;
-            log::info("Command '{}' is now on cooldown for {}s", commandName, it->cooldownSeconds);
+        if (it->cooldown > 0) {
+            commandCooldowns[commandName] = now + it->cooldown;
+            log::info("Command '{}' is now on cooldown for {}s", commandName, it->cooldown);
         };
 
         log::info("Executing command: {} for user: {} (Message ID: {})", commandName, username, messageID);
