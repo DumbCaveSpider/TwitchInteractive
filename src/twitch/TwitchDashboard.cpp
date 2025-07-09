@@ -9,6 +9,8 @@
 
 using namespace geode::prelude;
 
+extern void resetCommandCooldown(const std::string& commandName);
+
 bool TwitchDashboard::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -111,11 +113,8 @@ void TwitchDashboard::setupCommandsList() {
 
     if (commandManager->getCommands().empty()) {
         // Add default commands
-        TwitchCommand helloCmd("hello", "Greets the user", "Hello {username}!");
+        TwitchCommand helloCmd("welcome", "Welcome to the Twitch Interactive GD Mod!", "");
         commandManager->addCommand(helloCmd);
-
-        TwitchCommand helpCmd("help", "Shows available commands", "Available commands: !hello, !help");
-        commandManager->addCommand(helpCmd);
     };
 
     refreshCommandsList();
@@ -247,17 +246,26 @@ void TwitchDashboard::setupCommandListening() {
 
         for (const auto& cmd : commands) {
             if (cmd.name == commandName && cmd.enabled) {
-                log::info("Command '{}' triggered by user '{}' (message ID: {}) with args: '{}'",
-                          commandName, username, messageId, args);
-
+                // Check cooldown (must match logic in TwitchCommandManager)
+                extern std::unordered_map<std::string, time_t> commandCooldowns;
+                time_t now = time(nullptr);
+                auto cooldownIt = commandCooldowns.find(commandName);
+                if (cooldownIt != commandCooldowns.end() && cooldownIt->second > now) {
+                    log::info("Command '{}' is currently on cooldown ({}s remaining) [UI]", commandName, cooldownIt->second - now);
+                    return;
+                }
                 // Show notification
                 Notification::create(
                     fmt::format("Command '{}' triggered by user '{}'", commandName, username),
                     NotificationIcon::Success
                 )->show();
-
                 // Execute command callback if available
                 if (cmd.callback) cmd.callback(args);
+                // Set cooldown
+                if (cmd.cooldownSeconds > 0) {
+                    commandCooldowns[commandName] = now + cmd.cooldownSeconds;
+                    log::info("Command '{}' is now on cooldown for {}s [UI]", commandName, cmd.cooldownSeconds);
+                }
                 break;
             };
         }; });
@@ -281,16 +289,26 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
         // This callback is called when user adds a command
         auto commandManager = TwitchCommandManager::getInstance();
 
+        // Parse cooldown from commandDesc if present
+        std::string desc = commandDesc;
+        int cooldown = 0;
+        size_t delim = commandDesc.find_last_of('|');
+        if (delim != std::string::npos) {
+            desc = commandDesc.substr(0, delim);
+            std::string cooldownStr = commandDesc.substr(delim + 1);
+            try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
+        }
+
         // Create a new command that logs when triggered
-        TwitchCommand newCmd(commandName, commandDesc, "Custom command: " + commandDesc);
-        newCmd.callback = [commandName, commandDesc](const std::string& args) {
-            log::info("Custom command '{}' ({}) triggered with args: '{}'", commandName, commandDesc, args);
-            };
+        TwitchCommand newCmd(commandName, desc, "Custom command: " + desc, cooldown);
+        newCmd.callback = [commandName, desc](const std::string& args) {
+            log::info("Custom command '{}' ({}) triggered with args: '{}'", commandName, desc, args);
+        };
 
         commandManager->addCommand(newCmd);
         refreshCommandsList();
 
-        log::info("Added custom command: {} - {}", commandName, commandDesc);
+        log::info("Added custom command: {} - {} (cooldown: {}s)", commandName, desc, cooldown);
 
         // Show success message
         FLAlertLayer::create(
@@ -298,7 +316,7 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
             ("Command '!" + commandName + "' added successfully!").c_str(),
             "OK"
         )->show();
-                                           });
+    });
 
     if (popup) popup->show();
 };
@@ -371,39 +389,26 @@ TwitchDashboard::~TwitchDashboard() {
 
 void TwitchDashboard::handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc) {
     auto commandManager = TwitchCommandManager::getInstance();
-    
-    // Only open the edit popup if the callback is called with the combined name|desc string
-    if (newDesc.find('|') != std::string::npos) {
-        m_commandToDelete = originalName; // Store the command name for reference
-        // Find the command to edit
-        for (const auto& cmd : commandManager->getCommands()) {
-            if (cmd.name == originalName) {
-                // Open the command input popup in edit mode
-                auto popup = CommandInputPopup::createForEdit(
-                    originalName, 
-                    cmd.description,
-                    [this](const std::string& originalName, const std::string& nameAndDesc) {
-                        // Parse nameAndDesc which contains both name and description separated by '|'
-                        size_t separatorPos = nameAndDesc.find('|');
-                        if (separatorPos != std::string::npos) {
-                            std::string newName = nameAndDesc.substr(0, separatorPos);
-                            std::string newDesc = nameAndDesc.substr(separatorPos + 1);
-                            this->handleCommandEdit(originalName, newName, newDesc);
-                        }
-                    }
-                );
-                if (popup) popup->show();
-                break;
-            }
-        }
-        return;
+    // Always expect newName = name, newDesc = desc|cooldown
+    std::string finalName = newName;
+    std::string desc = newDesc;
+    int cooldown = 0;
+    size_t firstSep = newDesc.find('|');
+    size_t lastSep = newDesc.rfind('|');
+    if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep) {
+        // Format: desc|cooldown
+        desc = newDesc.substr(0, firstSep);
+        std::string cooldownStr = newDesc.substr(lastSep + 1);
+        try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
+    } else if (firstSep != std::string::npos) {
+        // Format: desc|cooldown (if only one sep)
+        desc = newDesc.substr(0, firstSep);
+        std::string cooldownStr = newDesc.substr(firstSep + 1);
+        try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
     }
-    
-    // This is the actual edit with new values
     // Find the old command
     bool foundOld = false;
     TwitchCommand oldCommand("temp", "temp", "temp"); // Temporary default values
-    
     for (const auto& cmd : commandManager->getCommands()) {
         if (cmd.name == originalName) {
             oldCommand = cmd;
@@ -411,30 +416,28 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
             break;
         }
     }
-    
     if (!foundOld) {
         log::error("Could not find command to edit: {}", originalName);
         return;
     }
-    
     // Remove the old command
     commandManager->removeCommand(originalName);
-    
+    // If cooldown changed, reset cooldown for this command
+    if (cooldown != oldCommand.cooldownSeconds) {
+        resetCommandCooldown(originalName);
+        log::info("Cooldown for command '{}' was changed. Cooldown reset.", originalName);
+    }
     // Create a new command with the updated values
-    TwitchCommand newCmd(newName, newDesc, "Custom command: " + newDesc);
-    newCmd.callback = [newName, newDesc](const std::string& args) {
-        log::info("Custom command '{}' ({}) triggered with args: '{}'", newName, newDesc, args);
+    TwitchCommand newCmd(finalName, desc, "Custom command: " + desc, cooldown);
+    newCmd.callback = [finalName, desc](const std::string& args) {
+        log::info("Custom command '{}' ({}) triggered with args: '{}'", finalName, desc, args);
     };
     newCmd.enabled = oldCommand.enabled;
-    
     // Add the new command
     commandManager->addCommand(newCmd);
-    
-    log::info("Updated command: {} -> {} ({})", originalName, newName, newDesc);
-    
+    log::info("Updated command: {} -> {} ({}) (cooldown: {}s)", originalName, finalName, desc, cooldown);
     // Refresh the commands list
     refreshCommandsList();
-    
     // Show success message
     FLAlertLayer::create(
         "Success",
@@ -454,21 +457,39 @@ void TwitchDashboard::onEditCommand(CCObject* sender) {
     auto commandManager = TwitchCommandManager::getInstance();
     for (const auto& cmd : commandManager->getCommands()) {
         if (cmd.name == commandName) {
-            // Open the command input popup in edit mode
+            // Always pass cooldown, even if 0
+            std::string descForEdit = cmd.description + "|" + std::to_string(cmd.cooldownSeconds);
             auto popup = CommandInputPopup::createForEdit(
                 cmd.name,
-                cmd.description,
-                [this](const std::string& originalName, const std::string& nameAndDesc) {
-                    size_t separatorPos = nameAndDesc.find('|');
-                    if (separatorPos != std::string::npos) {
-                        std::string newName = nameAndDesc.substr(0, separatorPos);
-                        std::string newDesc = nameAndDesc.substr(separatorPos + 1);
+                descForEdit,
+                [this](const std::string& originalName, const std::string& nameDescCooldown) {
+                    // Always parse as name|desc|cooldown
+                    size_t firstSep = nameDescCooldown.find('|');
+                    size_t lastSep = nameDescCooldown.rfind('|');
+                    if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep) {
+                        std::string newName = nameDescCooldown.substr(0, firstSep);
+                        std::string newDesc = nameDescCooldown.substr(firstSep + 1);
                         this->handleCommandEdit(originalName, newName, newDesc);
+                    } else {
+                        // Fallback: treat as name|desc
+                        this->handleCommandEdit(originalName, nameDescCooldown.substr(0, firstSep), nameDescCooldown.substr(firstSep + 1));
                     }
                 }
             );
             if (popup) popup->show();
             break;
+        }
+    }
+};
+
+void TwitchDashboard::triggerCommandCooldown(const std::string& commandName) {
+    if (!m_commandLayer) return;
+    for (auto child : CCArrayExt<CCNode*>(m_commandLayer->getChildren())) {
+        if (auto node = dynamic_cast<CommandNode*>(child)) {
+            if (node->getCommandName() == commandName) {
+                node->triggerCommand();
+                break;
+            }
         }
     }
 }

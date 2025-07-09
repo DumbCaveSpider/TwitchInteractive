@@ -8,6 +8,8 @@ using namespace geode::prelude;
 bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float width) {
     m_parent = parent;
     m_command = command;
+    m_cooldownRemaining = 0;
+    m_isOnCooldown = false;
 
     if (!CCNode::init()) return false;
 
@@ -21,12 +23,12 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     setContentSize(CCSize(width, itemHeight));
 
     // Background - fill the entire command item space
-    auto commandBg = CCScale9Sprite::create("square02_small.png");
-    commandBg->setContentSize(CCSize(itemWidth, itemHeight - 1));
-    commandBg->setPosition(width / 2, itemHeight / 2); // Center in the command item
-    commandBg->setOpacity(100);
+    m_commandBg = CCScale9Sprite::create("square02_small.png");
+    m_commandBg->setContentSize(CCSize(itemWidth, itemHeight - 1));
+    m_commandBg->setPosition(width / 2, itemHeight / 2); // Center in the command item
+    m_commandBg->setOpacity(100);
 
-    addChild(commandBg);
+    addChild(m_commandBg);
 
     // Left side padding
     float leftPadding = 15.f;
@@ -36,15 +38,30 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     nameLabel->setScale(0.4f);
     nameLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
     nameLabel->setPosition(leftPadding, itemHeight / 2 + 5); // Top half of container
-
     addChild(nameLabel);
+
+    // Cooldown label - right next to the command name (dynamic position)
+    m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
+    m_cooldownLabel->setScale(0.4f);
+    m_cooldownLabel->setAnchorPoint({ 0.0f, 0.5f });
+    // Calculate width of nameLabel after scaling
+    float nameLabelWidth = nameLabel->getContentSize().width * nameLabel->getScale();
+    float cooldownPadding = 8.0f; // Space between name and cooldown
+    m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2 + 5);
+    addChild(m_cooldownLabel);
+
+    // Set initial cooldown label
+    if (m_command.cooldownSeconds > 0) {
+        m_cooldownLabel->setString(fmt::format("Cooldown: {}s", m_command.cooldownSeconds).c_str());
+    } else {
+        m_cooldownLabel->setString("");
+    }
 
     // Command description label - positioned on the left side below the name
     auto descLabel = CCLabelBMFont::create(m_command.description.c_str(), "chatFont.fnt");
     descLabel->setScale(0.375f);
     descLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
     descLabel->setPosition(leftPadding, itemHeight / 2 - 8); // Bottom half of container
-
     addChild(descLabel);
 
     // Create menu with sufficient padding for better touch detection
@@ -157,3 +174,41 @@ CommandNode* CommandNode::create(TwitchDashboard* parent, TwitchCommand command,
     ret->autorelease();
     return ret;
 };
+
+void CommandNode::triggerCommand() {
+    if (m_command.cooldownSeconds > 0) {
+        if (m_isOnCooldown) {
+            log::info("Command '{}' is currently on cooldown ({}s remaining)", m_command.name, m_cooldownRemaining);
+            return;
+        }
+        startCooldown();
+    }
+}
+
+void CommandNode::startCooldown() {
+    m_cooldownRemaining = m_command.cooldownSeconds;
+    m_isOnCooldown = true;
+    if (m_commandBg) m_commandBg->setColor({255, 0, 0}); // Red
+    schedule(schedule_selector(CommandNode::updateCooldown), 1.0f);
+    updateCooldown(0);
+}
+
+void CommandNode::updateCooldown(float dt) {
+    if (m_cooldownRemaining > 0) {
+        m_cooldownLabel->setString(fmt::format("({}s)", m_cooldownRemaining).c_str());
+        m_cooldownRemaining--;
+    } else {
+        resetCooldown();
+    }
+}
+
+void CommandNode::resetCooldown() {
+    unschedule(schedule_selector(CommandNode::updateCooldown));
+    m_isOnCooldown = false;
+    if (m_commandBg) m_commandBg->setColor({255, 255, 255}); // White
+    if (m_command.cooldownSeconds > 0) {
+        m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldownSeconds).c_str());
+    } else {
+        m_cooldownLabel->setString("");
+    }
+}

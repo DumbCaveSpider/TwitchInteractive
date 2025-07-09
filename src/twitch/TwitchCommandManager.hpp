@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <unordered_map>
 
 using namespace geode::prelude;
 
@@ -13,10 +14,11 @@ struct TwitchCommand {
     std::string description;
     std::string response;
     bool enabled = true;
+    int cooldownSeconds = 0; // Cooldown in seconds
     std::function<void(const std::string&)> callback;
 
-    TwitchCommand(const std::string& cmdName, const std::string& cmdDesc, const std::string& cmdResponse)
-        : name(cmdName), description(cmdDesc), response(cmdResponse) {}
+    TwitchCommand(const std::string& cmdName, const std::string& cmdDesc, const std::string& cmdResponse, int cooldown = 0)
+        : name(cmdName), description(cmdDesc), response(cmdResponse), cooldownSeconds(cooldown) {}
 };
 
 class TwitchCommandManager {
@@ -35,3 +37,5 @@ public:
 
     void handleChatMessage(const ChatMessage& chatMessage);
 };
+
+extern std::unordered_map<std::string, time_t> commandCooldowns;

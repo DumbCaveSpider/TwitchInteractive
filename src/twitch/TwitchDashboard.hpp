@@ -38,7 +38,7 @@ protected:
     void onEditCommand(CCObject* sender);
     void handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc);
     void handleCommandDelete(const std::string& commandName);
-
 public:
     static TwitchDashboard* create();
+    void triggerCommandCooldown(const std::string& commandName);
 };

@@ -1,7 +1,9 @@
 #include "TwitchCommandManager.hpp"
+#include "TwitchDashboard.hpp"
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace geode::prelude;
 
@@ -75,6 +77,13 @@ std::vector<TwitchCommand>& TwitchCommandManager::getCommands() {
     return m_commands;
 };
 
+// Add a static map to track cooldowns for each command
+std::unordered_map<std::string, time_t> commandCooldowns;
+
+void resetCommandCooldown(const std::string& commandName) {
+    commandCooldowns.erase(commandName);
+}
+
 void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
     std::string message = chatMessage.getMessage();
     std::string username = chatMessage.getUsername();
@@ -109,7 +118,25 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                            });
 
     if (it != m_commands.end()) {
+        // Check cooldown
+        time_t now = time(nullptr);
+        auto cooldownIt = commandCooldowns.find(commandName);
+        if (cooldownIt != commandCooldowns.end() && cooldownIt->second > now) {
+            log::info("Command '{}' is currently on cooldown ({}s remaining)", commandName, cooldownIt->second - now);
+            return;
+        }
+        // Set cooldown if needed
+        if (it->cooldownSeconds > 0) {
+            commandCooldowns[commandName] = now + it->cooldownSeconds;
+            log::info("Command '{}' is now on cooldown for {}s", commandName, it->cooldownSeconds);
+        }
+
         log::info("Executing command: {} for user: {} (Message ID: {})", commandName, username, messageID);
+
+        // Notify dashboard to trigger cooldown for this command
+        if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup"))) {
+            dashboard->triggerCommandCooldown(commandName);
+        }
 
         // Execute command callback if it exists
         if (it->callback) {

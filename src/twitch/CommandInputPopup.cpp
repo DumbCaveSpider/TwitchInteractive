@@ -12,7 +12,7 @@ CCMenu* CommandInputPopup::createButtonMenu() {
     // Create button menu
     auto buttonMenu = CCMenu::create();
     buttonMenu->setID("command-input-button-menu");
-    buttonMenu->setContentSize(CCSize(layerSize.width, 40)); // Set a fixed height for the menu
+    buttonMenu->setContentSize(CCSize(layerSize.width, 5)); // Set a fixed height for the menu
 
     // Only add the Add/Edit button (centered)
     auto addBtn = CCMenuItemSpriteExtra::create(
@@ -45,7 +45,7 @@ bool CommandInputPopup::setup() {
 
     // Create text input for command name
     m_nameInput = TextInput::create(200, "Command name", "bigFont.fnt");
-    m_nameInput->setPosition(layerSize.width / 2, layerSize.height - 75);
+    m_nameInput->setPosition(layerSize.width / 2, layerSize.height - 55);
     m_nameInput->setScale(0.8f);
     m_nameInput->setID("command-input-name-field");
 
@@ -53,11 +53,19 @@ bool CommandInputPopup::setup() {
 
     // Create text input for description
     m_descInput = TextInput::create(200, "Command description", "bigFont.fnt");
-    m_descInput->setPosition(layerSize.width / 2, layerSize.height - 130);
+    m_descInput->setPosition(layerSize.width / 2, layerSize.height - 90);
     m_descInput->setScale(0.8f);
     m_descInput->setID("command-input-desc-field");
 
     m_mainLayer->addChild(m_descInput);
+
+    // Create text input for cooldown seconds
+    m_cooldownInput = TextInput::create(200, "Cooldown (Seconds)", "bigFont.fnt");
+    m_cooldownInput->setPosition(layerSize.width / 2, layerSize.height - 125);
+    m_cooldownInput->setScale(0.8f);
+    m_cooldownInput->setID("command-input-cooldown-field");
+
+    m_mainLayer->addChild(m_cooldownInput);
 
     // Create and add the appropriate button menu
     auto buttonMenu = createButtonMenu();
@@ -74,6 +82,17 @@ void CommandInputPopup::setupForEdit(const std::string& commandName, const std::
     m_isEditing = true;
     m_originalName = commandName;
     m_originalDesc = commandDesc;
+    // Parse cooldown if present
+    size_t delim = commandDesc.find_last_of('|');
+    if (delim != std::string::npos) {
+        std::string desc = commandDesc.substr(0, delim);
+        std::string cooldownStr = commandDesc.substr(delim + 1);
+        m_descInput->setString(desc.c_str());
+        m_cooldownInput->setString(cooldownStr.c_str());
+    } else {
+        m_descInput->setString(commandDesc.c_str());
+        m_cooldownInput->setString("");
+    }
     
     // Update the title to reflect we're in edit mode
     setTitle("Edit Command");
@@ -95,16 +114,13 @@ void CommandInputPopup::setupForEdit(const std::string& commandName, const std::
     if (m_nameInput) {
         m_nameInput->setString(commandName.c_str());
     }
-    
-    if (m_descInput) {
-        m_descInput->setString(commandDesc.c_str());
-    }
 };
 
 void CommandInputPopup::onAdd(CCObject* sender) {
     // Get the command name from the text input
     std::string commandName = m_nameInput->getString();
     std::string commandDesc = m_descInput->getString();
+    std::string cooldownStr = m_cooldownInput->getString();
 
     // Trim whitespace for command name
     commandName.erase(0, commandName.find_first_not_of(" \t\n\r"));
@@ -114,6 +130,10 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     commandDesc.erase(0, commandDesc.find_first_not_of(" \t\n\r"));
     commandDesc.erase(commandDesc.find_last_not_of(" \t\n\r") + 1);
 
+    // Trim whitespace for cooldown
+    cooldownStr.erase(0, cooldownStr.find_first_not_of(" \t\n\r"));
+    cooldownStr.erase(cooldownStr.find_last_not_of(" \t\n\r") + 1);
+
     // Check if command name is empty
     if (commandName.empty()) {
         FLAlertLayer::create(
@@ -121,7 +141,6 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             "Please enter a command name",
             "OK"
         )->show();
-
         return;
     };
 
@@ -129,13 +148,13 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     if (commandName.front() == '!') commandName = commandName.substr(1);
 
     // Check if still empty after removing '!'
+
     if (commandName.empty()) {
         FLAlertLayer::create(
             "Error",
             "Please enter a valid command name",
             "OK"
         )->show();
-
         return;
     };
 
@@ -147,21 +166,48 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             "Command name contains illegal characters.\nPlease use only letters, numbers, and underscores.",
             "OK"
         )->show();
-
         return;
     };
 
     // Use default description if none provided
     if (commandDesc.empty()) commandDesc = "No description provided";
 
-    // When editing, check if no changes were made
+    // Validate cooldown input
+    int cooldownSeconds = 0;
+    if (!cooldownStr.empty()) {
+        try {
+            size_t idx = 0;
+            cooldownSeconds = std::stoi(cooldownStr, &idx);
+            if (idx != cooldownStr.size()) throw std::invalid_argument("not int");
+            if (cooldownSeconds < 0) cooldownSeconds = 0;
+        } catch (...) {
+            FLAlertLayer::create(
+                "Invalid Cooldown",
+                "You must only input a number in the cooldown field.",
+                "OK"
+            )->show();
+            return;
+        }
+    }
+    m_cooldownSeconds = cooldownSeconds;
+
+    // When editing, check if any field has changed (name, desc, or cooldown)
     if (m_isEditing) {
         bool nameChanged = commandName != m_originalName;
         bool descChanged = commandDesc != m_originalDesc;
-        if (!nameChanged && !descChanged) {
+        bool cooldownChanged = false;
+        // Parse original cooldown from m_originalDesc if present
+        int originalCooldown = 0;
+        size_t delim = m_originalDesc.find_last_of('|');
+        if (delim != std::string::npos) {
+            std::string cooldownStrOrig = m_originalDesc.substr(delim + 1);
+            try { originalCooldown = std::stoi(cooldownStrOrig); } catch (...) { originalCooldown = 0; }
+        }
+        cooldownChanged = (originalCooldown != m_cooldownSeconds);
+        if (!nameChanged && !descChanged && !cooldownChanged) {
             FLAlertLayer::create(
                 "No Changes",
-                "You haven't made any changes to the command.\nPlease modify the command field to apply.",
+                "You haven't made any changes to the command.\nPlease modify a field to apply.",
                 "OK"
             )->show();
             return;
@@ -180,9 +226,11 @@ void CommandInputPopup::onAdd(CCObject* sender) {
                 }
             }
         }
-        // Call the callback with the original name and new details
+        // Call the callback with the original name and new details (always include cooldown)
         if (m_callback) {
-            m_callback(m_originalName, commandName + "|" + commandDesc);
+            m_callback(m_originalName, commandName + "|" + commandDesc + "|" + std::to_string(m_cooldownSeconds));
+            // Update m_originalDesc so further edits compare against the new value
+            m_originalDesc = commandDesc + "|" + std::to_string(m_cooldownSeconds);
         }
         onClose(nullptr);
         return;
@@ -199,22 +247,18 @@ void CommandInputPopup::onAdd(CCObject* sender) {
                     "A command with this name already exists.\nPlease choose a different name.",
                     "OK"
                 )->show();
-
                 return;
             };
         };
     }
-
     // Call the callback with the command name and description
-    // For editing, we pass the original name and the new details
     if (m_callback) {
         if (m_isEditing) {
-            m_callback(m_originalName, commandName + "|" + commandDesc);
+            m_callback(m_originalName, commandName + "|" + commandDesc + "|" + std::to_string(m_cooldownSeconds));
         } else {
-            m_callback(commandName, commandDesc);
+            m_callback(commandName, commandDesc + "|" + std::to_string(m_cooldownSeconds));
         }
     }
-
     // Close the popup
     onClose(nullptr);
 };
@@ -222,7 +266,7 @@ void CommandInputPopup::onAdd(CCObject* sender) {
 CommandInputPopup* CommandInputPopup::create(std::function<void(const std::string&, const std::string&)> callback) {
     auto ret = new CommandInputPopup();
 
-    if (ret && ret->initAnchored(300.f, 240.f)) { // Increased height for extra field
+    if (ret && ret->initAnchored(220.f, 200.f)) {
         ret->autorelease();
         ret->setCallback(callback);
 
@@ -240,7 +284,7 @@ CommandInputPopup* CommandInputPopup::createForEdit(
 ) {
     auto ret = new CommandInputPopup();
 
-    if (ret && ret->initAnchored(300.f, 240.f)) {
+    if (ret && ret->initAnchored(220.f, 200.f)) {
         ret->autorelease();
         ret->setCallback(editCallback);
         ret->setupForEdit(commandName, commandDesc);
