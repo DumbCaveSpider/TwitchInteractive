@@ -113,8 +113,8 @@ void TwitchDashboard::setupCommandsList() {
 
     if (commandManager->getCommands().empty()) {
         // Add default commands
-        TwitchCommand helloCmd("welcome", "Welcome to the Twitch Interactive GD Mod!", "");
-        commandManager->addCommand(helloCmd);
+        TwitchCommand welcomeCmd("welcome", "Welcome to the Twitch Interactive GD Mod!", "", 10);
+        commandManager->addCommand(welcomeCmd);
     };
 
     refreshCommandsList();
