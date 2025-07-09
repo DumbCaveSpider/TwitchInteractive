@@ -154,13 +154,37 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     // Use default description if none provided
     if (commandDesc.empty()) commandDesc = "No description provided";
 
-    // When editing, check if no changes were made (allow editing if either name or description changes)
-    if (m_isEditing && commandName == m_originalName && commandDesc == m_originalDesc) {
-        FLAlertLayer::create(
-            "No Changes",
-            "You haven't made any changes to the command.\nPlease modify the command.",
-            "OK"
-        )->show();
+    // When editing, check if no changes were made
+    if (m_isEditing) {
+        bool nameChanged = commandName != m_originalName;
+        bool descChanged = commandDesc != m_originalDesc;
+        if (!nameChanged && !descChanged) {
+            FLAlertLayer::create(
+                "No Changes",
+                "You haven't made any changes to the command.\nPlease modify the command field to apply.",
+                "OK"
+            )->show();
+            return;
+        }
+        // If name changed, check for duplicates
+        if (nameChanged) {
+            auto commandManager = TwitchCommandManager::getInstance();
+            for (const auto& cmd : commandManager->getCommands()) {
+                if (cmd.name == commandName && cmd.name != m_originalName) {
+                    FLAlertLayer::create(
+                        "Error",
+                        "A command with this name already exists.\nPlease choose a different name.",
+                        "OK"
+                    )->show();
+                    return;
+                }
+            }
+        }
+        // Call the callback with the original name and new details
+        if (m_callback) {
+            m_callback(m_originalName, commandName + "|" + commandDesc);
+        }
+        onClose(nullptr);
         return;
     }
 
@@ -168,7 +192,8 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     if (!m_isEditing || (m_isEditing && commandName != m_originalName)) {
         auto commandManager = TwitchCommandManager::getInstance();
         for (const auto& cmd : commandManager->getCommands()) {
-            if (cmd.name == commandName) {
+            // Only block if the name matches another command (not the one being edited)
+            if (cmd.name == commandName && (!m_isEditing || cmd.name != m_originalName)) {
                 FLAlertLayer::create(
                     "Error",
                     "A command with this name already exists.\nPlease choose a different name.",

@@ -68,8 +68,9 @@ bool TwitchDashboard::setup() {
     m_mainLayer->addChild(scrollBg);
 
     // Create a ScrollLayer for commands
-    m_commandScrollLayer = ScrollLayer::create(CCSize(scrollWidth, scrollHeight));
+    m_commandScrollLayer = ScrollLayer::create(CCSize(scrollWidth, scrollHeight - 10.f));
     m_commandScrollLayer->setID("commands-scroll");
+    m_commandScrollLayer->setPositionY(5.f);
 
     // Create a column layout for organizing commands vertically
     auto columnLayout = ColumnLayout::create()
@@ -371,11 +372,9 @@ TwitchDashboard::~TwitchDashboard() {
 void TwitchDashboard::handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc) {
     auto commandManager = TwitchCommandManager::getInstance();
     
-    // Check if this is an actual edit or just opening the edit popup
-    if (originalName == newName && newDesc.find('|') == std::string::npos) {
-        // This is the first call to just open the edit popup with the current command data
+    // Only open the edit popup if the callback is called with the combined name|desc string
+    if (newDesc.find('|') != std::string::npos) {
         m_commandToDelete = originalName; // Store the command name for reference
-        
         // Find the command to edit
         for (const auto& cmd : commandManager->getCommands()) {
             if (cmd.name == originalName) {
@@ -393,12 +392,10 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
                         }
                     }
                 );
-
                 if (popup) popup->show();
                 break;
             }
         }
-        
         return;
     }
     
@@ -450,10 +447,28 @@ void TwitchDashboard::onEditCommand(CCObject* sender) {
     // Handle the edit button click
     auto button = static_cast<CCMenuItemSpriteExtra*>(sender);
     if (!button) return;
-    
     // The command name should be stored in the button's tag or parent node
     auto node = static_cast<CommandNode*>(button->getParent()->getParent());
     if (!node) return;
-    
-    log::info("Edit button clicked, opening edit popup");
+    std::string commandName = node->getCommandName();
+    auto commandManager = TwitchCommandManager::getInstance();
+    for (const auto& cmd : commandManager->getCommands()) {
+        if (cmd.name == commandName) {
+            // Open the command input popup in edit mode
+            auto popup = CommandInputPopup::createForEdit(
+                cmd.name,
+                cmd.description,
+                [this](const std::string& originalName, const std::string& nameAndDesc) {
+                    size_t separatorPos = nameAndDesc.find('|');
+                    if (separatorPos != std::string::npos) {
+                        std::string newName = nameAndDesc.substr(0, separatorPos);
+                        std::string newDesc = nameAndDesc.substr(separatorPos + 1);
+                        this->handleCommandEdit(originalName, newName, newDesc);
+                    }
+                }
+            );
+            if (popup) popup->show();
+            break;
+        }
+    }
 }

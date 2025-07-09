@@ -100,7 +100,7 @@ CCMenuItem* CommandNode::createEditButton() {
 CCMenuItem* CommandNode::createDeleteButton() {
     // Create delete button sprite with proper scaling
     auto deleteBtnSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
-    deleteBtnSprite->setScale(0.8f);
+    deleteBtnSprite->setScale(0.7f);
 
     // Create button with proper delegate and selector
     auto deleteBtn = CCMenuItemSpriteExtra::create(
@@ -142,9 +142,8 @@ void CommandNode::onEditCommand(CCObject* sender) {
 
     log::info("Editing command: {}", m_command.name);
 
-    // Call the parent's edit handler
+    // Only call the parent's edit handler to show the popup
     m_parent->onEditCommand(sender);
-    m_parent->handleCommandEdit(m_command.name, m_command.name, m_command.description);
 };
 
 CommandNode* CommandNode::create(TwitchDashboard* parent, TwitchCommand command, float width) {

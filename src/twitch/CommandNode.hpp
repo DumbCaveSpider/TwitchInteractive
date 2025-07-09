@@ -21,4 +21,5 @@ protected:
     bool init(TwitchDashboard* parent, TwitchCommand command, float width);
 public:
     static CommandNode* create(TwitchDashboard* parent, TwitchCommand command, float width);
+    std::string getCommandName() const { return m_command.name; }
 };
