@@ -5,7 +5,10 @@
 
 using namespace geode::prelude;
 
+class CommandNode;
+
 class TwitchDashboard : public Popup<> {
+    friend class CommandNode;
 protected:
     CCLabelBMFont* m_welcomeLabel = nullptr;
 
@@ -32,10 +35,10 @@ protected:
     void refreshCommandsList();
     void delayedRefreshCommandsList(float dt);
     void onAddCustomCommand(CCObject* sender);
-    void onDeleteCommand(CCObject* sender);
+    void onEditCommand(CCObject* sender);
+    void handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc);
+    void handleCommandDelete(const std::string& commandName);
 
 public:
-    void processDeleteCommand(TwitchCommand command);
-
     static TwitchDashboard* create();
 };

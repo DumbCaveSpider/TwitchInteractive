@@ -16,7 +16,12 @@ void TwitchCommandManager::addCommand(const TwitchCommand& command) {
                            [&command](const TwitchCommand& cmd) { return cmd.name == command.name; });
 
     if (it != m_commands.end()) {
-        // Update existing command
+        // Update existing command if name or description changed
+        if (it->description != command.description) {
+            it->description = command.description;
+            log::info("Updated command description: {}", command.name);
+        }
+        // Update other fields as needed (response, callback, enabled, etc.)
         *it = command;
         log::info("Updated command: {}", command.name);
     } else {
@@ -27,13 +32,30 @@ void TwitchCommandManager::addCommand(const TwitchCommand& command) {
 };
 
 void TwitchCommandManager::removeCommand(const std::string& name) {
+    log::info("TwitchCommandManager::removeCommand called with name: '{}'", name);
+    
+    // List all commands before removal
+    log::info("Current commands before removal:");
+    for (const auto& cmd : m_commands) {
+        log::info("  - Command: '{}', Description: '{}'", cmd.name, cmd.description);
+    }
+    
     size_t initialSize = m_commands.size();
     auto it = std::remove_if(m_commands.begin(), m_commands.end(),
-                             [&name](const TwitchCommand& cmd) { return cmd.name == name; });
+                             [&name](const TwitchCommand& cmd) { 
+                                 log::info("Checking command: '{}' against '{}'", cmd.name, name);
+                                 return cmd.name == name; 
+                             });
 
     if (it != m_commands.end()) {
         m_commands.erase(it, m_commands.end());
-        log::info("Removed command: {} (removed {} command(s))", name, initialSize - m_commands.size());
+        log::info("Removed command: '{}' (removed {} command(s))", name, initialSize - m_commands.size());
+        
+        // List all commands after removal
+        log::info("Current commands after removal:");
+        for (const auto& cmd : m_commands) {
+            log::info("  - Command: '{}', Description: '{}'", cmd.name, cmd.description);
+        }
     } else {
         log::warn("Command '{}' not found for removal", name);
     };
@@ -51,41 +73,6 @@ void TwitchCommandManager::enableCommand(const std::string& name, bool enable) {
 
 std::vector<TwitchCommand>& TwitchCommandManager::getCommands() {
     return m_commands;
-};
-
-void TwitchCommandManager::startListening() {
-    if (m_isListening) {
-        log::warn("Already listening to chat messages");
-        return;
-    };
-
-    auto api = TwitchChatAPI::get();
-    if (!api) {
-        log::error("TwitchChatAPI is not available for command listening");
-        return;
-    };
-
-    // Register callback for chat messages
-    api->registerOnMessageCallback([this](const ChatMessage& chatMessage) {
-        handleChatMessage(chatMessage);
-                                   });
-
-    m_isListening = true;
-    log::info("Started listening for Twitch chat commands");
-};
-
-void TwitchCommandManager::stopListening() {
-    if (!m_isListening) {
-        return;
-    };
-
-    // Note: TwitchChatAPI might not have an unregister method, so we'll just mark as not listening
-    m_isListening = false;
-    log::info("Stopped listening for Twitch chat commands");
-};
-
-bool TwitchCommandManager::isListening() const {
-    return m_isListening;
 };
 
 void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
@@ -148,8 +135,6 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 };
 
 TwitchCommandManager::~TwitchCommandManager() {
-    // Clean up when destroyed
-    stopListening();
     m_commands.clear();
     log::debug("TwitchCommandManager destructor called");
 };

@@ -12,8 +12,10 @@ protected:
     TwitchDashboard* m_parent = nullptr;
     TwitchCommand m_command = TwitchCommand("hello", "Greets the user", "Hello {username}!");
 
+    CCMenuItem* createEditButton();
     CCMenuItem* createDeleteButton();
 
+    void onEditCommand(CCObject* sender);
     void onDeleteCommand(CCObject* sender);
 
     bool init(TwitchDashboard* parent, TwitchCommand command, float width);

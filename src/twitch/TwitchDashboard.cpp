@@ -302,15 +302,22 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
     if (popup) popup->show();
 };
 
-void TwitchDashboard::processDeleteCommand(TwitchCommand command) {
+void TwitchDashboard::handleCommandDelete(const std::string& commandName) {
     // Delete the command
     auto commandManager = TwitchCommandManager::getInstance();
-    commandManager->removeCommand(command.name);
+    commandManager->removeCommand(commandName);
 
-    log::info("Command deleted: {}", command.name);
+    log::info("Command deleted: {}", commandName);
 
     // Schedule a refresh with a slightly longer delay to ensure all events are processed
     schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
+    
+    // Show success message
+    FLAlertLayer::create(
+        "Success",
+        ("Command '!" + commandName + "' deleted successfully!").c_str(),
+        "OK"
+    )->show();
 };
 
 void TwitchDashboard::delayedRefreshCommandsList(float dt) {
@@ -360,3 +367,93 @@ TwitchDashboard* TwitchDashboard::create() {
 TwitchDashboard::~TwitchDashboard() {
     log::debug("TwitchDashboard destructor called");
 };
+
+void TwitchDashboard::handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc) {
+    auto commandManager = TwitchCommandManager::getInstance();
+    
+    // Check if this is an actual edit or just opening the edit popup
+    if (originalName == newName && newDesc.find('|') == std::string::npos) {
+        // This is the first call to just open the edit popup with the current command data
+        m_commandToDelete = originalName; // Store the command name for reference
+        
+        // Find the command to edit
+        for (const auto& cmd : commandManager->getCommands()) {
+            if (cmd.name == originalName) {
+                // Open the command input popup in edit mode
+                auto popup = CommandInputPopup::createForEdit(
+                    originalName, 
+                    cmd.description,
+                    [this](const std::string& originalName, const std::string& nameAndDesc) {
+                        // Parse nameAndDesc which contains both name and description separated by '|'
+                        size_t separatorPos = nameAndDesc.find('|');
+                        if (separatorPos != std::string::npos) {
+                            std::string newName = nameAndDesc.substr(0, separatorPos);
+                            std::string newDesc = nameAndDesc.substr(separatorPos + 1);
+                            this->handleCommandEdit(originalName, newName, newDesc);
+                        }
+                    }
+                );
+
+                if (popup) popup->show();
+                break;
+            }
+        }
+        
+        return;
+    }
+    
+    // This is the actual edit with new values
+    // Find the old command
+    bool foundOld = false;
+    TwitchCommand oldCommand("temp", "temp", "temp"); // Temporary default values
+    
+    for (const auto& cmd : commandManager->getCommands()) {
+        if (cmd.name == originalName) {
+            oldCommand = cmd;
+            foundOld = true;
+            break;
+        }
+    }
+    
+    if (!foundOld) {
+        log::error("Could not find command to edit: {}", originalName);
+        return;
+    }
+    
+    // Remove the old command
+    commandManager->removeCommand(originalName);
+    
+    // Create a new command with the updated values
+    TwitchCommand newCmd(newName, newDesc, "Custom command: " + newDesc);
+    newCmd.callback = [newName, newDesc](const std::string& args) {
+        log::info("Custom command '{}' ({}) triggered with args: '{}'", newName, newDesc, args);
+    };
+    newCmd.enabled = oldCommand.enabled;
+    
+    // Add the new command
+    commandManager->addCommand(newCmd);
+    
+    log::info("Updated command: {} -> {} ({})", originalName, newName, newDesc);
+    
+    // Refresh the commands list
+    refreshCommandsList();
+    
+    // Show success message
+    FLAlertLayer::create(
+        "Success",
+        ("Command '!" + originalName + "' updated successfully!").c_str(),
+        "OK"
+    )->show();
+}
+
+void TwitchDashboard::onEditCommand(CCObject* sender) {
+    // Handle the edit button click
+    auto button = static_cast<CCMenuItemSpriteExtra*>(sender);
+    if (!button) return;
+    
+    // The command name should be stored in the button's tag or parent node
+    auto node = static_cast<CommandNode*>(button->getParent()->getParent());
+    if (!node) return;
+    
+    log::info("Edit button clicked, opening edit popup");
+}

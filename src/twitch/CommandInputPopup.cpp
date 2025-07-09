@@ -1,12 +1,39 @@
 #include "CommandInputPopup.hpp"
 #include "TwitchCommandManager.hpp"
+#include "TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
 
+CCMenu* CommandInputPopup::createButtonMenu() {
+    auto layerSize = m_mainLayer->getContentSize();
+    
+    // Create button menu
+    auto buttonMenu = CCMenu::create();
+    buttonMenu->setID("command-input-button-menu");
+    buttonMenu->setContentSize(CCSize(layerSize.width, 40)); // Set a fixed height for the menu
+
+    // Only add the Add/Edit button (centered)
+    auto addBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create(m_isEditing ? "Edit" : "Add", "bigFont.fnt", "GJ_button_04.png", 0.6f),
+        this,
+        menu_selector(CommandInputPopup::onAdd)
+    );
+    addBtn->setID("command-input-add-btn");
+    float centerX = buttonMenu->getContentSize().width / 2.0f;
+    float centerY = buttonMenu->getContentSize().height / 2.0f;
+    addBtn->setPosition(centerX, centerY);
+    buttonMenu->addChild(addBtn);
+    
+    // Position the menu at the bottom center
+    buttonMenu->setPosition(0, 30);
+    
+    return buttonMenu;
+}
+
 bool CommandInputPopup::setup() {
-    setTitle("Add Command");
+    setTitle(m_isEditing ? "Edit Command" : "Add Command");
 
     auto layerSize = m_mainLayer->getContentSize();
 
@@ -14,13 +41,7 @@ bool CommandInputPopup::setup() {
     setID("command-input-popup");
     m_mainLayer->setID("command-input-main-layer");
 
-    // Create title label for command name
-    m_titleLabel = CCLabelBMFont::create("Command name:", "bigFont.fnt");
-    m_titleLabel->setPosition(layerSize.width / 2, layerSize.height - 50);
-    m_titleLabel->setScale(0.6f);
-    m_titleLabel->setID("command-input-title-label");
 
-    m_mainLayer->addChild(m_titleLabel);
 
     // Create text input for command name
     m_nameInput = TextInput::create(200, "Command name", "bigFont.fnt");
@@ -30,14 +51,6 @@ bool CommandInputPopup::setup() {
 
     m_mainLayer->addChild(m_nameInput);
 
-    // Create label for description
-    m_descLabel = CCLabelBMFont::create("Command description:", "bigFont.fnt");
-    m_descLabel->setPosition(layerSize.width / 2, layerSize.height - 105);
-    m_descLabel->setScale(0.6f);
-    m_descLabel->setID("command-input-desc-label");
-
-    m_mainLayer->addChild(m_descLabel);
-
     // Create text input for description
     m_descInput = TextInput::create(200, "Command description", "bigFont.fnt");
     m_descInput->setPosition(layerSize.width / 2, layerSize.height - 130);
@@ -46,32 +59,8 @@ bool CommandInputPopup::setup() {
 
     m_mainLayer->addChild(m_descInput);
 
-    // Create button menu
-    auto buttonMenu = CCMenu::create();
-
-    // Add button
-    auto addBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Add", "bigFont.fnt", "GJ_button_04.png", 0.6f),
-        this,
-        menu_selector(CommandInputPopup::onAdd)
-    );
-    addBtn->setPosition(-50, 0);
-    addBtn->setID("command-input-add-btn");
-
-    // Cancel button
-    auto cancelBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Cancel", "bigFont.fnt", "GJ_button_06.png", 0.6f),
-        this,
-        menu_selector(CommandInputPopup::onCancel)
-    );
-    cancelBtn->setPosition(50, 0);
-    cancelBtn->setID("command-input-cancel-btn");
-
-    buttonMenu->addChild(addBtn);
-    buttonMenu->addChild(cancelBtn);
-    buttonMenu->setPosition(layerSize.width / 2, layerSize.height / 2 - 60);
-    buttonMenu->setID("command-input-button-menu");
-
+    // Create and add the appropriate button menu
+    auto buttonMenu = createButtonMenu();
     m_mainLayer->addChild(buttonMenu);
 
     return true;
@@ -79,6 +68,37 @@ bool CommandInputPopup::setup() {
 
 void CommandInputPopup::setCallback(std::function<void(const std::string&, const std::string&)> callback) {
     m_callback = callback;
+};
+
+void CommandInputPopup::setupForEdit(const std::string& commandName, const std::string& commandDesc) {
+    m_isEditing = true;
+    m_originalName = commandName;
+    m_originalDesc = commandDesc;
+    
+    // Update the title to reflect we're in edit mode
+    setTitle("Edit Command");
+
+    // Change the add button to an edit button
+    auto buttonMenu = m_mainLayer->getChildByID("command-input-button-menu");
+    if (buttonMenu) {
+        auto editBtn = buttonMenu->getChildByID("command-input-add-btn");
+        auto editBtnSprite = typeinfo_cast<CCMenuItemSpriteExtra*>(editBtn);
+        if (editBtnSprite) {
+            // Update the label inside the button sprite
+            auto btnSprite = static_cast<ButtonSprite*>(editBtnSprite->getNormalImage());
+            if (btnSprite && btnSprite->m_label) {
+                btnSprite->m_label->setString("Edit");
+            }
+        }
+    }
+    
+    if (m_nameInput) {
+        m_nameInput->setString(commandName.c_str());
+    }
+    
+    if (m_descInput) {
+        m_descInput->setString(commandDesc.c_str());
+    }
 };
 
 void CommandInputPopup::onAdd(CCObject* sender) {
@@ -131,31 +151,46 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         return;
     };
 
-    // Check if command already exists
-    auto commandManager = TwitchCommandManager::getInstance();
-    for (const auto& cmd : commandManager->getCommands()) {
-        if (cmd.name == commandName) {
-            FLAlertLayer::create(
-                "Error",
-                "A command with this name already exists.\nPlease choose a different name.",
-                "OK"
-            )->show();
-
-            return;
-        };
-    };
-
     // Use default description if none provided
     if (commandDesc.empty()) commandDesc = "No description provided";
 
+    // When editing, check if no changes were made (allow editing if either name or description changes)
+    if (m_isEditing && commandName == m_originalName && commandDesc == m_originalDesc) {
+        FLAlertLayer::create(
+            "No Changes",
+            "You haven't made any changes to the command.\nPlease modify the command.",
+            "OK"
+        )->show();
+        return;
+    }
+
+    // Check if command already exists (only if we're not editing the same command)
+    if (!m_isEditing || (m_isEditing && commandName != m_originalName)) {
+        auto commandManager = TwitchCommandManager::getInstance();
+        for (const auto& cmd : commandManager->getCommands()) {
+            if (cmd.name == commandName) {
+                FLAlertLayer::create(
+                    "Error",
+                    "A command with this name already exists.\nPlease choose a different name.",
+                    "OK"
+                )->show();
+
+                return;
+            };
+        };
+    }
+
     // Call the callback with the command name and description
-    if (m_callback) m_callback(commandName, commandDesc);
+    // For editing, we pass the original name and the new details
+    if (m_callback) {
+        if (m_isEditing) {
+            m_callback(m_originalName, commandName + "|" + commandDesc);
+        } else {
+            m_callback(commandName, commandDesc);
+        }
+    }
 
     // Close the popup
-    onClose(nullptr);
-};
-
-void CommandInputPopup::onCancel(CCObject* sender) {
     onClose(nullptr);
 };
 
@@ -165,6 +200,25 @@ CommandInputPopup* CommandInputPopup::create(std::function<void(const std::strin
     if (ret && ret->initAnchored(300.f, 240.f)) { // Increased height for extra field
         ret->autorelease();
         ret->setCallback(callback);
+
+        return ret;
+    };
+
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+};
+
+CommandInputPopup* CommandInputPopup::createForEdit(
+    const std::string& commandName, 
+    const std::string& commandDesc,
+    std::function<void(const std::string&, const std::string&)> editCallback
+) {
+    auto ret = new CommandInputPopup();
+
+    if (ret && ret->initAnchored(300.f, 240.f)) {
+        ret->autorelease();
+        ret->setCallback(editCallback);
+        ret->setupForEdit(commandName, commandDesc);
 
         return ret;
     };

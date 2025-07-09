@@ -48,59 +48,56 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     addChild(descLabel);
 
     // Create menu with sufficient padding for better touch detection
-    auto deleteMenu = CCMenu::create();
-    deleteMenu->setID("delete-menu");
-    deleteMenu->ignoreAnchorPointForPosition(false);
+    auto editMenu = CCMenu::create();
+    editMenu->setID("delete-menu");
+    editMenu->ignoreAnchorPointForPosition(false);
 
     // Make sure menu has consistent size for hit detection
-    deleteMenu->setContentSize({ 40, 40 });
+    editMenu->setContentSize({ 40, 40 });
 
     // Create delete button exactly matching the menu's size
     auto deleteBtn = createDeleteButton();
 
     // Add button to menu
-    deleteMenu->addChild(deleteBtn);
+    editMenu->addChild(deleteBtn);
 
     // Position menu at right side of the item, center vertically
-    deleteMenu->setPosition(width - 30, itemHeight / 2);
+    editMenu->setPosition(width - 30, itemHeight / 2);
 
     // Set high touch priority to ensure buttons are clickable
-    deleteMenu->setTouchPriority(-130); // Higher priority than default
+    editMenu->setTouchPriority(-130); // Higher priority than default
     // CCMenu doesn't use ccTouchesMode, it has its own handling
 
-    addChild(deleteMenu);
+    addChild(editMenu);
 
     return true;
 };
 
 CCMenuItem* CommandNode::createDeleteButton() {
-    // Create delete button sprite with proper scaling
-    auto deleteSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
-    deleteSprite->setScale(0.7f); // Slightly larger icon
+    // Create edit button sprite with proper scaling
+    auto editBtnSprite = CCSprite::createWithSpriteFrameName("GJ_editBtn_001.png");
+    editBtnSprite->setScale(0.5f); // Slightly larger icon
 
     // Create button with proper delegate and selector
-    auto deleteBtn = CCMenuItemSpriteExtra::create(
-        deleteSprite,
+    auto editBtn = CCMenuItemSpriteExtra::create(
+        editBtnSprite,
         this,
-        menu_selector(CommandNode::onDeleteCommand)
+        menu_selector(CommandNode::onEditCommand)
     );
-    deleteBtn->setID("delete-btn");
-    deleteBtn->ignoreAnchorPointForPosition(true);
+    editBtn->setID("edit-btn");
+    editBtn->ignoreAnchorPointForPosition(true);
 
     // Make the button have a consistent size for better hit detection
-    // This will be exactly the size of our menu (40x40)
-    deleteBtn->setContentSize({ 40.0f, 40.0f });
+    editBtn->setContentSize({ 40.0f, 40.0f });
 
     // Center the sprite within the button for better appearance
-    auto btnSprite = deleteBtn->getNormalImage();
+    auto btnSprite = editBtn->getNormalImage();
     if (btnSprite) btnSprite->setPosition(20.0f, 20.0f); // Center within the 40x40 area
 
-    return deleteBtn;
+    return editBtn;
 };
 
 void CommandNode::onDeleteCommand(CCObject* sender) {
-    // Sound effect is handled automatically by CCMenuItemSpriteExtra
-
     // Get the menu item that was clicked
     auto menuItem = static_cast<CCMenuItem*>(sender);
 
@@ -109,7 +106,21 @@ void CommandNode::onDeleteCommand(CCObject* sender) {
 
     log::info("Deleting command: {}", m_command.name);
 
-    m_parent->processDeleteCommand(m_command);
+    // Delete the command
+    m_parent->handleCommandDelete(m_command.name);
+
+
+};
+
+void CommandNode::onEditCommand(CCObject* sender) {
+    // Get the menu item that was clicked
+    auto menuItem = static_cast<CCMenuItem*>(sender);
+
+    log::info("Editing command: {}", m_command.name);
+
+    // Call the parent's edit handler
+    m_parent->onEditCommand(sender);
+    m_parent->handleCommandEdit(m_command.name, m_command.name, m_command.description);
 };
 
 CommandNode* CommandNode::create(TwitchDashboard* parent, TwitchCommand command, float width) {

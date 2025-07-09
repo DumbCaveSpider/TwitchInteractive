@@ -33,9 +33,5 @@ public:
     void enableCommand(const std::string& name, bool enable);
     std::vector<TwitchCommand>& getCommands();
 
-    void startListening();
-    void stopListening();
-    bool isListening() const;
-
     void handleChatMessage(const ChatMessage& chatMessage);
 };
