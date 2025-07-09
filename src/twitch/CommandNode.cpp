@@ -48,35 +48,35 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     addChild(descLabel);
 
     // Create menu with sufficient padding for better touch detection
-    auto editMenu = CCMenu::create();
-    editMenu->setID("delete-menu");
-    editMenu->ignoreAnchorPointForPosition(false);
+    auto commandEditMenu = CCMenu::create();
+    commandEditMenu->setID("command-edit-menu");
+    commandEditMenu->ignoreAnchorPointForPosition(false);
+    commandEditMenu->setContentSize({ 80, 40 }); // Wider for two buttons
 
-    // Make sure menu has consistent size for hit detection
-    editMenu->setContentSize({ 40, 40 });
-
-    // Create delete button exactly matching the menu's size
+    // Create edit and delete buttons
+    auto editBtn = createEditButton();
     auto deleteBtn = createDeleteButton();
 
-    // Add button to menu
-    editMenu->addChild(deleteBtn);
+    // Position buttons side by side
+    editBtn->setPosition(0, 0);
+    deleteBtn->setPosition(40, 0);
+
+    // Add buttons to menu
+    commandEditMenu->addChild(editBtn);
+    commandEditMenu->addChild(deleteBtn);
 
     // Position menu at right side of the item, center vertically
-    editMenu->setPosition(width - 30, itemHeight / 2);
-
-    // Set high touch priority to ensure buttons are clickable
-    editMenu->setTouchPriority(-130); // Higher priority than default
-    // CCMenu doesn't use ccTouchesMode, it has its own handling
-
-    addChild(editMenu);
+    commandEditMenu->setPosition(width - 50, itemHeight / 2);
+    commandEditMenu->setTouchPriority(-130);
+    addChild(commandEditMenu);
 
     return true;
 };
 
-CCMenuItem* CommandNode::createDeleteButton() {
+CCMenuItem* CommandNode::createEditButton() {
     // Create edit button sprite with proper scaling
     auto editBtnSprite = CCSprite::createWithSpriteFrameName("GJ_editBtn_001.png");
-    editBtnSprite->setScale(0.5f); // Slightly larger icon
+    editBtnSprite->setScale(0.4f); // Slightly larger icon
 
     // Create button with proper delegate and selector
     auto editBtn = CCMenuItemSpriteExtra::create(
@@ -95,6 +95,30 @@ CCMenuItem* CommandNode::createDeleteButton() {
     if (btnSprite) btnSprite->setPosition(20.0f, 20.0f); // Center within the 40x40 area
 
     return editBtn;
+};
+
+CCMenuItem* CommandNode::createDeleteButton() {
+    // Create delete button sprite with proper scaling
+    auto deleteBtnSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
+    deleteBtnSprite->setScale(0.8f);
+
+    // Create button with proper delegate and selector
+    auto deleteBtn = CCMenuItemSpriteExtra::create(
+        deleteBtnSprite,
+        this,
+        menu_selector(CommandNode::onDeleteCommand)
+    );
+    deleteBtn->setID("delete-btn");
+    deleteBtn->ignoreAnchorPointForPosition(true);
+
+    // Make the button have a consistent size for better hit detection
+    deleteBtn->setContentSize({ 40.0f, 40.0f });
+
+    // Center the sprite within the button for better appearance
+    auto btnSprite = deleteBtn->getNormalImage();
+    if (btnSprite) btnSprite->setPosition(20.0f, 20.0f); // Center within the 40x40 area
+
+    return deleteBtn;
 };
 
 void CommandNode::onDeleteCommand(CCObject* sender) {
