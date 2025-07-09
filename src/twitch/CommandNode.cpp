@@ -33,12 +33,21 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     // Left side padding
     float leftPadding = 15.f;
 
-    // Command name label - positioned on the left side
+    // Command name label - positioned on the left side, clickable
     auto nameLabel = CCLabelBMFont::create(("!" + m_command.name).c_str(), "bigFont.fnt");
     nameLabel->setScale(0.4f);
     nameLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
-    nameLabel->setPosition(leftPadding, itemHeight / 2 + 5); // Top half of container
-    addChild(nameLabel);
+    // Make the command name label clickable (copy to clipboard)
+    auto nameBtn = CCMenuItemLabel::create(nameLabel, this, menu_selector(CommandNode::onCopyCommandName));
+    nameBtn->setID("command-name-btn");
+    nameBtn->setAnchorPoint({ 0.0f, 0.5f });
+    nameBtn->setPosition(leftPadding, itemHeight / 2 + 15);
+    // Create a menu just for this button (so it can receive clicks)
+    auto nameMenu = CCMenu::create();
+    nameMenu->addChild(nameBtn);
+    nameMenu->setPosition(0, 0);
+    nameMenu->setContentSize(nameLabel->getContentSize());
+    addChild(nameMenu);
 
     // Cooldown label - right next to the command name (dynamic position)
     m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
@@ -211,4 +220,11 @@ void CommandNode::resetCooldown() {
     } else {
         m_cooldownLabel->setString("");
     }
+}
+
+void CommandNode::onCopyCommandName(CCObject* sender) {
+    std::string cmd = "!" + m_command.name;
+    // Copy to clipboard (Geode API)
+    geode::utils::clipboard::write(cmd);
+    Notification::create(fmt::format("Copied '{}' to clipboard!", cmd), NotificationIcon::Success)->show();
 }

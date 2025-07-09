@@ -23,6 +23,7 @@ protected:
 
     void onEditCommand(CCObject* sender);
     void onDeleteCommand(CCObject* sender);
+    void onCopyCommandName(CCObject* sender); // Copy command name to clipboard
 
     bool init(TwitchDashboard* parent, TwitchCommand command, float width);
     void startCooldown();
