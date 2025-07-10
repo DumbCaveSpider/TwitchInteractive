@@ -16,12 +16,22 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     m_notificationInput->setPosition(layerSize.width / 2, layerSize.height - 80);
     m_notificationInput->setScale(0.8f);
     m_notificationInput->setID("command-settings-notification-input");
-    // If the command has a notification action, prefill it
+
+    // If the command has a notification action, prefill it with the value if set, otherwise leave blank
+    bool foundCustomNotif = false;
     for (const auto& action : command.actions) {
-        if (action.type == CommandActionType::Notification && !action.arg.empty()) {
-            m_notificationInput->setString(action.arg.c_str());
+        if (action.type == CommandActionType::Notification) {
+            if (!action.arg.empty()) {
+                m_notificationInput->setString(action.arg.c_str());
+            } else {
+                m_notificationInput->setString("");
+            }
+            foundCustomNotif = true;
             break;
         }
+    }
+    if (!foundCustomNotif) {
+        m_notificationInput->setString("");
     }
     m_mainLayer->addChild(m_notificationInput);
 
