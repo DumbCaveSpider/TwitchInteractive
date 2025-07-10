@@ -4,6 +4,7 @@
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
+using namespace cocos2d;
 
 bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float width) {
     m_parent = parent;
@@ -73,31 +74,57 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     descLabel->setPosition(leftPadding, itemHeight / 2 - 8); // Bottom half of container
     addChild(descLabel);
 
+
     // Create menu with sufficient padding for better touch detection
     auto commandEditMenu = CCMenu::create();
     commandEditMenu->setID("command-edit-menu");
     commandEditMenu->ignoreAnchorPointForPosition(false);
-    commandEditMenu->setContentSize({ 80, 40 }); // Wider for two buttons
+    commandEditMenu->setContentSize({ 120, 40 }); // Wider for three buttons
 
-    // Create edit and delete buttons
+    // Create edit, delete, and settings buttons
     auto editBtn = createEditButton();
     auto deleteBtn = createDeleteButton();
+    auto settingsBtn = createSettingsButton();
 
-    // Position buttons side by side
-    editBtn->setPosition(0, 0);
-    deleteBtn->setPosition(40, 0);
 
-    // Add buttons to menu
+    // Position buttons side by side (settings, edit, delete)
+    settingsBtn->setPosition(0, 0);
+    editBtn->setPosition(40, 0);
+    deleteBtn->setPosition(80, 0);
+
+    // Add buttons to menu in new order
+    commandEditMenu->addChild(settingsBtn);
     commandEditMenu->addChild(editBtn);
     commandEditMenu->addChild(deleteBtn);
 
     // Position menu at right side of the item, center vertically
-    commandEditMenu->setPosition(width - 50, itemHeight / 2);
+    commandEditMenu->setPosition(width - 70, itemHeight / 2);
+
     commandEditMenu->setTouchPriority(-130);
     addChild(commandEditMenu);
-
     return true;
-};
+}
+
+
+
+CCMenuItem* CommandNode::createSettingsButton() {
+    // Create settings button sprite with proper scaling
+    auto settingsBtnSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+    settingsBtnSprite->setScale(0.65f);
+
+    // Create button with proper delegate and selector
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsBtnSprite,
+        this,
+        menu_selector(CommandNode::onSettingsCommand)
+    );
+    settingsBtn->setID("settings-btn");
+    settingsBtn->ignoreAnchorPointForPosition(true);
+    settingsBtn->setContentSize({ 40.0f, 40.0f });
+    auto btnSprite = settingsBtn->getNormalImage();
+    if (btnSprite) btnSprite->setPosition(20.0f, 20.0f);
+    return settingsBtn;
+}
 
 CCMenuItem* CommandNode::createEditButton() {
     // Create edit button sprite with proper scaling
@@ -124,6 +151,8 @@ CCMenuItem* CommandNode::createEditButton() {
 };
 
 CCMenuItem* CommandNode::createDeleteButton() {
+
+
     // Create delete button sprite with proper scaling
     auto deleteBtnSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
     deleteBtnSprite->setScale(0.7f);
@@ -231,4 +260,10 @@ void CommandNode::onCopyCommandName(CCObject* sender) {
     // Copy to clipboard (Geode API)
     geode::utils::clipboard::write(cmd);
     Notification::create(fmt::format("Copied '{}' to clipboard!", cmd), NotificationIcon::Success)->show();
-};
+}
+
+void CommandNode::onSettingsCommand(cocos2d::CCObject* sender) {
+    log::info("Settings button clicked for command: {}", m_command.name);
+    // TODO: Implement settings popup or handler
+    Notification::create(fmt::format("Settings for '{}' not implemented yet!", m_command.name), NotificationIcon::Info)->show();
+}

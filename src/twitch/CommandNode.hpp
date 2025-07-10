@@ -18,12 +18,14 @@ protected:
     CCScale9Sprite* m_commandBg = nullptr;
     bool m_isOnCooldown = false;
 
-    CCMenuItem* createEditButton();
-    CCMenuItem* createDeleteButton();
+    cocos2d::CCMenuItem* createEditButton();
+    cocos2d::CCMenuItem* createDeleteButton();
+    cocos2d::CCMenuItem* createSettingsButton();
 
     void onEditCommand(CCObject* sender);
     void onDeleteCommand(CCObject* sender);
     void onCopyCommandName(CCObject* sender); // Copy command name to clipboard
+    void onSettingsCommand(CCObject* sender);
 
     bool init(TwitchDashboard* parent, TwitchCommand command, float width);
     void startCooldown();
