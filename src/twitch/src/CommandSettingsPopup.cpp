@@ -14,7 +14,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
     // initAnchored takes width, height, and then the parameters for setup
-    if (ret && ret->initAnchored(300.f, 200.f, command)) {
+    if (ret && ret->initAnchored(620.f, 325.f, command)) {
         ret->autorelease();
         return ret;
     }

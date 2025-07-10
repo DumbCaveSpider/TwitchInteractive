@@ -265,5 +265,7 @@ void CommandNode::onCopyCommandName(CCObject* sender) {
 
 void CommandNode::onSettingsCommand(cocos2d::CCObject* sender) {
     log::info("Settings button clicked for command: {}", m_command.name);
-    CommandSettingsPopup::create(m_command)->show();
+    auto popup = CommandSettingsPopup::create(m_command);
+    popup->m_noElasticity = true;
+    popup->show();
 };
