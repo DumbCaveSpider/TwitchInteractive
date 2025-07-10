@@ -1,4 +1,5 @@
 #include "../CommandNode.hpp"
+#include "../CommandSettingsPopup.hpp"
 #include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
@@ -264,6 +265,4 @@ void CommandNode::onCopyCommandName(CCObject* sender) {
 
 void CommandNode::onSettingsCommand(cocos2d::CCObject* sender) {
     log::info("Settings button clicked for command: {}", m_command.name);
-    // TODO: Implement settings popup or handler
-    Notification::create(fmt::format("Settings for '{}' not implemented yet!", m_command.name), NotificationIcon::Info)->show();
 }
