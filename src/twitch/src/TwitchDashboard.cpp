@@ -256,11 +256,18 @@ void TwitchDashboard::setupCommandListening() {
                     return;
                 };
 
-                // Show notification
-                Notification::create(
-                    fmt::format("Command '{}' triggered by user '{}'", commandName, username),
-                    NotificationIcon::Success
-                )->show();
+
+                // Show custom notification if set for this command
+                std::string customNotif;
+                for (const auto& action : cmd.actions) {
+                    if (action.type == CommandActionType::Notification && !action.arg.empty()) {
+                        customNotif = action.arg;
+                        break;
+                    }
+                }
+                if (!customNotif.empty()) {
+                    Notification::create(customNotif, NotificationIcon::Success)->show();
+                }
 
                 // Execute command callback if available
                 if (cmd.callback) cmd.callback(args);
