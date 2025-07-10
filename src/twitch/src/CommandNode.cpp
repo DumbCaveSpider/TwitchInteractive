@@ -265,7 +265,7 @@ void CommandNode::onCopyCommandName(CCObject* sender) {
 
 void CommandNode::onSettingsCommand(cocos2d::CCObject* sender) {
     log::info("Settings button clicked for command: {}", m_command.name);
-    // Always fetch the latest command data from the manager before opening the popup
+    // Find the command in the manager to ensure it has the latest data
     auto commandManager = TwitchCommandManager::getInstance();
     for (const auto& cmd : commandManager->getCommands()) {
         if (cmd.name == m_command.name) {

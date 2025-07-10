@@ -16,7 +16,6 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     m_notificationInput->setPosition(layerSize.width / 2, layerSize.height - 80);
     m_notificationInput->setScale(0.8f);
     m_notificationInput->setID("command-settings-notification-input");
-
     // If the command has a notification action, prefill it with the value if set, otherwise leave blank
     bool foundCustomNotif = false;
     for (const auto& action : command.actions) {
@@ -35,6 +34,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     }
     m_mainLayer->addChild(m_notificationInput);
 
+
     // Save button
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
@@ -42,17 +42,35 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         menu_selector(CommandSettingsPopup::onSave)
     );
     saveBtn->setID("command-settings-save-btn");
+
+    // Close button
+    auto closeBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Close", "bigFont.fnt", "GJ_button_06.png", 0.6f),
+        this,
+        menu_selector(CommandSettingsPopup::onCloseBtn)
+    );
+    closeBtn->setID("command-settings-close-btn");
+
+    // Menu for buttons
     auto menu = CCMenu::create();
     menu->addChild(saveBtn);
+    menu->addChild(closeBtn);
+    // Position buttons side by side
+    float spacing = 120.0f;
+    saveBtn->setPosition(-spacing / 2, 0);
+    closeBtn->setPosition(spacing / 2, 0);
     menu->setPosition(layerSize.width / 2, 40);
     m_mainLayer->addChild(menu);
 
     return true;
-};
+}
+
+void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
+    this->onClose(sender);
+}
 
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
-    // initAnchored takes width, height, and then the parameters for setup
     if (ret && ret->initAnchored(620.f, 325.f, command)) {
         ret->autorelease();
         return ret;

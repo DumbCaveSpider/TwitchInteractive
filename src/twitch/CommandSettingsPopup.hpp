@@ -4,11 +4,13 @@
 
 // specify parameters for the setup function in the Popup<...> template
 class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
+
 protected:
     TextInput* m_notificationInput = nullptr;
-    TwitchCommand m_command = TwitchCommand("", "", "", 0); // Provide default constructor values
+    TwitchCommand m_command = TwitchCommand("", "", "", 0);
     bool setup(TwitchCommand command) override;
     void onSave(CCObject* sender);
+    void onCloseBtn(CCObject* sender);
 
 public:
     static CommandSettingsPopup* create(TwitchCommand command);
