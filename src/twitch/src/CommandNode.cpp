@@ -261,8 +261,9 @@ void CommandNode::onCopyCommandName(CCObject* sender) {
     // Copy to clipboard (Geode API)
     geode::utils::clipboard::write(cmd);
     Notification::create(fmt::format("Copied '{}' to clipboard!", cmd), NotificationIcon::Success)->show();
-}
+};
 
 void CommandNode::onSettingsCommand(cocos2d::CCObject* sender) {
     log::info("Settings button clicked for command: {}", m_command.name);
-}
+    CommandSettingsPopup::create(m_command)->show();
+};
