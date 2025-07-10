@@ -12,9 +12,10 @@ using namespace geode::prelude;
 
 // Enums for the type of callbacks
 enum class CommandActionType {
-    Notification = 0, // Show a notification
-    Keybind = 1, // Fire a keybind
-    Chat = 2 // Reply in chat with a message
+    Notification = 0,
+    Keybind = 1, 
+    Chat = 2, 
+    Event = 3 
 };
 
 // A quick command action

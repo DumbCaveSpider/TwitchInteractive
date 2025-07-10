@@ -1,6 +1,7 @@
+
 #include "../TwitchCommandManager.hpp"
 #include "../TwitchDashboard.hpp"
-
+#include "events/PlayLayerEvent.hpp"
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 #include <algorithm>
 #include <unordered_map>
@@ -125,25 +126,35 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         if (cooldownIt != commandCooldowns.end() && cooldownIt->second > now) {
             log::info("Command '{}' is currently on cooldown ({}s remaining)", commandName, cooldownIt->second - now);
             return;
-        };
+        }
 
         // Set cooldown if needed
         if (it->cooldown > 0) {
             commandCooldowns[commandName] = now + it->cooldown;
             log::info("Command '{}' is now on cooldown for {}s", commandName, it->cooldown);
-        };
+        }
 
         log::info("Executing command: {} for user: {} (Message ID: {})", commandName, username, messageID);
 
         // Notify dashboard to trigger cooldown for this command
         if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup"))) {
             dashboard->triggerCommandCooldown(commandName);
-        };
+        }
+
+        // Execute kill player if enabled for this command
+        for (const auto& action : it->actions) {
+            log::info("[TwitchCommandManager] Checking action: type={}, arg={}", (int)action.type, action.arg);
+            if (action.type == CommandActionType::Event && action.arg == "kill_player") {
+                log::info("[TwitchCommandManager] Triggering kill player event for command: {}", commandName);
+                PlayLayerEvent::killPlayer();
+                break;
+            }
+        }
 
         // Execute command callback if it exists
         if (it->callback) {
             it->callback(commandArgs);
-        };
+        }
 
         // For now, just log the response since we don't have a send method
         if (!it->response.empty()) {
@@ -155,10 +166,10 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
             // Log the response (in a real implementation, this would be sent to chat)
             log::info("Command response: {}", response);
-        };
+        }
     } else {
         log::debug("Command '{}' not found or disabled", commandName);
-    };
+    }
 };
 
 TwitchCommandManager::~TwitchCommandManager() {
