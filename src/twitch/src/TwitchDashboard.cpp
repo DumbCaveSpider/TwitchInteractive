@@ -1,7 +1,9 @@
 #include "../TwitchDashboard.hpp"
 #include "../TwitchCommandManager.hpp"
 #include "../CommandNode.hpp"
+
 #include "../CommandInputPopup.hpp"
+#include "events/PlayLayerEvent.hpp"
 
 #include <Geode/Geode.hpp>
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
@@ -112,8 +114,13 @@ void TwitchDashboard::setupCommandsList() {
     auto commandManager = TwitchCommandManager::getInstance();
 
     if (commandManager->getCommands().empty()) {
-        // Add default commands
-        TwitchCommand welcomeCmd("welcome", "Welcome to the Twitch Interactive GD Mod!", "", 10);
+        // Add default commands with a custom notification as the third argument
+        TwitchCommand welcomeCmd(
+            "welcome",
+            "Welcome to the Twitch Interactive GD Mod!",
+            "",
+            10
+        );
         commandManager->addCommand(welcomeCmd);
     };
 
@@ -159,8 +166,11 @@ void TwitchDashboard::refreshCommandsList() {
 
     // Create command items
     for (const auto& command : commands) {
-        // Add to the command layer
-        m_commandLayer->addChild(CommandNode::create(this, command, m_mainLayer->getContentWidth() * 0.9f));
+        m_commandLayer->addChild(CommandNode::create(
+            this,
+            command,
+            m_mainLayer->getContentWidth() * 0.9f
+        ));
     };
 
     // Let the layout position all items
@@ -256,17 +266,25 @@ void TwitchDashboard::setupCommandListening() {
                     return;
                 };
 
-
                 // Show custom notification if set for this command
                 std::string customNotif;
+                bool killPlayerEvent = false;
                 for (const auto& action : cmd.actions) {
                     if (action.type == CommandActionType::Notification && !action.arg.empty()) {
                         customNotif = action.arg;
-                        break;
+                    }
+                    if (action.type == CommandActionType::Event && action.arg == "kill_player") {
+                        killPlayerEvent = true;
                     }
                 }
                 if (!customNotif.empty()) {
                     Notification::create(customNotif, NotificationIcon::Success)->show();
+                }
+
+                // If kill player event is enabled, trigger it
+                if (killPlayerEvent) {
+                    PlayLayerEvent::killPlayer();
+                    log::info("Triggered kill player event for command '{}' from Twitch chat", commandName);
                 }
 
                 // Execute command callback if available
