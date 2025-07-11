@@ -1,7 +1,4 @@
 #include "PlayLayerEvent.hpp"
-
-
-
 #include <Geode/loader/Loader.hpp>
 
 namespace {

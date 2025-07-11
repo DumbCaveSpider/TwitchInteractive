@@ -191,5 +191,6 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             break;
         }
     }
+    commandManager->saveCommands();
     this->onClose(nullptr);
 }

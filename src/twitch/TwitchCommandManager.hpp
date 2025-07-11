@@ -33,6 +33,8 @@ struct TwitchCommandAction {
 
 // Template for a command
 struct TwitchCommand {
+    matjson::Value toJson() const;
+    static TwitchCommand fromJson(const matjson::Value& v);
     std::string name; // All lowercase name of the command
     std::string description; // Brief description of the command
 
@@ -57,6 +59,8 @@ class TwitchCommandManager {
 private:
     std::vector<TwitchCommand> m_commands;
     bool m_isListening = false;
+    void loadCommands();
+    std::string getSavePath() const;
 
 public:
     static TwitchCommandManager* getInstance();
@@ -66,6 +70,8 @@ public:
     void removeCommand(const std::string& name);
     void enableCommand(const std::string& name, bool enable);
     std::vector<TwitchCommand>& getCommands();
+
+    void saveCommands();
 
     void handleChatMessage(const ChatMessage& chatMessage);
 };

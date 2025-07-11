@@ -5,13 +5,94 @@
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 #include <algorithm>
 #include <unordered_map>
+#include <fstream>
+
+using namespace geode::prelude;
+
+// Save commands to file
+void TwitchCommandManager::saveCommands() {
+    using namespace matjson;
+    std::vector<matjson::Value> arrVec;
+    for (const auto& cmd : m_commands) arrVec.push_back(cmd.toJson());
+    Value arr(arrVec);
+    std::ofstream ofs(getSavePath());
+    if (ofs) ofs << arr.dump(2);
+}
+
+// Serialize a TwitchCommand to matjson::Value
+matjson::Value TwitchCommand::toJson() const {
+    matjson::Value v = matjson::Value::object();
+    v["name"] = name;
+    v["description"] = description;
+    v["response"] = response;
+    v["cooldown"] = cooldown;
+    v["enabled"] = enabled;
+    // TODO: Serialize actions properly if needed
+    return v;
+}
+
+// Load commands from file
+void TwitchCommandManager::loadCommands() {
+    using namespace matjson;
+    std::ifstream ifs(getSavePath());
+    if (!ifs) return;
+    auto result = matjson::parse(ifs);
+    if (!result) return;
+    auto arr = result.unwrap();
+    if (!arr.isArray()) return;
+    m_commands.clear();
+    for (size_t i = 0; i < arr.size(); ++i) {
+        m_commands.push_back(TwitchCommand::fromJson(arr[i]));
+    }
+}
+
+// Deserialize a TwitchCommand from matjson::Value
+TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
+    std::string name = (v.contains("name") && v["name"].asString().ok()) ? v["name"].asString().unwrap() : "";
+    std::string description = (v.contains("description") && v["description"].asString().ok()) ? v["description"].asString().unwrap() : "";
+    std::string response = (v.contains("response") && v["response"].asString().ok()) ? v["response"].asString().unwrap() : "";
+    int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
+    bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
+    std::array<TwitchCommandAction, 10> actions = {};
+    if (v.contains("actions") && v["actions"].isArray()) {
+        auto& actionsArr = v["actions"];
+        for (size_t i = 0; i < actionsArr.size() && i < 10; ++i) {
+            // You may need to implement TwitchCommandAction::fromJson if not already present
+            // For now, just default-construct
+            actions[i] = TwitchCommandAction();
+        }
+    }
+    TwitchCommand cmd(name, description, response, cooldown, actions);
+    cmd.enabled = enabled;
+    return cmd;
+}
+
+// Get the path to the commands save file
+std::string TwitchCommandManager::getSavePath() const {
+    // Save in the mod's directory as commands.json
+    return "commands.json";
+}
+#include "../TwitchCommandManager.hpp"
+#include "../TwitchDashboard.hpp"
+#include "events/PlayLayerEvent.hpp"
+
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+#include <algorithm>
+#include <unordered_map>
+#include <fstream>
+
 
 using namespace geode::prelude;
 
 TwitchCommandManager* TwitchCommandManager::getInstance() {
     static TwitchCommandManager instance;
+    static bool loaded = false;
+    if (!loaded) {
+        instance.loadCommands();
+        loaded = true;
+    }
     return &instance;
-};
+}
 
 void TwitchCommandManager::addCommand(const TwitchCommand& command) {
     // Check if command already exists
@@ -19,61 +100,36 @@ void TwitchCommandManager::addCommand(const TwitchCommand& command) {
                            [&command](const TwitchCommand& cmd) { return cmd.name == command.name; });
 
     if (it != m_commands.end()) {
-        // Update existing command if name or description changed
-        if (it->description != command.description) {
-            it->description = command.description;
-            log::info("Updated command description: {}", command.name);
-        };
-
-        // Update other fields as needed (response, callback, enabled, etc.)
         *it = command;
         log::info("Updated command: {}", command.name);
     } else {
-        // Add new command
         m_commands.push_back(command);
         log::info("Added new command: {}", command.name);
-    };
-};
+    }
+    saveCommands();
+}
 
 void TwitchCommandManager::removeCommand(const std::string& name) {
-    log::info("TwitchCommandManager::removeCommand called with name: '{}'", name);
-
-    // List all commands before removal
-    log::info("Current commands before removal:");
-    for (const auto& cmd : m_commands) {
-        log::info("  - Command: '{}', Description: '{}'", cmd.name, cmd.description);
-    };
-
-    size_t initialSize = m_commands.size();
     auto it = std::remove_if(m_commands.begin(), m_commands.end(),
-                             [&name](const TwitchCommand& cmd) {
-                                 log::info("Checking command: '{}' against '{}'", cmd.name, name);
-                                 return cmd.name == name;
-                             });
-
+                             [&name](const TwitchCommand& cmd) { return cmd.name == name; });
     if (it != m_commands.end()) {
         m_commands.erase(it, m_commands.end());
-        log::info("Removed command: '{}' (removed {} command(s))", name, initialSize - m_commands.size());
-
-        // List all commands after removal
-        log::info("Current commands after removal:");
-        for (const auto& cmd : m_commands) {
-            log::info("  - Command: '{}', Description: '{}'", cmd.name, cmd.description);
-        };
+        log::info("Removed command: {}", name);
+        saveCommands();
     } else {
         log::warn("Command '{}' not found for removal", name);
-    };
-};
+    }
+}
 
 void TwitchCommandManager::enableCommand(const std::string& name, bool enable) {
     auto it = std::find_if(m_commands.begin(), m_commands.end(),
                            [&name](const TwitchCommand& cmd) { return cmd.name == name; });
-
     if (it != m_commands.end()) {
         it->enabled = enable;
         log::info("Command {} {}", name, enable ? "enabled" : "disabled");
-    };
-};
+        saveCommands();
+    }
+}
 
 std::vector<TwitchCommand>& TwitchCommandManager::getCommands() {
     return m_commands;
@@ -171,8 +227,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         log::debug("Command '{}' not found or disabled", commandName);
     }
 };
-
 TwitchCommandManager::~TwitchCommandManager() {
     m_commands.clear();
     log::debug("TwitchCommandManager destructor called");
-};
+}
