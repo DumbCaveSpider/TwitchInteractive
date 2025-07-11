@@ -7,6 +7,36 @@
 #include <unordered_map>
 #include <fstream>
 
+// --- TwitchCommandAction JSON Serialization ---
+matjson::Value TwitchCommandAction::toJson() const {
+    matjson::Value v = matjson::Value::object();
+    v["type"] = static_cast<int>(type);
+    v["arg"] = arg;
+    v["index"] = index;
+    return v;
+}
+
+TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
+    CommandActionType type = CommandActionType::Notification;
+    std::string arg = "";
+    int index = 0;
+    if (v.contains("type") && v["type"].asInt().ok())
+        type = static_cast<CommandActionType>(v["type"].asInt().unwrap());
+    if (v.contains("arg") && v["arg"].asString().ok())
+        arg = v["arg"].asString().unwrap();
+    if (v.contains("index") && v["index"].asInt().ok())
+        index = static_cast<int>(v["index"].asInt().unwrap());
+    return TwitchCommandAction(type, arg, index);
+}
+
+#include "../TwitchCommandManager.hpp"
+#include "../TwitchDashboard.hpp"
+#include "events/PlayLayerEvent.hpp"
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+#include <algorithm>
+#include <unordered_map>
+#include <fstream>
+
 using namespace geode::prelude;
 
 // Save commands to file
@@ -27,7 +57,15 @@ matjson::Value TwitchCommand::toJson() const {
     v["response"] = response;
     v["cooldown"] = cooldown;
     v["enabled"] = enabled;
-    // TODO: Serialize actions properly if needed
+    // Serialize actions
+    std::vector<matjson::Value> actionsVec;
+    for (const auto& action : actions) {
+        // Only serialize non-default actions (type or arg set)
+        if (action.type != CommandActionType::Notification || !action.arg.empty() || action.index != 0) {
+            actionsVec.push_back(action.toJson());
+        }
+    }
+    v["actions"] = matjson::Value(actionsVec);
     return v;
 }
 
@@ -57,9 +95,7 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     if (v.contains("actions") && v["actions"].isArray()) {
         auto& actionsArr = v["actions"];
         for (size_t i = 0; i < actionsArr.size() && i < 10; ++i) {
-            // You may need to implement TwitchCommandAction::fromJson if not already present
-            // For now, just default-construct
-            actions[i] = TwitchCommandAction();
+            actions[i] = TwitchCommandAction::fromJson(actionsArr[i]);
         }
     }
     TwitchCommand cmd(name, description, response, cooldown, actions);

@@ -2,6 +2,7 @@
 #include "../CommandSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
 #include "events/PlayLayerEvent.hpp"
+#include "../handler/EventNode.hpp"
 
 using namespace geode::prelude;
 
@@ -37,37 +38,57 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
 
 
-    // Kill Player Checkbox
-    m_killPlayerCheckbox = CCMenuItemToggler::createWithStandardSprites(
-        this, menu_selector(CommandSettingsPopup::onKillPlayerToggled), 0.6f);
-    m_killPlayerCheckbox->setID("command-settings-killplayer-checkbox");
-    m_killPlayerCheckbox->setPosition(0, 0);
-    auto killPlayerLabel = CCLabelBMFont::create("Kill Player", "bigFont.fnt");
-    killPlayerLabel->setScale(0.5f);
-    killPlayerLabel->setAnchorPoint({0, 0.5f});
-    killPlayerLabel->setPosition(30, 0);
+    // --- Event Section ---
+    // Center the event section in the popup
+    float eventSectionWidth = 400.f;
+    float eventSectionHeight = 110.f;
+    float popupWidth = layerSize.width;
+    float popupHeight = layerSize.height;
+    float eventSectionX = (popupWidth - eventSectionWidth) / 2;
+    float eventSectionY = (popupHeight - eventSectionHeight) / 2 + 20.f; // +20 for slight upward bias
 
-    // Create a container node for the event menu
-    auto eventPlayerMenu = CCMenu::create();
-    eventPlayerMenu->setID("command-settings-event-player-menu");
-    eventPlayerMenu->setContentSize({400.f, 170.f});
-    // Center the eventPlayerMenu in the popup (anchor point at center)
-    eventPlayerMenu->setAnchorPoint({0.5f, 0.5f});
-    eventPlayerMenu->setPosition(110, 85);
 
-    // Add background to the event menu
-    auto eventMenuBg = CCScale9Sprite::create("square02_001.png");
-    eventMenuBg->setContentSize({400.f, 170.f});
-    eventMenuBg->setPosition(eventPlayerMenu->getContentSize().width / 2, eventPlayerMenu->getContentSize().height / 2);
-    eventMenuBg->setOpacity(80);
-    eventPlayerMenu->addChild(eventMenuBg, -1);
 
-    // Add the checkbox and label to the event menu, centered
-    m_killPlayerCheckbox->setPosition(eventPlayerMenu->getContentSize().width / 2 - 60, eventPlayerMenu->getContentSize().height / 2);
-    killPlayerLabel->setPosition(eventPlayerMenu->getContentSize().width / 2, eventPlayerMenu->getContentSize().height / 2);
-    eventPlayerMenu->addChild(m_killPlayerCheckbox);
-    eventPlayerMenu->addChild(killPlayerLabel);
-    m_mainLayer->addChild(eventPlayerMenu);
+    // Scroll layer for events
+    auto eventScrollLayer = ScrollLayer::create(CCSize(eventSectionWidth - 10.f, eventSectionHeight + 40.f));
+    eventScrollLayer->setID("events-scroll");
+    // Position to match the background
+    eventScrollLayer->setPosition(eventSectionX + 5.f, eventSectionY - 35.f);
+
+    // Background for the scroll layer (now matches scroll layer size exactly)
+    auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
+    eventScrollBg->setContentSize(eventScrollLayer->getContentSize());
+    eventScrollBg->setOpacity(80);
+    eventScrollBg->setID("events-scroll-background");
+    // Position to match the scroll layer
+    eventScrollBg->setPosition(eventSectionX + 5.f + eventScrollLayer->getContentSize().width / 2,
+                               eventSectionY - 35.f + eventScrollLayer->getContentSize().height / 2);
+    m_mainLayer->addChild(eventScrollBg);
+
+    // Content layer for event nodes
+    auto eventContent = eventScrollLayer->m_contentLayer;
+    eventContent->setID("events-content");
+    // Use a vertical column layout for event nodes, aligned to the top
+    auto eventLayout = ColumnLayout::create()
+        ->setAxisReverse(false) // Top to bottom
+        ->setAxisAlignment(AxisAlignment::Start) // Top alignment
+        ->setCrossAxisAlignment(AxisAlignment::Start)
+        ->setAutoGrowAxis(eventSectionHeight - 10.f)
+        ->setGap(8.0f);
+    eventContent->setLayout(eventLayout);
+    eventContent->setContentSize(CCSize(eventSectionWidth - 10.f, eventSectionHeight - 10.f));
+
+
+    // Use EventNode for event nodes
+    auto killPlayerNode = EventNode::create("Kill Player", this, menu_selector(CommandSettingsPopup::onKillPlayerToggled), 0.6f);
+    killPlayerNode->setContentSize(CCSize(eventSectionWidth - 30.f, 32.f));
+    killPlayerNode->m_checkbox->setID("command-settings-killplayer-checkbox");
+    killPlayerNode->m_label->setID("event-killplayer-label");
+    m_killPlayerCheckbox = killPlayerNode->m_checkbox;
+    eventContent->addChild(killPlayerNode);
+
+    m_mainLayer->addChild(eventScrollLayer);
+
     // Set checkbox state from command actions
     bool killChecked = false;
     for (const auto& action : command.actions) {

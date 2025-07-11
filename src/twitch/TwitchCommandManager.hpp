@@ -20,6 +20,8 @@ enum class CommandActionType {
 
 // A quick command action
 struct TwitchCommandAction {
+    matjson::Value toJson() const;
+    static TwitchCommandAction fromJson(const matjson::Value& v);
     CommandActionType type = CommandActionType::Notification; // Type of callback
     std::string arg = ""; // A string to pass to the callback
     int index = 0; // Priority order
