@@ -294,6 +294,12 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                         PlayLayerEvent::jumpPlayer(playerIdx);
                     }
                 }
+                if (action.type == CommandActionType::Notification) {
+                    if (!action.arg.empty()) {
+                        log::info("[TwitchCommandManager] Showing notification: {} (command: {})", action.arg, ctx->commandName);
+                        Notification::create(action.arg, NotificationIcon::Info)->show();
+                    }
+                }
                 // Add more action types here as needed
                 ctx->index++;
                 ctx->execute(ctx);

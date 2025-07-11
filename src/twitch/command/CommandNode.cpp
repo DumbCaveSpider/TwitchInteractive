@@ -63,7 +63,7 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
 
     // Set initial cooldown label
     if (m_command.cooldown > 0) {
-        m_cooldownLabel->setString(fmt::format("Cooldown: {}s", m_command.cooldown).c_str());
+        m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldown).c_str());
     } else {
         m_cooldownLabel->setString("");
     };

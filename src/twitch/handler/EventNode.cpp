@@ -9,7 +9,7 @@ std::vector<EventNodeInfo> EventNodeFactory::getAllEventNodes() {
         {"kill_player", "Kill Player"},
         {"jump", "Jump"},
         {"wait", "Wait"},
-        /* Example: {"freeze_player", "Freeze Player"}, */
+        {"notification", "Notification"},
     };
     return nodes;
 }

@@ -3,6 +3,7 @@
 #include <string>
 #include <Geode/ui/Popup.hpp>
 #include "../TwitchCommandManager.hpp"
+#include "../handler/NotificationSettingsPopup.hpp"
 
 namespace cocos2d { class CCObject; class CCNode; }
 
@@ -24,6 +25,7 @@ public:
     void refreshActionsList();
     void onAddEventAction(cocos2d::CCObject* sender);
     void onRemoveAction(cocos2d::CCObject* sender);
+    void onNotificationSettings(cocos2d::CCObject* sender);
     void onJumpSettings(cocos2d::CCObject* sender);
     void onMoveActionUp(cocos2d::CCObject* sender);
     void onMoveActionDown(cocos2d::CCObject* sender);
