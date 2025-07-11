@@ -111,13 +111,11 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     eventScrollBg->setPosition(scrollX + eventScrollSize.width / 2, scrollY + eventScrollSize.height / 2 - 10.f);
     m_mainLayer->addChild(eventScrollBg);
 
+
     // Background for the actions scroll layer
     auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
-    actionScrollBg->setContentSize(actionScrollSize);
     actionScrollBg->setOpacity(80);
     actionScrollBg->setID("actions-scroll-background");
-    actionScrollBg->setPosition(actionSectionX + actionScrollSize.width / 2, scrollY + actionScrollSize.height / 2 - 10.f);
-    m_mainLayer->addChild(actionScrollBg);
 
     // Scroll layer for events
     auto eventScrollLayer = ScrollLayer::create(eventScrollSize);
@@ -128,6 +126,11 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto actionScrollLayer = ScrollLayer::create(actionScrollSize);
     actionScrollLayer->setID("actions-scroll");
     actionScrollLayer->setPosition(actionSectionX, scrollY - 10.f);
+
+    // Set the background width to match the scroll layer width
+    actionScrollBg->setContentSize(actionScrollLayer->getContentSize());
+    actionScrollBg->setPosition(actionSectionX + actionScrollLayer->getContentSize().width / 2, scrollY + actionScrollLayer->getContentSize().height / 2 - 10.f);
+    m_mainLayer->addChild(actionScrollBg);
 
     // Ensure scroll layers start at the top
     eventScrollLayer->scrollToTop();
@@ -503,9 +506,10 @@ void CommandSettingsPopup::refreshActionsList() {
         menu->setPosition(0, 0);
         actionNode->addChild(menu);
 
-        // Add a background to the action node
+        // Add a background to the action node with width matching the actionScrollLayer
+        float nodeBgWidth = m_actionContent ? m_actionContent->getContentSize().width : actionNode->getContentSize().width;
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
-        nodeBg->setContentSize(actionNode->getContentSize());
+        nodeBg->setContentSize(CCSize(nodeBgWidth, actionNode->getContentSize().height));
         nodeBg->setOpacity(60);
         nodeBg->setAnchorPoint({0, 0});
         nodeBg->setPosition(0, 0);
@@ -557,23 +561,8 @@ std::string CommandSettingsPopup::getNotificationText() const {
 }
 
 void CommandSettingsPopup::onSave(CCObject* sender) {
-    std::string notifText = getNotificationText();
-
-    // Save notification action if present (optional, not in array)
-    bool foundNotif = false;
-    for (auto& action : m_command.actions) {
-        if (action.type == CommandActionType::Notification) {
-            action.arg = notifText;
-            foundNotif = true;
-            break;
-        }
-    }
-
-
     // Build up to 10 actions in order, validate all wait inputs
     std::vector<TwitchCommandAction> actionsVec;
-    bool foundNotificationAction = false;
-
     for (size_t idx = 0; idx < m_commandActions.size(); ++idx) {
         const auto& actionIdRaw = m_commandActions[idx];
         std::string actionId = actionIdRaw;
@@ -634,33 +623,13 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
                 notifText = actionIdRaw.substr(colonPos + 1);
             }
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
-            foundNotificationAction = true;
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         }
     }
 
-    // If there is no notification action in m_commandActions but notifText is not empty, add it
-    if (!foundNotificationAction && !notifText.empty()) {
-        actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
-        m_commandActions.push_back("Notification:" + notifText);
-    }
-
     // Replace m_command.actions with actionsVec (preserve order, no size limit)
     m_command.actions = actionsVec;
-
-    // Save notification action if present (optional, not in array)
-    foundNotif = false;
-    for (auto& action : m_command.actions) {
-        if (action.type == CommandActionType::Notification) {
-            action.arg = notifText;
-            foundNotif = true;
-            break;
-        }
-    }
-    if (!foundNotif && !notifText.empty()) {
-        m_command.actions.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
-    }
 
     // Rebuild m_commandActions from m_command.actions to ensure UI and data are in sync
     m_commandActions.clear();
@@ -694,11 +663,26 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
     if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
         m_commandActions[actionIdx] = "Notification:" + nextText;
-        // Directly update the corresponding action in m_command.actions at the same index if it is a notification
-        if (actionIdx >= 0 && actionIdx < static_cast<int>(m_command.actions.size())) {
-            auto& action = m_command.actions[actionIdx];
-            if (action.type == CommandActionType::Notification) {
-                action.arg = nextText;
+        // Find the Nth notification action node (among all notification nodes)
+        int notifNodeIdx = -1;
+        int notifCount = 0;
+        for (int i = 0; i <= actionIdx; ++i) {
+            if (m_commandActions[i].rfind("Notification:", 0) == 0) {
+                notifNodeIdx = notifCount;
+                notifCount++;
+            }
+        }
+        // Now update the notifNodeIdx-th notification action in m_command.actions
+        if (notifNodeIdx >= 0) {
+            int notifIdx = 0;
+            for (auto& action : m_command.actions) {
+                if (action.type == CommandActionType::Notification) {
+                    if (notifIdx == notifNodeIdx) {
+                        action.arg = nextText;
+                        break;
+                    }
+                    notifIdx++;
+                }
             }
         }
     }
