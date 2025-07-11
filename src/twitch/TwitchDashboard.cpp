@@ -111,6 +111,7 @@ void TwitchDashboard::setupCommandsList() {
     // Add some default commands
     auto commandManager = TwitchCommandManager::getInstance();
 
+    /*
     if (commandManager->getCommands().empty()) {
         // Add default commands with a custom notification as the third argument
         TwitchCommand welcomeCmd(
@@ -121,7 +122,7 @@ void TwitchDashboard::setupCommandsList() {
         );
         commandManager->addCommand(welcomeCmd);
     };
-
+*/
     refreshCommandsList();
 };
 

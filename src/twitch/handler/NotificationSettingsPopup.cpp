@@ -18,7 +18,7 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     m_input->setScale(0.7f);
     m_input->setID("notification-input");
     this->m_mainLayer->addChild(m_input);
-    // Save button
+    // Save button 
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
@@ -34,7 +34,9 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
 
 void NotificationSettingsPopup::onSave(cocos2d::CCObject* sender) {
     std::string text = m_input ? m_input->getString() : "";
-    if (m_onSelect) m_onSelect(text);
+    if (m_onSelect) {
+        m_onSelect(text);
+    }
     this->onClose(nullptr);
 }
 

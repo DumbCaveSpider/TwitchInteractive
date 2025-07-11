@@ -17,6 +17,8 @@ protected:
     void onCloseBtn(cocos2d::CCObject* sender);
 
 public:
+    std::unordered_map<int, std::string> m_notificationActionTexts;
+    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
     static CommandSettingsPopup* create(TwitchCommand command);
     std::string getNotificationText() const;
     std::vector<std::string> m_commandActions;

@@ -18,11 +18,15 @@ void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
     std::string& actionStr = m_commandActions[idx];
     if (actionStr.rfind("Notification", 0) != 0) return;
-    std::string notifText = actionStr.substr(13);
+    std::string notifText;
+    if (actionStr.length() > 13)
+        notifText = actionStr.substr(13);
+    else
+        notifText = "";
     NotificationSettingsPopup::create(notifText, [this, idx](const std::string& newText) {
-        m_commandActions[idx] = "Notification" + newText;
-        this->refreshActionsList();
+        this->updateNotificationNextTextLabel(idx, newText);
     })->show();
+
 }
 
 void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
@@ -79,31 +83,6 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     m_command = command;
 
     auto layerSize = m_mainLayer->getContentSize();
-
-    // Create TextInput for custom notification
-    m_notificationInput = TextInput::create(400, "Custom notification (leave empty to disable)", "bigFont.fnt");
-    m_notificationInput->setPosition(layerSize.width / 2, layerSize.height - 50);
-    m_notificationInput->setScale(0.8f);
-    m_notificationInput->setID("command-settings-notification-input");
-    // If the command has a notification action, prefill it with the value if set, otherwise leave blank
-    bool foundCustomNotif = false;
-    for (const auto& action : command.actions) {
-        if (action.type == CommandActionType::Notification) {
-            if (!action.arg.empty()) {
-                m_notificationInput->setString(action.arg.c_str());
-            } else {
-                m_notificationInput->setString("");
-            }
-            foundCustomNotif = true;
-            break;
-        }
-    }
-    if (!foundCustomNotif) {
-        m_notificationInput->setString("");
-    }
-    m_mainLayer->addChild(m_notificationInput);
-
-
 
     // --- Event & Action Section ---
     // Set fixed size for event and action scroll layers
@@ -182,16 +161,15 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     // Store actions for this command as a member
     m_commandActions.clear();
-    // Initialize m_commandActions from command.actions (skip default/empty actions)
+    // Initialize m_commandActions from command.actions (do NOT skip notification actions)
     for (const auto& action : command.actions) {
-        if (action.type == CommandActionType::Notification && action.arg.empty() && action.index == 0) continue;
-        if (action.type == CommandActionType::Wait) {
-            // Store as "wait:<delay>" so we can restore the value
+        if (action.type == CommandActionType::Notification) {
+            m_commandActions.push_back("Notification:" + action.arg);
+        } else if (action.type == CommandActionType::Wait) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
         } else if (action.type == CommandActionType::Event) {
-            // For jump actions, preserve the player number (e.g., "jump:2")
             if (action.arg.rfind("jump:", 0) == 0) {
-                m_commandActions.push_back(action.arg); // e.g., "jump:2"
+                m_commandActions.push_back(action.arg);
             } else {
                 m_commandActions.push_back(action.arg);
             }
@@ -302,7 +280,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
         if (eventId == "jump") {
             m_commandActions.push_back("jump:1");
         } else if (eventId == "notification") {
-            m_commandActions.push_back("Notification");
+            m_commandActions.push_back("Notification:"); // Always use colon as delimiter for notification
         } else {
             m_commandActions.push_back(eventId);
         }
@@ -345,7 +323,8 @@ void CommandSettingsPopup::refreshActionsList() {
             }
         }
 
-        std::string nodeLabel = eventLabel;
+        // For notification, always display the label as 'Notification'
+        std::string nodeLabel = (actionId.rfind("Notification", 0) == 0) ? "Notification" : eventLabel;
 
         // Add action index label (1-based)
         auto indexLabel = CCLabelBMFont::create(std::to_string(actionIndex + 1).c_str(), "goldFont.fnt");
@@ -374,28 +353,49 @@ void CommandSettingsPopup::refreshActionsList() {
         actionNode->addChild(indexLabel);
         m_actionContent->addChild(actionNode);
 
+        // Move the main action node text label for notification actions to y=20
+        if (actionId.rfind("Notification", 0) == 0) {
+            if (auto mainLabel = actionNode->getLabel()) {
+                mainLabel->setPositionY(20.f);
+            }
+        }
+
         // Notification action node
-        if (actionId == "notification") {
-            std::string notifText = actionIdRaw.substr(13); // after "notification:"
-            // Show the notification text next to the label using chatFont
-            if (!notifText.empty()) {
-                auto notifLabel = CCLabelBMFont::create((" " + notifText).c_str(), "chatFont.fnt");
+        if (actionId.rfind("Notification", 0) == 0) {
+            // Display the label as the current custom notification text, or 'Notification' if empty
+            std::string notifText;
+            size_t colonPos = actionIdRaw.find(":");
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+                notifText = actionIdRaw.substr(colonPos + 1);
+            } else {
+                notifText = "";
+            }
+            std::string notifLabelText = notifText.empty() ? "-" : notifText;
+            auto notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
+            if (!actionNode->getChildByID(notifLabelId)) {
+                auto notifLabel = CCLabelBMFont::create(notifLabelText.c_str(), "chatFont.fnt");
                 notifLabel->setScale(0.5f);
                 notifLabel->setAnchorPoint({0, 0.5f});
                 notifLabel->setAlignment(kCCTextAlignmentLeft);
                 float labelX = 0.f;
+                float labelY = 6.f; // below the main label (main is at 16.f)
                 if (auto label = actionNode->getLabel()) {
-                    labelX = label->getPositionX() + label->getContentSize().width * label->getScale();
+                    labelX = label->getPositionX();
                 } else {
-                    labelX = 32.f; // fallback
+                    labelX = 8.f; // fallback, align with index label
                 }
-                notifLabel->setPosition(labelX + 4.f, 16.f);
-                notifLabel->setID("notification-action-text-label-" + std::to_string(actionIndex));
+                notifLabel->setPosition(labelX, labelY);
+                notifLabel->setID(notifLabelId);
                 actionNode->addChild(notifLabel);
+            } else {
+                // Update label if it already exists
+                if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) {
+                    notifLabel->setString(notifLabelText.c_str());
+                }
             }
-            // Always add settings button for notification action
+            // Add settings button for notification action
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
+            settingsSprite->setScale(0.5);
             auto settingsBtn = CCMenuItemSpriteExtra::create(
                 settingsSprite,
                 this,
@@ -483,6 +483,7 @@ void CommandSettingsPopup::refreshActionsList() {
         float btnX = m_actionContent->getContentSize().width - 24.f;
         removeBtn->setPosition(btnX, 16.f);
         removeBtn->setUserObject(CCString::create(actionIdRaw));
+        removeBtn->setScale(1.2f);
 
         // If this is a wait action, add a TextInput to the left of the button
         if (actionId == "wait") {
@@ -567,8 +568,12 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             break;
         }
     }
+
+
     // Build up to 10 actions in order, validate all wait inputs
     std::vector<TwitchCommandAction> actionsVec;
+    bool foundNotificationAction = false;
+
     for (size_t idx = 0; idx < m_commandActions.size(); ++idx) {
         const auto& actionIdRaw = m_commandActions[idx];
         std::string actionId = actionIdRaw;
@@ -621,9 +626,24 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             const_cast<std::string&>(actionIdRaw) = "jump:" + std::to_string(playerIdx);
         } else if (actionId == "kill_player") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
+        } else if (actionIdRaw.rfind("Notification:", 0) == 0) {
+            // Always parse the notification text directly from m_commandActions
+            std::string notifText = "";
+            size_t colonPos = actionIdRaw.find(":");
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+                notifText = actionIdRaw.substr(colonPos + 1);
+            }
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
+            foundNotificationAction = true;
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         }
+    }
+
+    // If there is no notification action in m_commandActions but notifText is not empty, add it
+    if (!foundNotificationAction && !notifText.empty()) {
+        actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
+        m_commandActions.push_back("Notification:" + notifText);
     }
 
     // Replace m_command.actions with actionsVec (preserve order, no size limit)
@@ -642,6 +662,21 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         m_command.actions.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
     }
 
+    // Rebuild m_commandActions from m_command.actions to ensure UI and data are in sync
+    m_commandActions.clear();
+    for (const auto& action : m_command.actions) {
+        if (action.type == CommandActionType::Notification) {
+            m_commandActions.push_back("Notification:" + action.arg);
+        } else if (action.type == CommandActionType::Wait) {
+            m_commandActions.push_back("wait:" + std::to_string(action.index));
+        } else if (action.type == CommandActionType::Event) {
+            m_commandActions.push_back(action.arg);
+        }
+    }
+
+    // Refresh the actions list to ensure notification node is visible
+    refreshActionsList();
+
     Notification::create("Command Settings Saved!", NotificationIcon::Success)->show();
 
     // Save changes to the command manager
@@ -654,4 +689,27 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     }
     commandManager->saveCommands();
     this->onClose(nullptr);
+}
+
+void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
+    if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
+        m_commandActions[actionIdx] = "Notification:" + nextText;
+        // Directly update the corresponding action in m_command.actions at the same index if it is a notification
+        if (actionIdx >= 0 && actionIdx < static_cast<int>(m_command.actions.size())) {
+            auto& action = m_command.actions[actionIdx];
+            if (action.type == CommandActionType::Notification) {
+                action.arg = nextText;
+            }
+        }
+    }
+    // Update the label in the action node to show the new custom notification text (or 'Notification' if empty)
+    auto children = m_actionContent->getChildren();
+    if (!children || actionIdx < 0 || actionIdx >= children->count()) return;
+    auto actionNode = static_cast<CCNode*>(children->objectAtIndex(actionIdx));
+    if (!actionNode) return;
+    std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIdx);
+    std::string labelText = nextText.empty() ? "Notification" : nextText;
+    if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) {
+        notifLabel->setString(labelText.c_str());
+    }
 }
