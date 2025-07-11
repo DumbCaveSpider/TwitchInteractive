@@ -105,42 +105,42 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float totalSectionsWidth = sectionWidth * 2 + gap;
 
     float startX = (popupWidth - totalSectionsWidth) / 2.0f;
+
     float eventSectionX = startX;
     float actionSectionX = startX + sectionWidth + gap;
 
-    CCSize eventScrollSize = CCSize(sectionWidth, sectionHeight);
-    CCSize actionScrollSize = CCSize(sectionWidth, sectionHeight);
+    // Scroll layer size
+    CCSize scrollSize = CCSize(sectionWidth, sectionHeight);
+    CCSize scrollContentSize = CCSize(scrollSize.width - 3.75f, scrollSize.height - 3.75f);
 
     float scrollX = eventSectionX;
     float scrollY = sectionY;
 
     // Background for the event scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
-    eventScrollBg->setContentSize(eventScrollSize);
-    eventScrollBg->setOpacity(80);
     eventScrollBg->setID("events-scroll-background");
-    eventScrollBg->setPosition(scrollX + eventScrollSize.width / 2, scrollY + eventScrollSize.height / 2 - 10.f);
+    eventScrollBg->setContentSize(scrollSize);
+    eventScrollBg->setOpacity(80);
+    eventScrollBg->setPosition(scrollX + scrollSize.width / 2, scrollY + scrollSize.height / 2 - 10.f);
 
     m_mainLayer->addChild(eventScrollBg);
 
-    // Background for the actions scroll layer
-    auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
-    actionScrollBg->setOpacity(80);
-    actionScrollBg->setID("actions-scroll-background");
-
     // Scroll layer for events
-    auto eventScrollLayer = ScrollLayer::create(eventScrollSize);
+    auto eventScrollLayer = ScrollLayer::create(scrollContentSize);
     eventScrollLayer->setID("events-scroll");
     eventScrollLayer->setPosition(scrollX, scrollY - 10.f);
 
+    // Background for the actions scroll layer
+    auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
+    actionScrollBg->setID("actions-scroll-background");
+    actionScrollBg->setContentSize(scrollSize);
+    actionScrollBg->setOpacity(80);
+    actionScrollBg->setPosition(actionSectionX + scrollSize.width / 2, scrollY + scrollSize.height / 2 - 10.f);
+
     // Scroll layer for actions
-    auto actionScrollLayer = ScrollLayer::create(actionScrollSize);
+    auto actionScrollLayer = ScrollLayer::create(scrollContentSize);
     actionScrollLayer->setID("actions-scroll");
     actionScrollLayer->setPosition(actionSectionX, scrollY - 10.f);
-
-    // Set the background width to match the scroll layer width
-    actionScrollBg->setContentSize(actionScrollLayer->getContentSize());
-    actionScrollBg->setPosition(actionSectionX + actionScrollLayer->getContentSize().width / 2, scrollY + actionScrollLayer->getContentSize().height / 2 - 10.f);
 
     m_mainLayer->addChild(actionScrollBg);
 
@@ -152,26 +152,26 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         ->setAxisReverse(true) // Make items stack from the top
         ->setAxisAlignment(AxisAlignment::Start)
         ->setCrossAxisAlignment(AxisAlignment::Start)
-        ->setAutoGrowAxis(eventScrollSize.height)
+        ->setAutoGrowAxis(scrollSize.height)
         ->setGap(8.0f);
 
     // Content layer for event nodes
     auto eventContent = eventScrollLayer->m_contentLayer;
     eventContent->setID("events-content");
-    eventContent->setContentSize(eventScrollSize);
+    eventContent->setContentSize(scrollSize);
     eventContent->setLayout(eventLayout);
 
     auto actionLayout = ColumnLayout::create()
         ->setAxisReverse(false)
         ->setAxisAlignment(AxisAlignment::Start)
         ->setCrossAxisAlignment(AxisAlignment::Start)
-        ->setAutoGrowAxis(actionScrollSize.height)
+        ->setAutoGrowAxis(scrollSize.height)
         ->setGap(8.0f);
 
     // Content layer for actions
     auto actionContent = actionScrollLayer->m_contentLayer;
     actionContent->setID("actions-content");
-    actionContent->setContentSize(actionScrollSize);
+    actionContent->setContentSize(scrollSize);
     actionContent->setLayout(actionLayout);
 
     // Store actions for this command as a member
@@ -198,12 +198,12 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     refreshActionsList();
 
     // Dynamically add all event nodes from EventNodeFactory
-    float eventNodeY = eventScrollSize.height - 16.f;
+    float eventNodeY = scrollSize.height - 16.f;
     float eventNodeGap = 8.0f;
 
     for (const auto& info : EventNodeFactory::getAllEventNodes()) {
         auto node = CCNode::create();
-        node->setContentSize(CCSize(eventScrollSize.width, 32.f));
+        node->setContentSize(CCSize(scrollSize.width, 32.f));
 
         // Label
         auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
@@ -220,13 +220,14 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         // Add button (always use GJ_plusBtn_001.png) at right side
         auto addSprite = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
         addSprite->setScale(0.5f);
+
         auto addBtn = CCMenuItemSpriteExtra::create(
             addSprite,
             this,
             menu_selector(CommandSettingsPopup::onAddEventAction)
         );
         addBtn->setID("event-" + info.id + "-add-btn");
-        addBtn->setPosition(eventScrollSize.width - 24.f, 16.f); // Place button at far right
+        addBtn->setPosition(scrollSize.width - 24.f, 16.f); // Place button at far right
         addBtn->setUserObject(CCString::create(info.id));
 
         menu->addChild(addBtn);
@@ -612,7 +613,7 @@ void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
 
-    if (ret && ret->initAnchored(620.f, 325.f, command)) {
+    if (ret && ret->initAnchored(560.f, 300.f, command)) {
         ret->autorelease();
         return ret;
     };

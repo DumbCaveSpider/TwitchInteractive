@@ -185,9 +185,10 @@ void TwitchDashboard::setupCommandInput() {
     auto addCommandBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Add Command", "goldFont.fnt", "GJ_button_01.png", 0.5f),
         this,
-        menu_selector(TwitchDashboard::onAddCustomCommand));
+        menu_selector(TwitchDashboard::onAddCustomCommand)
+    );
     addCommandBtn->setID("add-command-btn");
-    addCommandBtn->setPosition(m_commandControlsMenu->getContentWidth() / 2, m_commandControlsMenu->getContentHeight() / 2); // Center vertically in the menu
+    addCommandBtn->setPosition(m_commandControlsMenu->getContentWidth() / 2.f, m_commandControlsMenu->getContentHeight() / 2.f); // Center vertically in the menu
 
     // Set content size to match the menu's height
     auto btnSprite = as<ButtonSprite*>(addCommandBtn->getNormalImage());
@@ -200,7 +201,7 @@ void TwitchDashboard::setupCommandInput() {
     m_commandControlsMenu->addChild(addCommandBtn);
 
     // Position the menu at the bottom center of the screen
-    m_commandControlsMenu->setPosition(0.f, 10.f);
+    m_commandControlsMenu->setPosition(0.f, 6.25f);
 
     m_mainLayer->addChild(m_commandControlsMenu);
 };
