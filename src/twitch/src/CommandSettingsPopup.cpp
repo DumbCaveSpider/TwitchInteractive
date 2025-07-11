@@ -45,46 +45,54 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float popupWidth = layerSize.width;
     float popupHeight = layerSize.height;
     float eventSectionX = (popupWidth - eventSectionWidth) / 2;
-    float eventSectionY = (popupHeight - eventSectionHeight) / 2 + 20.f; // +20 for slight upward bias
+    float eventSectionY = (popupHeight - eventSectionHeight) / 2 + 20.f;
 
+    // Define a consistent size for both background and scroll layer
+    CCSize eventScrollSize = CCSize(eventSectionWidth - 10.f, eventSectionHeight + 90.f);
 
-
-    // Scroll layer for events
-    auto eventScrollLayer = ScrollLayer::create(CCSize(eventSectionWidth - 10.f, eventSectionHeight + 40.f));
-    eventScrollLayer->setID("events-scroll");
-    // Position to match the background
-    eventScrollLayer->setPosition(eventSectionX + 5.f, eventSectionY - 35.f);
-
-    // Background for the scroll layer (now matches scroll layer size exactly)
+    // Background for the scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
-    eventScrollBg->setContentSize(eventScrollLayer->getContentSize());
+    eventScrollBg->setContentSize(eventScrollSize);
     eventScrollBg->setOpacity(80);
     eventScrollBg->setID("events-scroll-background");
-    // Position to match the scroll layer
-    eventScrollBg->setPosition(eventSectionX + 5.f + eventScrollLayer->getContentSize().width / 2,
-                               eventSectionY - 35.f + eventScrollLayer->getContentSize().height / 2);
+    // Position background and scroll layer to be perfectly aligned
+    float scrollX = eventSectionX + 5.f;
+    float scrollY = eventSectionY - 65.f;
+    eventScrollBg->setPosition(scrollX + eventScrollSize.width / 2, scrollY + eventScrollSize.height / 2);
     m_mainLayer->addChild(eventScrollBg);
+
+    // Scroll layer for events (now matches background size exactly)
+    auto eventScrollLayer = ScrollLayer::create(eventScrollSize);
+    eventScrollLayer->setID("events-scroll");
+    eventScrollLayer->setPosition(scrollX, scrollY);
 
     // Content layer for event nodes
     auto eventContent = eventScrollLayer->m_contentLayer;
     eventContent->setID("events-content");
+    // Fill the entire scroll background
+    eventContent->setContentSize(eventScrollSize);
     // Use a vertical column layout for event nodes, aligned to the top
     auto eventLayout = ColumnLayout::create()
-        ->setAxisReverse(false) // Top to bottom
-        ->setAxisAlignment(AxisAlignment::Start) // Top alignment
+        ->setAxisReverse(true)
+        ->setAxisAlignment(AxisAlignment::End) // End alignment (bottom)
         ->setCrossAxisAlignment(AxisAlignment::Start)
-        ->setAutoGrowAxis(eventSectionHeight - 10.f)
+        ->setAutoGrowAxis(eventScrollSize.height)
         ->setGap(8.0f);
     eventContent->setLayout(eventLayout);
-    eventContent->setContentSize(CCSize(eventSectionWidth - 10.f, eventSectionHeight - 10.f));
 
-
-    // Use EventNode for event nodes
+    // Use EventNode for event nodes, add to content layer
     auto killPlayerNode = EventNode::create("Kill Player", this, menu_selector(CommandSettingsPopup::onKillPlayerToggled), 0.6f);
-    killPlayerNode->setContentSize(CCSize(eventSectionWidth - 30.f, 32.f));
+    killPlayerNode->setContentSize(CCSize(eventScrollSize.width, 32.f));
     killPlayerNode->m_checkbox->setID("command-settings-killplayer-checkbox");
     killPlayerNode->m_label->setID("event-killplayer-label");
     m_killPlayerCheckbox = killPlayerNode->m_checkbox;
+    // Add a background to the event node
+    auto nodeBg = CCScale9Sprite::create("square02_001.png");
+    nodeBg->setContentSize(killPlayerNode->getContentSize());
+    nodeBg->setOpacity(60);
+    nodeBg->setAnchorPoint({0, 0});
+    nodeBg->setPosition(0, 0);
+    killPlayerNode->addChild(nodeBg, -1); // Add behind other children
     eventContent->addChild(killPlayerNode);
 
     m_mainLayer->addChild(eventScrollLayer);
@@ -117,6 +125,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     // Menu for buttons
     auto commandBtnMenu = CCMenu::create();
+    commandBtnMenu->setID("command-settings-button-menu");
     commandBtnMenu->addChild(saveBtn);
     commandBtnMenu->addChild(closeBtn);
     commandBtnMenu->setContentSize({570.f, 25.f});
@@ -127,7 +136,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float spacing = 120.0f;
     saveBtn->setPosition(menuWidth / 2 - spacing / 2, centerY);
     closeBtn->setPosition(menuWidth / 2 + spacing / 2, centerY);
-    commandBtnMenu->setPosition(25.f, 40);
+    commandBtnMenu->setPosition(25.f, 15.f);
     m_mainLayer->addChild(commandBtnMenu);
 
     return true;
