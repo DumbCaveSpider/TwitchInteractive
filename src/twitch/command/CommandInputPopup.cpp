@@ -1,9 +1,8 @@
-#include "../CommandInputPopup.hpp"
+#include "CommandInputPopup.hpp"
 #include "../TwitchCommandManager.hpp"
 #include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 CCMenu* CommandInputPopup::createButtonMenu() {

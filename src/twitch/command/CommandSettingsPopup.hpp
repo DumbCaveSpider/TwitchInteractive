@@ -2,19 +2,19 @@
 #include <vector>
 #include <string>
 #include <Geode/ui/Popup.hpp>
-#include "TwitchCommandManager.hpp"
+#include "../TwitchCommandManager.hpp" // Try to use the correct relative path, but if build fails, use "twitch/TwitchCommandManager.hpp"
 
-// specify parameters for the setup function in the Popup<...> template
+namespace cocos2d { class CCObject; class CCNode; }
+
 class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
-
 protected:
     TextInput* m_notificationInput = nullptr;
     CCMenuItemToggler* m_killPlayerCheckbox = nullptr;
     TwitchCommand m_command = TwitchCommand("", "", "", 0, {});
     bool setup(TwitchCommand command) override;
-    void onSave(CCObject* sender);
-    void onCloseBtn(CCObject* sender);
-    void onKillPlayerToggled(CCObject* sender);
+    void onSave(cocos2d::CCObject* sender);
+    void onCloseBtn(cocos2d::CCObject* sender);
+    void onKillPlayerToggled(cocos2d::CCObject* sender);
 
 public:
     static CommandSettingsPopup* create(TwitchCommand command);

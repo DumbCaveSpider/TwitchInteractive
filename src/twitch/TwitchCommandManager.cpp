@@ -1,12 +1,11 @@
-#include "../TwitchCommandManager.hpp"
-#include "../TwitchDashboard.hpp"
-#include "events/PlayLayerEvent.hpp"
+#include "TwitchCommandManager.hpp"
+#include "TwitchDashboard.hpp"
+#include "command/events/PlayLayerEvent.hpp"
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 #include <algorithm>
 #include <unordered_map>
 #include <fstream>
 
-// --- TwitchCommandAction JSON Serialization ---
 matjson::Value TwitchCommandAction::toJson() const {
     matjson::Value v = matjson::Value::object();
     v["type"] = static_cast<int>(type);

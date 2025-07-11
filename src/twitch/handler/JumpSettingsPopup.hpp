@@ -1,7 +1,8 @@
 #pragma once
 #include <Geode/ui/Popup.hpp>
 #include <functional>
-#include <cocos2d.h>
+
+namespace cocos2d { class CCObject; }
 
 class JumpSettingsPopup : public geode::Popup<int> {
 protected:

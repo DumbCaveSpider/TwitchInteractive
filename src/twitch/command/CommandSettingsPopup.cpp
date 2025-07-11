@@ -1,5 +1,4 @@
-
-#include "../CommandSettingsPopup.hpp"
+#include "CommandSettingsPopup.hpp"
 #include <cocos2d.h>
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/EventNode.hpp"
@@ -12,10 +11,20 @@ void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
     if (btn->getUserObject()) {
         actionIndex = static_cast<CCInteger*>(btn->getUserObject())->getValue();
     }
-    // Find the jump action in m_commandActions by order
-    int jumpIdx = 0;
-
-    // TODO: Implement or move to handler/JumpSettingsPopup.cpp
+    // actionIndex is 1-based, so subtract 1 for vector index
+    int jumpIdx = actionIndex - 1;
+    if (jumpIdx < 0 || jumpIdx >= static_cast<int>(m_commandActions.size())) return;
+    // Only allow editing jump actions
+    std::string& actionStr = m_commandActions[jumpIdx];
+    if (actionStr.rfind("jump:", 0) != 0) return;
+    int currentPlayer = 1;
+    try {
+        currentPlayer = std::stoi(actionStr.substr(5));
+    } catch (...) {}
+    JumpSettingsPopup::create(currentPlayer, [this, jumpIdx](int selectedPlayer) {
+        m_commandActions[jumpIdx] = "jump:" + std::to_string(selectedPlayer);
+        this->refreshActionsList();
+    })->show();
 }
 
 

@@ -7,11 +7,12 @@ using namespace cocos2d;
 
 bool JumpSettingsPopup::setup(int actionIndex) {
     m_actionIndex = actionIndex;
-    this->setTitle(fmt::format("Jump Action {}", m_actionIndex));
+
+    this->setTitle(fmt::format("Jump Action #{}", m_actionIndex));
     this->setID("jump-settings-popup");
-    float y = 120.f;
+    float y = 140.f;
     float x = this->m_mainLayer->getContentSize().width / 2;
-    float spacing = 60.f;
+    float spacing = 50.f;
     // Player 1 button
     auto p1Btn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Player 1", "bigFont.fnt", "GJ_button_01.png", 0.7f),
@@ -47,7 +48,7 @@ void JumpSettingsPopup::onBoth(CCObject*) { if (m_onSelect) m_onSelect(3); this-
 JumpSettingsPopup* JumpSettingsPopup::create(int actionIndex, std::function<void(int)> onSelect) {
     auto ret = new JumpSettingsPopup();
     ret->m_onSelect = onSelect;
-    if (ret && ret->initAnchored(300.f, 200.f, actionIndex)) {
+    if (ret && ret->initAnchored(220.f, 200.f, actionIndex)) {
         ret->autorelease();
         return ret;
     }

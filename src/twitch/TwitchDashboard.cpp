@@ -1,9 +1,9 @@
-#include "../TwitchDashboard.hpp"
-#include "../TwitchCommandManager.hpp"
-#include "../CommandNode.hpp"
+#include "TwitchDashboard.hpp"
+#include "TwitchCommandManager.hpp"
+#include "command/CommandNode.hpp"
 
-#include "../CommandInputPopup.hpp"
-#include "events/PlayLayerEvent.hpp"
+#include "command/CommandInputPopup.hpp"
+#include "command/events/PlayLayerEvent.hpp"
 
 #include <Geode/Geode.hpp>
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
@@ -56,12 +56,12 @@ bool TwitchDashboard::setup() {
 
     m_mainLayer->addChild(m_welcomeLabel);
 
-    // Create single scroll layer for commands (centered)
+    // Create single scroll layer for commands
     float scrollWidth = layerSize.width * 0.9f;  // Use 90% of width for single column
     float scrollHeight = layerSize.height - 80.f; // Leave space for buttons
 
     // Create background as parent container
-    auto scrollBg = CCScale9Sprite::create("square02_001.png");
+    auto scrollBg = cocos2d::extension::CCScale9Sprite::create("square02_001.png");
     scrollBg->setContentSize(CCSize(scrollWidth, scrollHeight));
     scrollBg->setOpacity(50);
     scrollBg->setID("commands-background");

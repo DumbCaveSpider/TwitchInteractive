@@ -1,6 +1,6 @@
-#include "../CommandNode.hpp"
-#include "../CommandSettingsPopup.hpp"
 #include "../TwitchDashboard.hpp"
+#include "CommandSettingsPopup.hpp"
+#include "CommandNode.hpp"
 
 #include <Geode/Geode.hpp>
 
@@ -226,9 +226,7 @@ void CommandNode::triggerCommand() {
 void CommandNode::startCooldown() {
     m_cooldownRemaining = m_command.cooldown;
     m_isOnCooldown = true;
-
-    if (m_commandBg) m_commandBg->setColor({ 255, 0, 0 }); // Red
-
+    
     schedule(schedule_selector(CommandNode::updateCooldown), 1.0f);
     updateCooldown(0);
 };

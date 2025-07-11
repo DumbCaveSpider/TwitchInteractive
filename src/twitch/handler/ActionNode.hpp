@@ -2,17 +2,18 @@
 #include <cocos2d.h>
 #include <Geode/Geode.hpp>
 
-using namespace cocos2d;
-using namespace geode::prelude;
+namespace cocos2d { class CCLabelBMFont; }
+class CCMenuItemToggler;
+typedef void (cocos2d::CCObject::*SEL_MenuHandler)(cocos2d::CCObject*);
 
-class ActionNode : public CCNode {
+class ActionNode : public cocos2d::CCNode {
 protected:
     CCMenuItemToggler* m_checkbox = nullptr;
-    CCLabelBMFont* m_label = nullptr;
+    cocos2d::CCLabelBMFont* m_label = nullptr;
 
-    bool init(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale);
+    bool init(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale);
 public:
-    static ActionNode* create(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale = 0.7f);
+    static ActionNode* create(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale = 0.7f);
     CCMenuItemToggler* getCheckbox() const { return m_checkbox; }
-    CCLabelBMFont* getLabel() const { return m_label; }
+    cocos2d::CCLabelBMFont* getLabel() const { return m_label; }
 };
