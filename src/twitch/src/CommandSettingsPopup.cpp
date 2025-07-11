@@ -70,30 +70,31 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto eventContent = eventScrollLayer->m_contentLayer;
     eventContent->setID("events-content");
     // Fill the entire scroll background
-    eventContent->setContentSize(eventScrollSize);
+    eventContent->setContentSize(eventScrollSize - 10.f);
     // Use a vertical column layout for event nodes, aligned to the top
     auto eventLayout = ColumnLayout::create()
-        ->setAxisReverse(true)
-        ->setAxisAlignment(AxisAlignment::End) // End alignment (bottom)
-        ->setCrossAxisAlignment(AxisAlignment::Start)
         ->setAutoGrowAxis(eventScrollSize.height)
         ->setGap(8.0f);
     eventContent->setLayout(eventLayout);
 
-    // Use EventNode for event nodes, add to content layer
-    auto killPlayerNode = EventNode::create("Kill Player", this, menu_selector(CommandSettingsPopup::onKillPlayerToggled), 0.6f);
-    killPlayerNode->setContentSize(CCSize(eventScrollSize.width, 32.f));
-    killPlayerNode->m_checkbox->setID("command-settings-killplayer-checkbox");
-    killPlayerNode->m_label->setID("event-killplayer-label");
-    m_killPlayerCheckbox = killPlayerNode->m_checkbox;
-    // Add a background to the event node
-    auto nodeBg = CCScale9Sprite::create("square02_001.png");
-    nodeBg->setContentSize(killPlayerNode->getContentSize());
-    nodeBg->setOpacity(60);
-    nodeBg->setAnchorPoint({0, 0});
-    nodeBg->setPosition(0, 0);
-    killPlayerNode->addChild(nodeBg, -1); // Add behind other children
-    eventContent->addChild(killPlayerNode);
+
+    // Dynamically add all event nodes from EventNodeFactory
+    for (const auto& info : EventNodeFactory::getAllEventNodes()) {
+        auto node = EventNode::create(info.label, this, menu_selector(CommandSettingsPopup::onKillPlayerToggled), 0.6f);
+        node->setContentSize(CCSize(eventScrollSize.width, 32.f));
+        node->m_checkbox->setID("command-settings-" + info.id + "-checkbox");
+        node->m_label->setID("event-" + info.id + "-label");
+        // Add a background to the event node
+        auto nodeBg = CCScale9Sprite::create("square02_001.png");
+        nodeBg->setContentSize(node->getContentSize());
+        nodeBg->setOpacity(60);
+        nodeBg->setAnchorPoint({0, 0});
+        nodeBg->setPosition(0, 0);
+        node->addChild(nodeBg, -1);
+        eventContent->addChild(node);
+
+        if (info.id == "kill_player") m_killPlayerCheckbox = node->m_checkbox;
+    }
 
     m_mainLayer->addChild(eventScrollLayer);
 

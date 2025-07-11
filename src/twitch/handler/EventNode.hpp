@@ -1,3 +1,16 @@
+
+#include <vector>
+class CCObject;
+struct EventNodeInfo {
+    std::string label;
+    std::string id;
+};
+
+class EventNodeFactory {
+public:
+    // Returns a list of all event node definitions
+    static std::vector<EventNodeInfo> getAllEventNodes();
+};
 #pragma once
 
 #include <Geode/Geode.hpp>

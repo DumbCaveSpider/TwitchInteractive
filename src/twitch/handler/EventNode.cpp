@@ -1,4 +1,14 @@
+#include <vector>
 #include "EventNode.hpp"
+
+std::vector<EventNodeInfo> EventNodeFactory::getAllEventNodes() {
+    // Add new events here. For each event, provide label and id
+    std::vector<EventNodeInfo> nodes = {
+        {"Kill Player", "kill_player"},
+        /* Example: {"Freeze Player", "freeze_player"}, */
+    };
+    return nodes;
+}
 
 EventNode* EventNode::create(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale) {
     auto ret = new EventNode();
