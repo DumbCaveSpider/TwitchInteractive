@@ -131,7 +131,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
             };
 
             // Additional safety check
-            if (!this || !m_isActive || !m_statusLabel) {
+            if (!m_isActive || !m_statusLabel) {
                 log::warn("TwitchLoginPopup became invalid or inactive before authentication callback");
                 return;
             };
@@ -148,7 +148,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
                 auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
                 auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) runAction(sequence);
+                if (validityFlag && *validityFlag && m_isActive && m_statusLabel) runAction(sequence);
 
                 return;
             };
@@ -161,7 +161,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
             auto sequence = CCSequence::create(delayAction, openDashboardAction, nullptr);
 
             // Final safety check before opening dashboard
-            if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) {
+            if (validityFlag && *validityFlag && m_isActive && m_statusLabel) {
                 runAction(sequence);
             } else {
                 log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
@@ -183,10 +183,12 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
         runAction(timeoutSequence);
     } catch (const std::exception& e) {
         log::error("Exception during connection check: {}", e.what());
+
         m_statusLabel->setString("Connection error occurred!");
         resetToLogin();
     } catch (...) {
         log::error("Unknown exception during connection check");
+
         m_statusLabel->setString("Connection error occurred!");
         resetToLogin();
     };
@@ -256,7 +258,7 @@ void TwitchLoginPopup::checkExistingConnection() {
             };
 
             // Additional safety check
-            if (!this || !m_isActive || !m_statusLabel) {
+            if (!m_isActive || !m_statusLabel) {
                 log::warn("TwitchLoginPopup became invalid or inactive before authentication callback");
                 return;
             };
@@ -273,9 +275,7 @@ void TwitchLoginPopup::checkExistingConnection() {
                 auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
                 auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) {
-                    runAction(sequence);
-                };
+                if (validityFlag && *validityFlag && m_isActive && m_statusLabel) runAction(sequence);
 
                 return;
             };
@@ -288,7 +288,7 @@ void TwitchLoginPopup::checkExistingConnection() {
             auto sequence = CCSequence::create(delayAction, openDashboardAction, nullptr);
 
             // Final safety check before opening dashboard
-            if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) {
+            if (validityFlag && *validityFlag && m_isActive && m_statusLabel) {
                 runAction(sequence);
             } else {
                 log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
@@ -469,7 +469,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
             };
 
             // Additional safety check
-            if (!this || !m_isActive || !m_statusLabel) {
+            if (!m_isActive || !m_statusLabel) {
                 log::warn("TwitchLoginPopup became invalid or inactive before authentication callback");
                 return;
             };
@@ -486,7 +486,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
                 auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
                 auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) runAction(sequence);
+                if (validityFlag && *validityFlag && m_isActive && m_statusLabel) runAction(sequence);
 
                 return;
             };
@@ -499,7 +499,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
             auto sequence = CCSequence::create(delayAction, openDashboardAction, nullptr);
 
             // Final safety check before opening dashboard
-            if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) {
+            if (validityFlag && *validityFlag && m_isActive && m_statusLabel) {
                 runAction(sequence);
             } else {
                 log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
