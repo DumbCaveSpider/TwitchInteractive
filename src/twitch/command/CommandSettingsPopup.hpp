@@ -21,20 +21,20 @@ protected:
     void onCloseBtn(cocos2d::CCObject* sender);
 
 public:
+    float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;
-
-    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
-
-    static CommandSettingsPopup* create(TwitchCommand command);
 
     std::string getNotificationText() const;
     std::vector<std::string> m_commandActions;
 
     cocos2d::CCNode* m_actionContent = nullptr;
 
-    float m_actionSectionHeight = 0.f;
+    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
+
+    static CommandSettingsPopup* create(TwitchCommand command);
 
     void refreshActionsList();
+
     void onAddEventAction(cocos2d::CCObject* sender);
     void onRemoveAction(cocos2d::CCObject* sender);
     void onNotificationSettings(cocos2d::CCObject* sender);
