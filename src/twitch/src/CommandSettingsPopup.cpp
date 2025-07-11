@@ -112,6 +112,16 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     // Store actions for this command as a member
     m_commandActions.clear();
+    // Initialize m_commandActions from command.actions (skip default/empty actions)
+    for (const auto& action : command.actions) {
+        if (action.type == CommandActionType::Notification && action.arg.empty() && action.index == 0) continue;
+        if (action.type == CommandActionType::Wait) {
+            // Store as "wait:<delay>" so we can restore the value
+            m_commandActions.push_back("wait:" + std::to_string(action.index));
+        } else if (action.type == CommandActionType::Event) {
+            m_commandActions.push_back(action.arg);
+        }
+    }
     m_actionContent = actionContent;
     m_actionSectionHeight = sectionHeight;
     refreshActionsList();
@@ -130,7 +140,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         label->setPosition(20.f, 16.f);
         label->setID("event-" + info.id + "-label");
         
-        // Add button (always use GJ_plusBtn_001.png)
+        // Add button (always use GJ_plusBtn_001.png) at right side
         auto addSprite = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
         addSprite->setScale(0.5f);
         auto addBtn = CCMenuItemSpriteExtra::create(
@@ -139,7 +149,8 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
             menu_selector(CommandSettingsPopup::onAddEventAction)
         );
         addBtn->setID("event-" + info.id + "-add-btn");
-        addBtn->setPosition(eventScrollSize.width - 60.f, 16.f);
+        // Place button at far right
+        addBtn->setPosition(eventScrollSize.width - 24.f, 16.f);
         addBtn->setUserObject(CCString::create(info.id));
         // Menu for button
         auto menu = CCMenu::create();
@@ -223,7 +234,14 @@ void CommandSettingsPopup::refreshActionsList() {
     m_actionContent->removeAllChildren();
     float actionNodeY = m_actionSectionHeight - 16.f; // Start from top, 16px for half node height
     float actionNodeGap = 8.0f;
-    for (const auto& actionId : m_commandActions) {
+    int actionIndex = 1;
+    for (const auto& actionIdRaw : m_commandActions) {
+        std::string actionId = actionIdRaw;
+        std::string waitValue;
+        if (actionIdRaw.rfind("wait:", 0) == 0) {
+            actionId = "wait";
+            waitValue = actionIdRaw.substr(5);
+        }
         auto node = CCNode::create();
         node->setContentSize(CCSize(m_actionContent->getContentSize().width, 32.f));
         // Find the event label/title for this actionId
@@ -234,14 +252,28 @@ void CommandSettingsPopup::refreshActionsList() {
                 break;
             }
         }
-        // Label
-        auto label = CCLabelBMFont::create(eventLabel.c_str(), "bigFont.fnt");
+        // Add action order label (number)
+        std::string orderStr = std::to_string(actionIndex);
+        auto orderLabel = CCLabelBMFont::create(orderStr.c_str(), "bigFont.fnt");
+        orderLabel->setScale(0.5f);
+        orderLabel->setAnchorPoint({0, 0.5f});
+        orderLabel->setAlignment(kCCTextAlignmentLeft);
+        orderLabel->setPosition(4.f, 16.f);
+        orderLabel->setID("action-order-label-" + std::to_string(actionIndex));
+        node->addChild(orderLabel);
+
+        // Label for action type
+        std::string labelText = eventLabel;
+        if (actionId == "wait") {
+            labelText = "Wait (seconds)";
+        }
+        auto label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
         label->setScale(0.5f);
         label->setAnchorPoint({0, 0.5f});
         label->setAlignment(kCCTextAlignmentLeft);
-        label->setPosition(20.f, 16.f);
+        label->setPosition(40.f, 16.f);
         label->setID("action-" + actionId + "-label");
-        // Remove button (always use GJ_trashBtn_001.png)
+
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
         removeSprite->setScale(0.5f);
         auto removeBtn = CCMenuItemSpriteExtra::create(
@@ -249,9 +281,20 @@ void CommandSettingsPopup::refreshActionsList() {
             this,
             menu_selector(CommandSettingsPopup::onRemoveAction)
         );
-        removeBtn->setID("action-" + actionId + "-remove-btn");
-        removeBtn->setPosition(m_actionContent->getContentSize().width - 60.f, 16.f);
-        removeBtn->setUserObject(CCString::create(actionId));
+        removeBtn->setID("action-" + actionIdRaw + "-remove-btn");
+        float btnX = m_actionContent->getContentSize().width - 24.f;
+        removeBtn->setPosition(btnX, 16.f);
+        removeBtn->setUserObject(CCString::create(actionIdRaw));
+        // If this is a wait action, add a TextInput to the left of the button
+        TextInput* waitInput = nullptr;
+        if (actionId == "wait") {
+            waitInput = TextInput::create(50, "sec", "bigFont.fnt");
+            waitInput->setPosition(btnX - 40.f, 16.f);
+            waitInput->setScale(0.5f);
+            waitInput->setID("wait-delay-input-" + actionIdRaw);
+            if (!waitValue.empty()) waitInput->setString(waitValue.c_str());
+            node->addChild(waitInput);
+        }
         // Menu for button
         auto menu = CCMenu::create();
         menu->addChild(removeBtn);
@@ -268,6 +311,7 @@ void CommandSettingsPopup::refreshActionsList() {
         node->setPosition(0, actionNodeY - 16.f); // 16.f is half node height
         m_actionContent->addChild(node);
         actionNodeY -= (32.f + actionNodeGap);
+        actionIndex++;
     }
 }
 
@@ -318,40 +362,68 @@ std::string CommandSettingsPopup::getNotificationText() const {
 
 void CommandSettingsPopup::onSave(CCObject* sender) {
     std::string notifText = getNotificationText();
-    // Update the command's notification action
-    bool found = false;
+
+    // Save notification action if present (optional, not in array)
+    bool foundNotif = false;
     for (auto& action : m_command.actions) {
         if (action.type == CommandActionType::Notification) {
             action.arg = notifText;
-            found = true;
+            foundNotif = true;
             break;
         }
     }
-    if (!found && !notifText.empty()) {
-        // Add a notification action if not present
-        for (auto& action : m_command.actions) {
-            if (action.type == CommandActionType::Notification || action.type == CommandActionType::Chat || action.type == CommandActionType::Keybind) {
-                action = TwitchCommandAction(CommandActionType::Notification, notifText, 0);
-                found = true;
-                break;
+    // Build up to 10 actions in order, validate all wait inputs
+    std::vector<TwitchCommandAction> actionsVec;
+    for (const auto& actionIdRaw : m_commandActions) {
+        std::string actionId = actionIdRaw;
+        std::string waitValue;
+        if (actionIdRaw.rfind("wait:", 0) == 0) {
+            actionId = "wait";
+            waitValue = actionIdRaw.substr(5);
+        }
+        if (actionId == "wait") {
+            std::string inputId = "wait-delay-input-" + actionIdRaw;
+            TextInput* waitInput = nullptr;
+            auto children = m_actionContent->getChildren();
+            if (children) {
+                for (int i = 0; i < children->count(); ++i) {
+                    auto node = static_cast<CCNode*>(children->objectAtIndex(i));
+                    if (node) {
+                        auto inputNode = node->getChildByID(inputId);
+                        if (inputNode) {
+                            waitInput = dynamic_cast<TextInput*>(inputNode);
+                            if (waitInput) break;
+                        }
+                    }
+                }
             }
+            std::string delayStr = waitValue;
+            if (waitInput) delayStr = waitInput->getString();
+            if (delayStr.empty()) {
+                Notification::create("Please fill in all wait delay fields!", NotificationIcon::Error)->show();
+                return;
+            }
+            try {
+                int delay = std::stoi(delayStr);
+                actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
+                // Update m_commandActions with the value for next refresh
+                const_cast<std::string&>(actionIdRaw) = "wait:" + std::to_string(delay);
+            } catch (...) {
+                Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
+                return;
+            }
+        } else if (actionId == "kill_player") {
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
+        } else {
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         }
     }
-
-    // Save kill player setting as a custom action (persisted in command actions)
-    // Always clear any previous kill_player action
-    for (auto& action : m_command.actions) {
-        if (action.type == CommandActionType::Event && action.arg == "kill_player") {
-            action = TwitchCommandAction(); // Reset to default
-        }
-    }
-    // If checked, add or update a kill_player action in the first available slot
-    if (m_killPlayerCheckbox && m_killPlayerCheckbox->isToggled()) {
-        for (auto& action : m_command.actions) {
-            if (action.type == CommandActionType::Notification && action.arg.empty()) {
-                action = TwitchCommandAction(CommandActionType::Event, "kill_player", 0);
-                break;
-            }
+    // Copy to array, zero unused
+    for (size_t i = 0; i < m_command.actions.size(); ++i) {
+        if (i < actionsVec.size()) {
+            m_command.actions[i] = actionsVec[i];
+        } else {
+            m_command.actions[i] = TwitchCommandAction();
         }
     }
 
@@ -361,7 +433,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     auto commandManager = TwitchCommandManager::getInstance();
     for (auto& cmd : commandManager->getCommands()) {
         if (cmd.name == m_command.name) {
-            cmd.actions = m_command.actions;
+            cmd = m_command; // Replace the entire command object
             break;
         }
     }

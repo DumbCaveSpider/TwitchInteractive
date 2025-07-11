@@ -15,7 +15,8 @@ enum class CommandActionType {
     Notification = 0,
     Keybind = 1, 
     Chat = 2, 
-    Event = 3 
+    Event = 3,
+    Wait = 4
 };
 
 // A quick command action

@@ -2,10 +2,12 @@
 #include "EventNode.hpp"
 
 std::vector<EventNodeInfo> EventNodeFactory::getAllEventNodes() {
-    // Add new events here. For each event, provide label and id
+    // Add new events here. For each event, provide id and label
     std::vector<EventNodeInfo> nodes = {
-        {"Kill Player", "kill_player"},
-        /* Example: {"Freeze Player", "freeze_player"}, */
+        {"kill_player", "Kill Player"},
+        {"jump", "Jump"},
+        {"wait", "Wait (Delay)"},
+        /* Example: {"freeze_player", "Freeze Player"}, */
     };
     return nodes;
 }
