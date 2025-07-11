@@ -91,14 +91,9 @@ bool TwitchDashboard::setup() {
     // Add the scroll layer to the background
     scrollBg->addChild(m_commandScrollLayer);
 
-    // Setup commands list
-    setupCommandsList();
-
-    // Add command input area
-    setupCommandInput();
-
-    // Register message callback for custom commands
-    setupCommandListening();
+    setupCommandsList(); // Setup commands list
+    setupCommandInput(); // Add command input area
+    setupCommandListening();// Register message callback for custom commands
 
     log::debug("TwitchDashboard opened successfully for channel: {}", channelName);
     return true;
@@ -224,7 +219,7 @@ void TwitchDashboard::setupCommandListening() {
         // Use the backend's handler to ensure sequential, ordered action execution
         auto commandManager = TwitchCommandManager::getInstance();
         commandManager->handleChatMessage(chatMessage);
-    });
+                                   });
 
     log::info("Command listening setup complete");
 };
@@ -322,7 +317,7 @@ TwitchDashboard* TwitchDashboard::create() {
     float scaleX = winSize.width / baseWidth;
     float scaleY = winSize.height / baseHeight;
     float scaleFactor = std::min(scaleX, scaleY) * 0.8f; // Use 80% of available space
-    scaleFactor = std::min(scaleFactor, 1.0f);           // Don't scale up, only down if needed
+    scaleFactor = std::min(scaleFactor, 1.0f); // Don't scale up, only down if needed
 
     // Apply scale factor to get final size
     float width = baseWidth * scaleFactor;
@@ -361,11 +356,13 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
         // Format: desc|cooldown
         desc = newDesc.substr(0, firstSep);
         std::string cooldownStr = newDesc.substr(lastSep + 1);
+
         try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
     } else if (firstSep != std::string::npos) {
         // Format: desc|cooldown (if only one sep)
         desc = newDesc.substr(0, firstSep);
         std::string cooldownStr = newDesc.substr(firstSep + 1);
+
         try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
     };
 
@@ -388,6 +385,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
 
     // Remove the old command
     commandManager->removeCommand(originalName);
+
     // If cooldown changed, reset cooldown for this command
     if (cooldown != oldCommand.cooldown) {
         resetCommandCooldown(originalName);

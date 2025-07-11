@@ -39,26 +39,32 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     auto nameLabel = CCLabelBMFont::create(("!" + m_command.name).c_str(), "bigFont.fnt");
     nameLabel->setScale(0.4f);
     nameLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
+
     // Make the command name label clickable (copy to clipboard)
     auto nameBtn = CCMenuItemLabel::create(nameLabel, this, menu_selector(CommandNode::onCopyCommandName));
     nameBtn->setID("command-name-btn");
     nameBtn->setAnchorPoint({ 0.0f, 0.5f });
     nameBtn->setPosition(leftPadding, itemHeight / 2 + 15);
+
     // Create a menu just for this button (so it can receive clicks)
     auto nameMenu = CCMenu::create();
     nameMenu->addChild(nameBtn);
     nameMenu->setPosition(0, 0);
     nameMenu->setContentSize(nameLabel->getContentSize());
+
     addChild(nameMenu);
 
     // Cooldown label - right next to the command name (dynamic position)
     m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
     m_cooldownLabel->setScale(0.4f);
     m_cooldownLabel->setAnchorPoint({ 0.0f, 0.5f });
+
     // Calculate width of nameLabel after scaling
     float nameLabelWidth = nameLabel->getContentSize().width * nameLabel->getScale();
     float cooldownPadding = 8.0f; // Space between name and cooldown
+
     m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2 + 5);
+
     addChild(m_cooldownLabel);
 
     // Set initial cooldown label
@@ -73,6 +79,7 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     descLabel->setScale(0.375f);
     descLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
     descLabel->setPosition(leftPadding, itemHeight / 2 - 8); // Bottom half of container
+
     addChild(descLabel);
 
 
@@ -86,7 +93,6 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     auto editBtn = createEditButton();
     auto deleteBtn = createDeleteButton();
     auto settingsBtn = createSettingsButton();
-
 
     // Position buttons side by side (settings, edit, delete)
     settingsBtn->setPosition(0, 0);
@@ -104,9 +110,7 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     commandEditMenu->setTouchPriority(-130);
     addChild(commandEditMenu);
     return true;
-}
-
-
+};
 
 CCMenuItem* CommandNode::createSettingsButton() {
     // Create settings button sprite with proper scaling
@@ -122,10 +126,12 @@ CCMenuItem* CommandNode::createSettingsButton() {
     settingsBtn->setID("settings-btn");
     settingsBtn->ignoreAnchorPointForPosition(true);
     settingsBtn->setContentSize({ 40.0f, 40.0f });
+
     auto btnSprite = settingsBtn->getNormalImage();
     if (btnSprite) btnSprite->setPosition(20.0f, 20.0f);
+
     return settingsBtn;
-}
+};
 
 CCMenuItem* CommandNode::createEditButton() {
     // Create edit button sprite with proper scaling
@@ -152,8 +158,6 @@ CCMenuItem* CommandNode::createEditButton() {
 };
 
 CCMenuItem* CommandNode::createDeleteButton() {
-
-
     // Create delete button sprite with proper scaling
     auto deleteBtnSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
     deleteBtnSprite->setScale(0.7f);
@@ -166,9 +170,7 @@ CCMenuItem* CommandNode::createDeleteButton() {
     );
     deleteBtn->setID("delete-btn");
     deleteBtn->ignoreAnchorPointForPosition(true);
-
-    // Make the button have a consistent size for better hit detection
-    deleteBtn->setContentSize({ 40.0f, 40.0f });
+    deleteBtn->setContentSize({ 40.0f, 40.0f }); // Make the button have a consistent size for better hit detection
 
     // Center the sprite within the button for better appearance
     auto btnSprite = deleteBtn->getNormalImage();
@@ -226,7 +228,7 @@ void CommandNode::triggerCommand() {
 void CommandNode::startCooldown() {
     m_cooldownRemaining = m_command.cooldown;
     m_isOnCooldown = true;
-    
+
     schedule(schedule_selector(CommandNode::updateCooldown), 1.0f);
     updateCooldown(0);
 };
@@ -263,14 +265,16 @@ void CommandNode::onCopyCommandName(CCObject* sender) {
 
 void CommandNode::onSettingsCommand(cocos2d::CCObject* sender) {
     log::info("Settings button clicked for command: {}", m_command.name);
+
     // Find the command in the manager to ensure it has the latest data
     auto commandManager = TwitchCommandManager::getInstance();
     for (const auto& cmd : commandManager->getCommands()) {
         if (cmd.name == m_command.name) {
             m_command = cmd;
             break;
-        }
-    }
+        };
+    };
+
     auto popup = CommandSettingsPopup::create(m_command);
     popup->m_noElasticity = true;
     popup->show();

@@ -42,7 +42,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
         if (!mod || !mod->isEnabled()) {
             FLAlertLayer::create(
                 "Mod Missing",
-                "The Twitch Chat API mod is required but not found or disabled. Please install and enable it.",
+                "The <cb>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
                 "OK"
             )->show();
             return;

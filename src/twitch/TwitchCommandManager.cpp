@@ -11,74 +11,77 @@ matjson::Value TwitchCommandAction::toJson() const {
     v["type"] = static_cast<int>(type);
     v["arg"] = arg;
     v["index"] = index;
+
     return v;
-}
+};
 
 TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     CommandActionType type = CommandActionType::Notification;
     std::string arg = "";
     int index = 0;
-    if (v.contains("type") && v["type"].asInt().ok())
-        type = static_cast<CommandActionType>(v["type"].asInt().unwrap());
-    if (v.contains("arg") && v["arg"].asString().ok())
-        arg = v["arg"].asString().unwrap();
-    if (v.contains("index") && v["index"].asInt().ok())
-        index = static_cast<int>(v["index"].asInt().unwrap());
+
+    if (v.contains("type") && v["type"].asInt().ok())type = static_cast<CommandActionType>(v["type"].asInt().unwrap());
+    if (v.contains("arg") && v["arg"].asString().ok()) arg = v["arg"].asString().unwrap();
+    if (v.contains("index") && v["index"].asInt().ok()) index = static_cast<int>(v["index"].asInt().unwrap());
+
     return TwitchCommandAction(type, arg, index);
-}
+};
 
 using namespace geode::prelude;
 
 // Save commands to file
 void TwitchCommandManager::saveCommands() {
-    using namespace matjson;
     std::vector<matjson::Value> arrVec;
     for (const auto& cmd : m_commands) arrVec.push_back(cmd.toJson());
-    Value arr(arrVec);
+
+    matjson::Value arr(arrVec);
     std::ofstream ofs(getSavePath());
     if (ofs) ofs << arr.dump(2);
-}
+};
 
 // NOTE: Update TwitchCommand definition to use std::vector<TwitchCommandAction> for actions
 
 void TwitchCommandManager::loadCommands() {
-    using namespace matjson;
     std::ifstream ifs(getSavePath());
     if (!ifs) return;
+
     auto result = matjson::parse(ifs);
     if (!result) return;
+
     auto arr = result.unwrap();
     if (!arr.isArray()) return;
+
     m_commands.clear();
-    for (size_t i = 0; i < arr.size(); ++i) {
-        m_commands.push_back(TwitchCommand::fromJson(arr[i]));
-    }
-}
+    for (size_t i = 0; i < arr.size(); ++i) m_commands.push_back(TwitchCommand::fromJson(arr[i]));
+};
 
 // Deserialize a TwitchCommand from matjson::Value
 TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     std::string name = (v.contains("name") && v["name"].asString().ok()) ? v["name"].asString().unwrap() : "";
     std::string description = (v.contains("description") && v["description"].asString().ok()) ? v["description"].asString().unwrap() : "";
     std::string response = (v.contains("response") && v["response"].asString().ok()) ? v["response"].asString().unwrap() : "";
+
     int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
+
     std::vector<TwitchCommandAction> actions;
+
     if (v.contains("actions") && v["actions"].isArray()) {
         auto& actionsArr = v["actions"];
-        for (size_t i = 0; i < actionsArr.size(); ++i) {
-            actions.push_back(TwitchCommandAction::fromJson(actionsArr[i]));
-        }
-    }
+        for (size_t i = 0; i < actionsArr.size(); ++i) actions.push_back(TwitchCommandAction::fromJson(actionsArr[i]));
+    };
+
     TwitchCommand cmd(name, description, response, cooldown, actions);
     cmd.enabled = enabled;
+
     return cmd;
-}
+};
 
 // Get the path to the commands save file
 std::string TwitchCommandManager::getSavePath() const {
     // Save in the mod's directory as commands.json
     return "commands.json";
-}
+};
 
 matjson::Value TwitchCommand::toJson() const {
     matjson::Value v = matjson::Value::object();
@@ -87,23 +90,27 @@ matjson::Value TwitchCommand::toJson() const {
     v["response"] = response;
     v["cooldown"] = cooldown;
     v["enabled"] = enabled;
+
     std::vector<matjson::Value> actionsVec;
-    for (const auto& action : actions) {
-        actionsVec.push_back(action.toJson());
-    }
+
+    for (const auto& action : actions) actionsVec.push_back(action.toJson());
+
     v["actions"] = matjson::Value(actionsVec);
+
     return v;
-}
+};
 
 TwitchCommandManager* TwitchCommandManager::getInstance() {
     static TwitchCommandManager instance;
     static bool loaded = false;
+
     if (!loaded) {
         instance.loadCommands();
         loaded = true;
-    }
+    };
+
     return &instance;
-}
+};
 
 void TwitchCommandManager::addCommand(const TwitchCommand& command) {
     // Check if command already exists
@@ -116,31 +123,34 @@ void TwitchCommandManager::addCommand(const TwitchCommand& command) {
     } else {
         m_commands.push_back(command);
         log::info("Added new command: {}", command.name);
-    }
+    };
+
     saveCommands();
-}
+};
 
 void TwitchCommandManager::removeCommand(const std::string& name) {
     auto it = std::remove_if(m_commands.begin(), m_commands.end(),
                              [&name](const TwitchCommand& cmd) { return cmd.name == name; });
+
     if (it != m_commands.end()) {
         m_commands.erase(it, m_commands.end());
         log::info("Removed command: {}", name);
         saveCommands();
     } else {
         log::warn("Command '{}' not found for removal", name);
-    }
-}
+    };
+};
 
 void TwitchCommandManager::enableCommand(const std::string& name, bool enable) {
     auto it = std::find_if(m_commands.begin(), m_commands.end(),
                            [&name](const TwitchCommand& cmd) { return cmd.name == name; });
+
     if (it != m_commands.end()) {
         it->enabled = enable;
         log::info("Command {} {}", name, enable ? "enabled" : "disabled");
         saveCommands();
-    }
-}
+    };
+};
 
 std::vector<TwitchCommand>& TwitchCommandManager::getCommands() {
     return m_commands;
@@ -162,9 +172,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
     log::info("Chat message received - Username: {}, Message ID: {}, Message: {}", username, messageID, message);
 
     // Check if message starts with command prefix
-    if (message.empty() || message[0] != '!') {
-        return;
-    };
+    if (message.empty() || message[0] != '!') return;
 
     // Extract command name (everything after ! until first space)
     std::string commandName;
@@ -190,24 +198,22 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         // Check cooldown
         time_t now = time(nullptr);
         auto cooldownIt = commandCooldowns.find(commandName);
+
         if (cooldownIt != commandCooldowns.end() && cooldownIt->second > now) {
             log::info("Command '{}' is currently on cooldown ({}s remaining)", commandName, cooldownIt->second - now);
             return;
-        }
+        };
 
         // Set cooldown if needed
         if (it->cooldown > 0) {
             commandCooldowns[commandName] = now + it->cooldown;
             log::info("Command '{}' is now on cooldown for {}s", commandName, it->cooldown);
-        }
+        };
 
         log::info("Executing command: {} for user: {} (Message ID: {})", commandName, username, messageID);
 
         // Notify dashboard to trigger cooldown for this command
-        if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup"))) {
-            dashboard->triggerCommandCooldown(commandName);
-        }
-
+        if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup"))) dashboard->triggerCommandCooldown(commandName);
 
         // --- Sequential Action Execution with Wait Support ---
         // Use std::function to allow recursion
@@ -221,22 +227,26 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             std::string username;
             std::string commandArgs;
             TwitchCommandManager* manager = nullptr;
+
             // Helper for countdown logging
             struct CountdownLogger : public CCObject {
                 int remaining;
                 std::string commandName;
                 size_t actionIndex;
-                CountdownLogger(int rem, const std::string& cmd, size_t idx) : remaining(rem), commandName(cmd), actionIndex(idx) {}
+
+                CountdownLogger(int rem, const std::string& cmd, size_t idx) : remaining(rem), commandName(cmd), actionIndex(idx) {};
+
                 void log(CCObject*) {
                     log::info("[TwitchCommandManager] Wait countdown for command '{}', action {}: {} second(s) remaining", commandName, actionIndex, remaining);
-                }
+                };
             };
             void execute(CCObject* obj) {
                 auto* ctx = static_cast<ActionContext*>(obj);
                 if (!ctx || ctx->index >= ctx->actions.size()) {
                     if (ctx) ctx->release();
                     return;
-                }
+                };
+
                 // Debug log: print the full action order and current action
                 std::ostringstream orderLog;
                 orderLog << "[TwitchCommandManager] Action order for command '" << ctx->commandName << "': ";
@@ -245,7 +255,8 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                     orderLog << "[" << i << "] type=" << (int)a.type << ", arg=" << a.arg << ", index=" << a.index;
                     if (i == ctx->index) orderLog << " <-- executing";
                     orderLog << "; ";
-                }
+                };
+
                 log::debug("{}", orderLog.str());
 
                 const auto& action = ctx->actions[ctx->index];
@@ -263,23 +274,27 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                                     CCCallFuncO::create(logger, callfuncO_selector(CountdownLogger::log), logger),
                                     nullptr
                                 ));
-                            }
-                        }
+                            };
+                        };
+
                         ctx->index++;
                         auto seq = CCSequence::create(
                             CCDelayTime::create(static_cast<float>(delay)),
                             CCCallFuncO::create(ctx, callfuncO_selector(ActionContext::execute), ctx),
                             nullptr
                         );
+
                         if (auto scene = CCDirector::sharedDirector()->getRunningScene()) {
                             ctx->retain(); // Retain for the callback
                             scene->runAction(seq);
                         } else {
                             ctx->execute(ctx);
-                        }
+                        };
+
                         return;
-                    }
-                }
+                    };
+                };
+
                 if (action.type == CommandActionType::Event) {
                     if (action.arg == "kill_player") {
                         log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
@@ -289,21 +304,24 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                         int playerIdx = 1;
                         try {
                             playerIdx = std::stoi(action.arg.substr(5));
-                        } catch (...) {}
+                        } catch (...) {};
+
                         log::info("[TwitchCommandManager] Triggering jump event for player {} (command: {})", playerIdx, ctx->commandName);
                         PlayLayerEvent::jumpPlayer(playerIdx);
-                    }
-                }
+                    };
+                };
+
                 if (action.type == CommandActionType::Notification) {
                     if (!action.arg.empty()) {
                         log::info("[TwitchCommandManager] Showing notification: {} (command: {})", action.arg, ctx->commandName);
                         Notification::create(action.arg, NotificationIcon::Info)->show();
-                    }
-                }
+                    };
+                };
+
                 // Add more action types here as needed
                 ctx->index++;
                 ctx->execute(ctx);
-            }
+            };
         };
 
         // Collect non-default actions in order
@@ -316,7 +334,8 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             if (action.type == CommandActionType::Keybind && action.arg.empty() && action.index == 0) continue;
             if (action.type == CommandActionType::Chat && action.arg.empty() && action.index == 0) continue;
             orderedActions.push_back(action);
-        }
+        };
+
         if (!orderedActions.empty()) {
 
             // Debug log: print action order before execution (use ostringstream for MSVC compatibility)
@@ -325,7 +344,8 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             for (size_t i = 0; i < orderedActions.size(); ++i) {
                 const auto& a = orderedActions[i];
                 orderLog << "[" << i << "] type=" << (int)a.type << ", arg=" << a.arg << ", index=" << a.index << "; ";
-            }
+            };
+
             std::string orderLogStr = orderLog.str();
             log::debug("{}", orderLogStr);
 
@@ -336,13 +356,12 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             ctx->username = username;
             ctx->commandArgs = commandArgs;
             ctx->manager = this;
+
             ctx->execute(ctx);
-        }
+        };
 
         // Execute command callback if it exists
-        if (it->callback) {
-            it->callback(commandArgs);
-        }
+        if (it->callback) it->callback(commandArgs);
 
         // For now, just log the response since we don't have a send method
         if (!it->response.empty()) {
@@ -354,12 +373,12 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
             // Log the response (in a real implementation, this would be sent to chat)
             log::info("Command response: {}", response);
-        }
+        };
     } else {
         log::debug("Command '{}' not found or disabled", commandName);
-    }
+    };
 };
 TwitchCommandManager::~TwitchCommandManager() {
     m_commands.clear();
     log::debug("TwitchCommandManager destructor called");
-}
+};

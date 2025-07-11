@@ -12,46 +12,45 @@ using namespace geode::prelude;
 void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
-    if (btn->getUserObject()) {
-        idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
-    }
+    if (btn->getUserObject()) idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
+
     std::string& actionStr = m_commandActions[idx];
     if (actionStr.rfind("Notification", 0) != 0) return;
-    std::string notifText;
-    if (actionStr.length() > 13)
-        notifText = actionStr.substr(13);
-    else
-        notifText = "";
-    NotificationSettingsPopup::create(notifText, [this, idx](const std::string& newText) {
-        this->updateNotificationNextTextLabel(idx, newText);
-    })->show();
 
-}
+    std::string notifText;
+    if (actionStr.length() > 13) {
+        notifText = actionStr.substr(13);
+    } else {
+        notifText = "";
+        NotificationSettingsPopup::create(notifText, [this, idx](const std::string& newText) {
+            updateNotificationNextTextLabel(idx, newText);
+                                          })->show();
+    };
+};
 
 void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
-    if (btn->getUserObject()) {
-        idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
-    }
-    if (idx > 0 && idx < static_cast<int>(this->m_commandActions.size())) {
-        std::swap(this->m_commandActions[idx], this->m_commandActions[idx - 1]);
-        this->refreshActionsList();
-    }
-}
+
+    if (btn->getUserObject()) idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+
+    if (idx > 0 && idx < static_cast<int>(m_commandActions.size())) {
+        std::swap(m_commandActions[idx], m_commandActions[idx - 1]);
+        refreshActionsList();
+    };
+};
 
 void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
-    if (btn->getUserObject()) {
-        idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
-    }
-    if (idx >= 0 && idx < static_cast<int>(this->m_commandActions.size()) - 1) {
-        std::swap(this->m_commandActions[idx], this->m_commandActions[idx + 1]);
-        this->refreshActionsList();
-    }
-}
+    if (btn->getUserObject()) idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+
+    if (idx >= 0 && idx < static_cast<int>(m_commandActions.size()) - 1) {
+        std::swap(m_commandActions[idx], m_commandActions[idx + 1]);
+        refreshActionsList();
+    };
+};
 
 void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
@@ -60,26 +59,29 @@ void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
         actionStr = static_cast<CCString*>(btn->getUserObject())->getCString();
     } else {
         return;
-    }
+    };
+
     // Find the index of the action string in m_commandActions
     auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionStr);
     if (it == m_commandActions.end()) return;
+
     int jumpIdx = static_cast<int>(std::distance(m_commandActions.begin(), it));
     if (actionStr.rfind("jump:", 0) != 0) return;
+
     int currentPlayer = 1;
     try {
         currentPlayer = std::stoi(actionStr.substr(5));
-    } catch (...) {}
+    } catch (...) {};
+
     JumpSettingsPopup::create(jumpIdx + 1, [this, jumpIdx](int selectedPlayer) {
         m_commandActions[jumpIdx] = "jump:" + std::to_string(selectedPlayer);
-        this->refreshActionsList();
-    })->show();
-}
-
+        refreshActionsList();
+                              })->show();
+};
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
-    this->setTitle(fmt::format("!{} settings", command.name));
-    this->setID("command-settings-popup");
+    setTitle(fmt::format("!{} settings", command.name));
+    setID("command-settings-popup");
     m_command = command;
 
     auto layerSize = m_mainLayer->getContentSize();
@@ -191,7 +193,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         // Label
         auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
         label->setScale(0.5f);
-        label->setAnchorPoint({0, 0.5f});
+        label->setAnchorPoint({ 0, 0.5f });
         label->setAlignment(kCCTextAlignmentLeft);
         label->setPosition(20.f, 16.f);
         label->setID("event-" + info.id + "-label");
@@ -217,7 +219,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(node->getContentSize());
         nodeBg->setOpacity(60);
-        nodeBg->setAnchorPoint({0, 0});
+        nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
         node->addChild(nodeBg, -1);
         node->setPosition(0, eventNodeY - 16.f); // 16.f is half node height
@@ -259,7 +261,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     commandBtnMenu->setID("command-settings-button-menu");
     commandBtnMenu->addChild(saveBtn);
     commandBtnMenu->addChild(closeBtn);
-    commandBtnMenu->setContentSize({570.f, 25.f});
+    commandBtnMenu->setContentSize({ 570.f, 25.f });
     auto menuSize = commandBtnMenu->getContentSize();
     float menuWidth = menuSize.width;
     float menuHeight = menuSize.height;
@@ -332,7 +334,7 @@ void CommandSettingsPopup::refreshActionsList() {
         // Add action index label (1-based)
         auto indexLabel = CCLabelBMFont::create(std::to_string(actionIndex + 1).c_str(), "goldFont.fnt");
         indexLabel->setScale(0.5f);
-        indexLabel->setAnchorPoint({0, 0.5f});
+        indexLabel->setAnchorPoint({ 0, 0.5f });
         indexLabel->setAlignment(kCCTextAlignmentLeft);
         indexLabel->setPosition(8.f, 16.f);
         indexLabel->setID("action-index-label-" + std::to_string(actionIndex));
@@ -378,7 +380,7 @@ void CommandSettingsPopup::refreshActionsList() {
             if (!actionNode->getChildByID(notifLabelId)) {
                 auto notifLabel = CCLabelBMFont::create(notifLabelText.c_str(), "chatFont.fnt");
                 notifLabel->setScale(0.5f);
-                notifLabel->setAnchorPoint({0, 0.5f});
+                notifLabel->setAnchorPoint({ 0, 0.5f });
                 notifLabel->setAlignment(kCCTextAlignmentLeft);
                 float labelX = 0.f;
                 float labelY = 6.f; // below the main label (main is at 16.f)
@@ -431,7 +433,7 @@ void CommandSettingsPopup::refreshActionsList() {
                 settingsBtn->setPosition(btnX - 40.f, 16.f);
             }
         }
-        
+
         // Add player info as a separate label in chatFont and settings button for jump actions
         if (actionId == "jump" && !jumpPlayerValue.empty()) {
             std::string playerInfo;
@@ -442,7 +444,7 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             auto playerLabel = CCLabelBMFont::create(playerInfo.c_str(), "chatFont.fnt");
             playerLabel->setScale(0.5f);
-            playerLabel->setAnchorPoint({0, 0.5f});
+            playerLabel->setAnchorPoint({ 0, 0.5f });
             playerLabel->setAlignment(kCCTextAlignmentLeft);
             // Place playerLabel right after the action text label (nodeLabel)
             float labelX = 0.f;
@@ -511,7 +513,7 @@ void CommandSettingsPopup::refreshActionsList() {
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(CCSize(nodeBgWidth, actionNode->getContentSize().height));
         nodeBg->setOpacity(60);
-        nodeBg->setAnchorPoint({0, 0});
+        nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
         actionNode->addChild(nodeBg, -1);
 
@@ -536,7 +538,7 @@ void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
 }
 
 void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
-    this->onClose(sender);
+    onClose(sender);
 }
 
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
@@ -657,7 +659,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         }
     }
     commandManager->saveCommands();
-    this->onClose(nullptr);
+    onClose(nullptr);
 }
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {

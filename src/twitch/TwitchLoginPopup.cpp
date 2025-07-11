@@ -179,6 +179,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
         // Schedule timeout check with a unique tag
         stopActionByTag(999); // Stop any previous timeout
         timeoutSequence->setTag(999);
+
         runAction(timeoutSequence);
     } catch (const std::exception& e) {
         log::error("Exception during connection check: {}", e.what());
@@ -391,9 +392,7 @@ void TwitchLoginPopup::onAuthenticationTimeout() {
         auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
         auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-        if (m_isActive && m_statusLabel) {
-            runAction(sequence);
-        };
+        if (m_isActive && m_statusLabel) runAction(sequence);
 
         return;
     };
@@ -429,7 +428,6 @@ bool TwitchLoginPopup::checkTwitchChannelExists() {
 
         log::debug("Twitch channel found: {}", channelName);
         return true;
-
     } catch (const std::exception& e) {
         log::error("Exception while checking Twitch channel: {}", e.what());
         return false;
@@ -488,9 +486,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
                 auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
                 auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 
-                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) {
-                    runAction(sequence);
-                };
+                if (validityFlag && *validityFlag && this && m_isActive && m_statusLabel) runAction(sequence);
 
                 return;
             };
@@ -521,6 +517,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
         // Schedule timeout check with a unique tag
         stopActionByTag(999); // Stop any previous timeout
         timeoutSequence->setTag(999);
+
         runAction(timeoutSequence);
     } catch (const std::exception& e) {
         log::error("Exception during retry authentication: {}", e.what());
@@ -537,7 +534,6 @@ std::string TwitchLoginPopup::getAuthenticatedUsername() {
     try {
         // Get the TwitchChatAPI mod
         auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
-
         if (!twitchMod) {
             log::error("TwitchChatAPI mod not found");
             return "";
@@ -545,9 +541,7 @@ std::string TwitchLoginPopup::getAuthenticatedUsername() {
 
         // Get the saved Twitch username value
         auto username = twitchMod->getSavedValue<std::string>("twitch-username");
-
-        // Check if the username exists and is not empty
-        if (username.empty()) {
+        if (username.empty()) { // Check if the username exists and is not empty
             log::debug("Twitch username is not configured or is empty");
             return "";
         };
@@ -565,7 +559,6 @@ std::string TwitchLoginPopup::getAuthenticatedUsername() {
 
 TwitchLoginPopup::~TwitchLoginPopup() {
     m_isActive = false;
-
     if (m_validityFlag) *m_validityFlag = false;
 
     log::debug("TwitchLoginPopup destructor called");

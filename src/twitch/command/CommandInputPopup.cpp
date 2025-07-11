@@ -13,6 +13,9 @@ CCMenu* CommandInputPopup::createButtonMenu() {
     buttonMenu->setID("command-input-button-menu");
     buttonMenu->setContentSize(CCSize(layerSize.width, 5)); // Set a fixed height for the menu
 
+    float centerX = buttonMenu->getContentSize().width / 2.0f;
+    float centerY = buttonMenu->getContentSize().height / 2.0f;
+
     // Only add the Add/Edit button (centered)
     auto addBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create(m_isEditing ? "Edit" : "Add", "bigFont.fnt", "GJ_button_04.png", 0.6f),
@@ -20,10 +23,6 @@ CCMenu* CommandInputPopup::createButtonMenu() {
         menu_selector(CommandInputPopup::onAdd)
     );
     addBtn->setID("command-input-add-btn");
-
-    float centerX = buttonMenu->getContentSize().width / 2.0f;
-    float centerY = buttonMenu->getContentSize().height / 2.0f;
-
     addBtn->setPosition(centerX, centerY);
 
     buttonMenu->addChild(addBtn);
