@@ -415,12 +415,38 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         }
     }
-    // Copy to array, zero unused
-    for (size_t i = 0; i < m_command.actions.size(); ++i) {
-        if (i < actionsVec.size()) {
-            m_command.actions[i] = actionsVec[i];
-        } else {
-            m_command.actions[i] = TwitchCommandAction();
+
+    // Copy up to 10 actions from actionsVec into m_command.actions, zero unused
+    size_t i = 0;
+    for (; i < actionsVec.size() && i < m_command.actions.size(); ++i) {
+        m_command.actions[i] = actionsVec[i];
+    }
+    for (; i < m_command.actions.size(); ++i) {
+        m_command.actions[i] = TwitchCommandAction();
+    }
+
+    // Save notification action if present (optional, not in array)
+    foundNotif = false;
+    for (auto& action : m_command.actions) {
+        if (action.type == CommandActionType::Notification) {
+            action.arg = notifText;
+            foundNotif = true;
+            break;
+        }
+    }
+    if (!foundNotif && !notifText.empty()) {
+        // Find an empty slot (default-constructed action)
+        bool notifAdded = false;
+        for (auto& action : m_command.actions) {
+            if (action.type == CommandActionType::Notification && action.arg.empty() && action.index == 0) {
+                action = TwitchCommandAction(CommandActionType::Notification, notifText, 0);
+                notifAdded = true;
+                break;
+            }
+        }
+        // If no empty slot, overwrite the last slot
+        if (!notifAdded) {
+            m_command.actions[m_command.actions.size() - 1] = TwitchCommandAction(CommandActionType::Notification, notifText, 0);
         }
     }
 

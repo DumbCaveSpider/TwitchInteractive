@@ -1,4 +1,3 @@
-
 #pragma once
 #include <Geode/Geode.hpp>
 #include <Geode/Bindings.hpp>
