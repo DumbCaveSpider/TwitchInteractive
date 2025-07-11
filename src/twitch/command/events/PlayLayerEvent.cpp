@@ -59,7 +59,9 @@ void PlayLayerEvent::jumpPlayer(int playerIdx) {
             return;
         };
 
-        // Player 1 = 1, Player 2 = 2, Both = 3
+        // P1 = 1 
+        // P2 = 2
+        // Both = 3        
         if (playerIdx == 3) {
             if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
             if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Jump);

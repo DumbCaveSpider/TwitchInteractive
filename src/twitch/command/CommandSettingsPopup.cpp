@@ -14,6 +14,7 @@ using namespace geode::prelude;
 void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
+
     if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
 
@@ -82,9 +83,10 @@ void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
 };
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
+    m_command = command;
+
     setTitle(fmt::format("!{} settings", command.name));
     setID("command-settings-popup");
-    m_command = command;
 
     auto layerSize = m_mainLayer->getContentSize();
 
@@ -92,12 +94,16 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     // Set fixed size for event and action scroll layers
     float sectionWidth = 250.f;
     float sectionHeight = 200.f;
-    float popupWidth = layerSize.width;
-    float popupHeight = layerSize.height;
+
+    float popupWidth = layerSize.width - 7.5f;
+    float popupHeight = layerSize.height - 7.5f;
+
     float sectionY = (popupHeight - sectionHeight) / 2.0f;
+
     // Center both sections horizontally
     float gap = 20.f; // Gap between event and action layers
     float totalSectionsWidth = sectionWidth * 2 + gap;
+
     float startX = (popupWidth - totalSectionsWidth) / 2.0f;
     float eventSectionX = startX;
     float actionSectionX = startX + sectionWidth + gap;
@@ -105,16 +111,17 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     CCSize eventScrollSize = CCSize(sectionWidth, sectionHeight);
     CCSize actionScrollSize = CCSize(sectionWidth, sectionHeight);
 
+    float scrollX = eventSectionX;
+    float scrollY = sectionY;
+
     // Background for the event scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
     eventScrollBg->setContentSize(eventScrollSize);
     eventScrollBg->setOpacity(80);
     eventScrollBg->setID("events-scroll-background");
-    float scrollX = eventSectionX;
-    float scrollY = sectionY;
     eventScrollBg->setPosition(scrollX + eventScrollSize.width / 2, scrollY + eventScrollSize.height / 2 - 10.f);
-    m_mainLayer->addChild(eventScrollBg);
 
+    m_mainLayer->addChild(eventScrollBg);
 
     // Background for the actions scroll layer
     auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
@@ -134,40 +141,42 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     // Set the background width to match the scroll layer width
     actionScrollBg->setContentSize(actionScrollLayer->getContentSize());
     actionScrollBg->setPosition(actionSectionX + actionScrollLayer->getContentSize().width / 2, scrollY + actionScrollLayer->getContentSize().height / 2 - 10.f);
+
     m_mainLayer->addChild(actionScrollBg);
 
     // Ensure scroll layers start at the top
     eventScrollLayer->scrollToTop();
     actionScrollLayer->scrollToTop();
 
-
-    // Content layer for event nodes
-    auto eventContent = eventScrollLayer->m_contentLayer;
-    eventContent->setID("events-content");
-    eventContent->setContentSize(eventScrollSize);
     auto eventLayout = ColumnLayout::create()
         ->setAxisReverse(true) // Make items stack from the top
         ->setAxisAlignment(AxisAlignment::Start)
         ->setCrossAxisAlignment(AxisAlignment::Start)
         ->setAutoGrowAxis(eventScrollSize.height)
         ->setGap(8.0f);
+
+    // Content layer for event nodes
+    auto eventContent = eventScrollLayer->m_contentLayer;
+    eventContent->setID("events-content");
+    eventContent->setContentSize(eventScrollSize);
     eventContent->setLayout(eventLayout);
 
-    // Content layer for actions
-    auto actionContent = actionScrollLayer->m_contentLayer;
-    actionContent->setID("actions-content");
-    actionContent->setContentSize(actionScrollSize);
     auto actionLayout = ColumnLayout::create()
         ->setAxisReverse(false)
         ->setAxisAlignment(AxisAlignment::Start)
         ->setCrossAxisAlignment(AxisAlignment::Start)
         ->setAutoGrowAxis(actionScrollSize.height)
         ->setGap(8.0f);
-    actionContent->setLayout(actionLayout);
 
+    // Content layer for actions
+    auto actionContent = actionScrollLayer->m_contentLayer;
+    actionContent->setID("actions-content");
+    actionContent->setContentSize(actionScrollSize);
+    actionContent->setLayout(actionLayout);
 
     // Store actions for this command as a member
     m_commandActions.clear();
+
     // Initialize m_commandActions from command.actions (do NOT skip notification actions)
     for (const auto& action : command.actions) {
         if (action.type == CommandActionType::Notification) {
@@ -179,26 +188,35 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
                 m_commandActions.push_back(action.arg);
             } else {
                 m_commandActions.push_back(action.arg);
-            }
-        }
-    }
+            };
+        };
+    };
+
     m_actionContent = actionContent;
     m_actionSectionHeight = sectionHeight;
+
     refreshActionsList();
 
     // Dynamically add all event nodes from EventNodeFactory
     float eventNodeY = eventScrollSize.height - 16.f;
     float eventNodeGap = 8.0f;
+
     for (const auto& info : EventNodeFactory::getAllEventNodes()) {
         auto node = CCNode::create();
         node->setContentSize(CCSize(eventScrollSize.width, 32.f));
+
         // Label
         auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
+        label->setID("event-" + info.id + "-label");
         label->setScale(0.5f);
         label->setAnchorPoint({ 0, 0.5f });
         label->setAlignment(kCCTextAlignmentLeft);
         label->setPosition(20.f, 16.f);
-        label->setID("event-" + info.id + "-label");
+
+        // Menu for button
+        auto menu = CCMenu::create();
+        menu->setPosition(0, 0);
+
         // Add button (always use GJ_plusBtn_001.png) at right side
         auto addSprite = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
         addSprite->setScale(0.5f);
@@ -208,38 +226,42 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
             menu_selector(CommandSettingsPopup::onAddEventAction)
         );
         addBtn->setID("event-" + info.id + "-add-btn");
-        // Place button at far right
-        addBtn->setPosition(eventScrollSize.width - 24.f, 16.f);
+        addBtn->setPosition(eventScrollSize.width - 24.f, 16.f); // Place button at far right
         addBtn->setUserObject(CCString::create(info.id));
-        // Menu for button
-        auto menu = CCMenu::create();
+
         menu->addChild(addBtn);
-        menu->setPosition(0, 0);
+
         node->addChild(label);
         node->addChild(menu);
+
         // Add a background to the event node
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(node->getContentSize());
         nodeBg->setOpacity(60);
         nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
+
         node->addChild(nodeBg, -1);
         node->setPosition(0, eventNodeY - 16.f); // 16.f is half node height
+
         eventContent->addChild(node);
+
         eventNodeY -= (32.f + eventNodeGap);
-    }
+    };
 
     // Add action nodes for existing actions
     m_mainLayer->addChild(actionScrollLayer);
     m_mainLayer->addChild(eventScrollLayer);
+
     // Set checkbox state from command actions
     bool killChecked = false;
     for (const auto& action : command.actions) {
         if (action.type == CommandActionType::Event && action.arg == "kill_player") {
             killChecked = true;
             break;
-        }
-    }
+        };
+    };
+
     if (m_killPlayerCheckbox) m_killPlayerCheckbox->toggle(killChecked);
 
     // Save button
@@ -264,25 +286,30 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     commandBtnMenu->addChild(saveBtn);
     commandBtnMenu->addChild(closeBtn);
     commandBtnMenu->setContentSize({ 570.f, 25.f });
+
     auto menuSize = commandBtnMenu->getContentSize();
+
     float menuWidth = menuSize.width;
     float menuHeight = menuSize.height;
+
     float centerY = menuHeight / 2;
     float spacing = 120.0f;
+
     saveBtn->setPosition(menuWidth / 2 - spacing / 2, centerY);
     closeBtn->setPosition(menuWidth / 2 + spacing / 2, centerY);
     commandBtnMenu->setPosition(25.f, 15.f);
+
     m_mainLayer->addChild(commandBtnMenu);
 
     return true;
-}
+};
 
 void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
+
     std::string eventId;
-    if (btn->getUserObject()) {
-        eventId = as<CCString*>(btn->getUserObject())->getCString();
-    }
+    if (btn->getUserObject()) eventId = as<CCString*>(btn->getUserObject())->getCString();
+
     if (!eventId.empty()) {
         if (eventId == "jump") {
             m_commandActions.push_back("jump:1");
@@ -290,45 +317,55 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back("Notification:"); // Always use colon as delimiter for notification
         } else {
             m_commandActions.push_back(eventId);
-        }
+        };
+
         refreshActionsList();
-    }
-}
+    };
+};
 
 void CommandSettingsPopup::refreshActionsList() {
     if (!m_actionContent) return;
+
     m_actionContent->removeAllChildren();
+
     float actionNodeGap = 8.0f;
     float nodeHeight = 32.f;
+
     int actionCount = as<int>(m_commandActions.size());
+
     // Dynamically expand content layer height if needed
     float minContentHeight = m_actionSectionHeight;
     float neededHeight = actionCount * (nodeHeight + actionNodeGap);
     float contentHeight = std::max(minContentHeight, neededHeight);
+
     m_actionContent->setContentSize(CCSize(m_actionContent->getContentSize().width, contentHeight));
 
     float actionNodeY = contentHeight - 16.f;
+
     int actionIndex = 0;
     for (size_t i = 0; i < m_commandActions.size(); ++i) {
         const auto& actionIdRaw = m_commandActions[i];
+
         std::string actionId = actionIdRaw;
         std::string waitValue;
         std::string jumpPlayerValue;
+
         if (actionIdRaw.rfind("wait:", 0) == 0) {
             actionId = "wait";
             waitValue = actionIdRaw.substr(5);
         } else if (actionIdRaw.rfind("jump:", 0) == 0) {
             actionId = "jump";
             jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
-        }
+        };
+
         // Find the event label/title for this actionId
         std::string eventLabel = actionId;
         for (const auto& info : EventNodeFactory::getAllEventNodes()) {
             if (info.id == actionId) {
                 eventLabel = info.label;
                 break;
-            }
-        }
+            };
+        };
 
         // For notification, always display the label as 'Notification'
         std::string nodeLabel = (actionId.rfind("Notification", 0) == 0) ? "Notification" : eventLabel;
@@ -362,55 +399,59 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Move the main action node text label for notification actions to y=20
         if (actionId.rfind("Notification", 0) == 0) {
-            if (auto mainLabel = actionNode->getLabel()) {
-                mainLabel->setPositionY(20.f);
-            }
-        }
+            if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(20.f);
+        };
 
         // Notification action node
         if (actionId.rfind("Notification", 0) == 0) {
             // Display the label as the current custom notification text, or 'Notification' if empty
             std::string notifText;
             size_t colonPos = actionIdRaw.find(":");
+
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
                 notifText = actionIdRaw.substr(colonPos + 1);
             } else {
                 notifText = "";
-            }
+            };
+
             std::string notifLabelText = notifText.empty() ? "-" : notifText;
             auto notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
+
             if (!actionNode->getChildByID(notifLabelId)) {
                 auto notifLabel = CCLabelBMFont::create(notifLabelText.c_str(), "chatFont.fnt");
                 notifLabel->setScale(0.5f);
                 notifLabel->setAnchorPoint({ 0, 0.5f });
                 notifLabel->setAlignment(kCCTextAlignmentLeft);
+
                 float labelX = 0.f;
                 float labelY = 6.f; // below the main label (main is at 16.f)
+
                 if (auto label = actionNode->getLabel()) {
                     labelX = label->getPositionX();
                 } else {
                     labelX = 8.f; // fallback, align with index label
-                }
+                };
+
                 notifLabel->setPosition(labelX, labelY);
                 notifLabel->setID(notifLabelId);
+
                 actionNode->addChild(notifLabel);
             } else {
                 // Update label if it already exists
-                if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) {
-                    notifLabel->setString(notifLabelText.c_str());
-                }
-            }
+                if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(notifLabelText.c_str());
+            };
             // Add settings button for notification action
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5);
+
             auto settingsBtn = CCMenuItemSpriteExtra::create(
                 settingsSprite,
                 this,
                 menu_selector(CommandSettingsPopup::onNotificationSettings)
             );
             settingsBtn->setID("notification-settings-btn-" + std::to_string(actionIndex));
-            float btnX = m_actionContent->getContentSize().width - 24.f;
             settingsBtn->setUserObject(CCInteger::create(as<int>(i)));
+
             // Find or create the menu for the remove button
             CCMenu* menu = nullptr;
             for (auto child : CCArrayExt<CCNode*>(actionNode->getChildren())) {
@@ -418,23 +459,29 @@ void CommandSettingsPopup::refreshActionsList() {
                     if (m->getChildByID("action-" + actionIdRaw + "-remove-btn")) {
                         menu = m;
                         break;
-                    }
-                }
-            }
+                    };
+                };
+            };
+
             if (!menu) {
                 menu = CCMenu::create();
                 menu->setPosition(0, 0);
                 actionNode->addChild(menu);
-            }
+            };
+
             menu->addChild(settingsBtn);
+
+            // x pos for btns
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+
             // Place settings button just to the left of the remove button if it exists
             if (auto removeBtn = menu->getChildByID("action-" + actionIdRaw + "-remove-btn")) {
                 removeBtn->setPosition(btnX, 16.f);
                 settingsBtn->setPosition(btnX - 40.f, 16.f);
             } else {
                 settingsBtn->setPosition(btnX - 40.f, 16.f);
-            }
-        }
+            };
+        };
 
         // Add player info as a separate label in chatFont and settings button for jump actions
         if (actionId == "jump" && !jumpPlayerValue.empty()) {
@@ -443,51 +490,64 @@ void CommandSettingsPopup::refreshActionsList() {
                 playerInfo = " (Both Players)";
             } else {
                 playerInfo = " (Player " + jumpPlayerValue + ")";
-            }
+            };
+
             auto playerLabel = CCLabelBMFont::create(playerInfo.c_str(), "chatFont.fnt");
             playerLabel->setScale(0.5f);
             playerLabel->setAnchorPoint({ 0, 0.5f });
             playerLabel->setAlignment(kCCTextAlignmentLeft);
+
             // Place playerLabel right after the action text label (nodeLabel)
             float labelX = 0.f;
             if (auto label = actionNode->getLabel()) {
                 labelX = label->getPositionX() + label->getContentSize().width * label->getScale();
             } else {
                 labelX = 32.f; // fallback
-            }
+            };
+
             playerLabel->setPosition(labelX + 4.f, 16.f);
             playerLabel->setID("action-" + actionId + "-player-label");
+
             actionNode->addChild(playerLabel);
 
             // Add settings button for jump action
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
+
+            // x pos for settings btn
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+
             auto settingsBtn = CCMenuItemSpriteExtra::create(
                 settingsSprite,
                 this,
                 menu_selector(CommandSettingsPopup::onJumpSettings)
             );
             settingsBtn->setID("jump-settings-btn-" + actionIdRaw);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
             settingsBtn->setPosition(btnX - 40.f, 16.f);
+
             // Store the action string for robust lookup after reordering
             settingsBtn->setUserObject(CCString::create(actionIdRaw));
+
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);
             settingsMenu->setPosition(0, 0);
+
             actionNode->addChild(settingsMenu);
-        }
+        };
 
         // Remove button
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
         removeSprite->setScale(0.5f);
+
+        // x pos for remove btn
+        float btnX = m_actionContent->getContentSize().width - 24.f;
+
         auto removeBtn = CCMenuItemSpriteExtra::create(
             removeSprite,
             this,
             menu_selector(CommandSettingsPopup::onRemoveAction)
         );
         removeBtn->setID("action-" + actionIdRaw + "-remove-btn");
-        float btnX = m_actionContent->getContentSize().width - 24.f;
         removeBtn->setPosition(btnX, 16.f);
         removeBtn->setUserObject(CCString::create(actionIdRaw));
         removeBtn->setScale(1.2f);
@@ -496,93 +556,109 @@ void CommandSettingsPopup::refreshActionsList() {
         if (actionId == "wait") {
             // Use a unique ID for each wait input based on the index
             std::string waitInputId = "wait-delay-input-" + std::to_string(actionIndex);
+
             auto waitInput = TextInput::create(50, "sec", "bigFont.fnt");
             waitInput->setPosition(btnX - 40.f, 16.f);
             waitInput->setScale(0.5f);
             waitInput->setID(waitInputId);
+
             if (!waitValue.empty()) waitInput->setString(waitValue.c_str());
+
             actionNode->addChild(waitInput);
-        }
+        };
 
         // Menu for button
         auto menu = CCMenu::create();
-        menu->addChild(removeBtn);
         menu->setPosition(0, 0);
+
+        menu->addChild(removeBtn);
         actionNode->addChild(menu);
 
         // Add a background to the action node with width matching the actionScrollLayer
         float nodeBgWidth = m_actionContent ? m_actionContent->getContentSize().width : actionNode->getContentSize().width;
+
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(CCSize(nodeBgWidth, actionNode->getContentSize().height));
         nodeBg->setOpacity(60);
         nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
+
         actionNode->addChild(nodeBg, -1);
 
         actionNodeY -= (nodeHeight + actionNodeGap);
         actionIndex++;
-    }
-}
+    };
+};
 
 void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
     std::string actionId;
-    if (btn->getUserObject()) {
-        actionId = as<CCString*>(btn->getUserObject())->getCString();
-    }
+    if (btn->getUserObject()) actionId = as<CCString*>(btn->getUserObject())->getCString();
+
     if (!actionId.empty()) {
         auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionId);
+
         if (it != m_commandActions.end()) {
             m_commandActions.erase(it);
             refreshActionsList();
-        }
-    }
-}
+        };
+    };
+};
 
 void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
     onClose(sender);
-}
+};
 
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
+
     if (ret && ret->initAnchored(620.f, 325.f, command)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};
 
 std::string CommandSettingsPopup::getNotificationText() const {
     if (m_notificationInput) {
         std::string text = m_notificationInput->getString();
+
         // Trim whitespace
         text.erase(0, text.find_first_not_of(" \t\n\r"));
         text.erase(text.find_last_not_of(" \t\n\r") + 1);
+
         return text;
-    }
+    };
+
     return "";
-}
+};
 
 void CommandSettingsPopup::onSave(CCObject* sender) {
     // Build up to 10 actions in order, validate all wait inputs
     std::vector<TwitchCommandAction> actionsVec;
     for (size_t idx = 0; idx < m_commandActions.size(); ++idx) {
         const auto& actionIdRaw = m_commandActions[idx];
+
         std::string actionId = actionIdRaw;
         std::string waitValue;
         std::string jumpPlayerValue;
+
         if (actionIdRaw.rfind("wait:", 0) == 0) {
             actionId = "wait";
             waitValue = actionIdRaw.substr(5);
         } else if (actionIdRaw.rfind("jump:", 0) == 0) {
             actionId = "jump";
             jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
-        }
+        };
+
         if (actionId == "wait") {
             std::string inputId = "wait-delay-input-" + std::to_string(idx + 1); // match refreshActionsList index label (1-based)
             TextInput* waitInput = nullptr;
+
             auto children = m_actionContent->getChildren();
+
             if (children) {
                 for (int i = 0; i < children->count(); ++i) {
                     auto node = as<CCNode*>(children->objectAtIndex(i));
@@ -591,16 +667,19 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
                         if (inputNode) {
                             waitInput = dynamic_cast<TextInput*>(inputNode);
                             if (waitInput) break;
-                        }
-                    }
-                }
-            }
+                        };
+                    };
+                };
+            };
+
             std::string delayStr = waitValue;
             if (waitInput) delayStr = waitInput->getString();
+
             if (delayStr.empty()) {
                 Notification::create("Please fill in all wait delay fields!", NotificationIcon::Error)->show();
                 return;
-            }
+            };
+
             try {
                 int delay = std::stoi(delayStr);
                 actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
@@ -608,13 +687,15 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             } catch (...) {
                 Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
                 return;
-            }
+            };
         } else if (actionId == "jump") {
             // Always use the value from m_commandActions (jumpPlayerValue)
             int playerIdx = 1;
+
             try {
                 playerIdx = std::stoi(jumpPlayerValue);
-            } catch (...) {}
+            } catch (...) {};
+
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "jump:" + std::to_string(playerIdx), 0));
             const_cast<std::string&>(actionIdRaw) = "jump:" + std::to_string(playerIdx);
         } else if (actionId == "kill_player") {
@@ -623,14 +704,14 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             // Always parse the notification text directly from m_commandActions
             std::string notifText = "";
             size_t colonPos = actionIdRaw.find(":");
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-                notifText = actionIdRaw.substr(colonPos + 1);
-            }
+
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) notifText = actionIdRaw.substr(colonPos + 1);
+
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
-        }
-    }
+        };
+    };
 
     // Replace m_command.actions with actionsVec (preserve order, no size limit)
     m_command.actions = actionsVec;
@@ -644,8 +725,8 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
         } else if (action.type == CommandActionType::Event) {
             m_commandActions.push_back(action.arg);
-        }
-    }
+        };
+    };
 
     // Refresh the actions list to ensure notification node is visible
     refreshActionsList();
@@ -658,24 +739,28 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         if (cmd.name == m_command.name) {
             cmd = m_command; // Replace the entire command object
             break;
-        }
-    }
+        };
+    };
+
     commandManager->saveCommands();
     onClose(nullptr);
-}
+};
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
     if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
         m_commandActions[actionIdx] = "Notification:" + nextText;
+
         // Find the Nth notification action node (among all notification nodes)
         int notifNodeIdx = -1;
         int notifCount = 0;
+
         for (int i = 0; i <= actionIdx; ++i) {
             if (m_commandActions[i].rfind("Notification:", 0) == 0) {
                 notifNodeIdx = notifCount;
                 notifCount++;
-            }
-        }
+            };
+        };
+
         // Now update the notifNodeIdx-th notification action in m_command.actions
         if (notifNodeIdx >= 0) {
             int notifIdx = 0;
@@ -684,20 +769,23 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
                     if (notifIdx == notifNodeIdx) {
                         action.arg = nextText;
                         break;
-                    }
+                    };
+
                     notifIdx++;
-                }
-            }
-        }
-    }
+                };
+            };
+        };
+    };
+
     // Update the label in the action node to show the new custom notification text (or 'Notification' if empty)
     auto children = m_actionContent->getChildren();
     if (!children || actionIdx < 0 || actionIdx >= children->count()) return;
+
     auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
     if (!actionNode) return;
+
     std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIdx);
     std::string labelText = nextText.empty() ? "Notification" : nextText;
-    if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) {
-        notifLabel->setString(labelText.c_str());
-    }
-}
+
+    if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
+};

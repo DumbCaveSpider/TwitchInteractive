@@ -42,29 +42,32 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     nameLabel->setAnchorPoint({ 0.0f, 0.5f }); // Left-aligned
 
     // Make the command name label clickable (copy to clipboard)
-    auto nameBtn = CCMenuItemLabel::create(nameLabel, this, menu_selector(CommandNode::onCopyCommandName));
+    auto nameBtn = CCMenuItemSpriteExtra::create( // use this class for now to compile for mac
+                                                 nameLabel,
+                                                 this,
+                                                 menu_selector(CommandNode::onCopyCommandName)
+    );
     nameBtn->setID("command-name-btn");
     nameBtn->setAnchorPoint({ 0.0f, 0.5f });
-    nameBtn->setPosition(leftPadding, itemHeight / 2 + 15);
+    nameBtn->setPosition(leftPadding, (itemHeight / 2.f) + 5.f);
 
-    // Create a menu just for this button (so it can receive clicks)
+    // Create a menu just so it can be clicked
     auto nameMenu = CCMenu::create();
-    nameMenu->addChild(nameBtn);
     nameMenu->setPosition(0, 0);
     nameMenu->setContentSize(nameLabel->getContentSize());
 
+    nameMenu->addChild(nameBtn);
     addChild(nameMenu);
-
-    // Cooldown label - right next to the command name (dynamic position)
-    m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
-    m_cooldownLabel->setScale(0.4f);
-    m_cooldownLabel->setAnchorPoint({ 0.0f, 0.5f });
 
     // Calculate width of nameLabel after scaling
     float nameLabelWidth = nameLabel->getContentSize().width * nameLabel->getScale();
     float cooldownPadding = 8.0f; // Space between name and cooldown
 
-    m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2 + 5);
+    // Cooldown label - right next to the command name (dynamic position)
+    m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
+    m_cooldownLabel->setScale(0.4f);
+    m_cooldownLabel->setAnchorPoint({ 0.0f, 0.5f });
+    m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2.f + 5.f);
 
     addChild(m_cooldownLabel);
 

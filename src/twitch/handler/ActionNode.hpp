@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cocos2d.h>
-
 #include <Geode/Geode.hpp>
 
 namespace cocos2d { class CCLabelBMFont; class CCSprite; class CCInteger; }

@@ -14,6 +14,7 @@ CCMenu* CommandInputPopup::createButtonMenu() {
     auto buttonMenu = CCMenu::create();
     buttonMenu->setID("command-input-button-menu");
     buttonMenu->setContentSize(CCSize(layerSize.width, 5)); // Set a fixed height for the menu
+    buttonMenu->setPosition(0, 30); // Position the menu at the bottom center
 
     float centerX = buttonMenu->getContentSize().width / 2.0f;
     float centerY = buttonMenu->getContentSize().height / 2.0f;
@@ -28,9 +29,6 @@ CCMenu* CommandInputPopup::createButtonMenu() {
     addBtn->setPosition(centerX, centerY);
 
     buttonMenu->addChild(addBtn);
-
-    // Position the menu at the bottom center
-    buttonMenu->setPosition(0, 30);
 
     return buttonMenu;
 };

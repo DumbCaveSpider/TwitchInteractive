@@ -6,13 +6,15 @@
 ActionNode* ActionNode::create(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale,
                                cocos2d::CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {
     auto ret = new ActionNode();
+
     if (ret && ret->init(labelText, target, selector, checkboxScale, moveTarget, moveUpSelector, moveDownSelector, actionIndex, canMoveUp, canMoveDown)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};
 
 bool ActionNode::init(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale,
                       cocos2d::CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {
@@ -68,7 +70,7 @@ bool ActionNode::init(const std::string& labelText, cocos2d::CCObject* target, S
     addChild(m_label);
 
     return true;
-}
+};
 
 void ActionNode::setMoveEnabled(bool canMoveUp, bool canMoveDown) {
     if (m_upBtn) m_upBtn->setEnabled(canMoveUp);

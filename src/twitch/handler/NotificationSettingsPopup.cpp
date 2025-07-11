@@ -31,28 +31,32 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
         menu_selector(NotificationSettingsPopup::onSave)
     );
     saveBtn->setID("notification-save-btn");
+
     auto menu = CCMenu::create();
     menu->addChild(saveBtn);
     menu->setPosition(x, y - 40.f);
+
     m_mainLayer->addChild(menu);
+
     return true;
-}
+};
 
 void NotificationSettingsPopup::onSave(cocos2d::CCObject* sender) {
     std::string text = m_input ? m_input->getString() : "";
-    if (m_onSelect) {
-        m_onSelect(text);
-    }
+    if (m_onSelect) m_onSelect(text);
+
     onClose(nullptr);
-}
+};
 
 NotificationSettingsPopup* NotificationSettingsPopup::create(const std::string& notificationText, std::function<void(const std::string&)> onSelect) {
     auto ret = new NotificationSettingsPopup();
     ret->m_onSelect = onSelect;
+
     if (ret && ret->initAnchored(220.f, 160.f, notificationText)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};
