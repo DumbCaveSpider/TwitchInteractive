@@ -24,4 +24,5 @@ public:
     float m_actionSectionHeight = 0.f;
     void refreshActionsList();
     void onAddEventAction(cocos2d::CCObject* sender);
+    void onRemoveAction(cocos2d::CCObject* sender);
 };

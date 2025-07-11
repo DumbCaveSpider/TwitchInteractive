@@ -129,8 +129,9 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         label->setAlignment(kCCTextAlignmentLeft);
         label->setPosition(20.f, 16.f);
         label->setID("event-" + info.id + "-label");
-        // Add button
-        auto addSprite = CCSprite::create("edit_addCBtn_001.png");
+        
+        // Add button (always use GJ_plusBtn_001.png)
+        auto addSprite = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
         addSprite->setScale(0.5f);
         auto addBtn = CCMenuItemSpriteExtra::create(
             addSprite,
@@ -220,15 +221,68 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
 void CommandSettingsPopup::refreshActionsList() {
     if (!m_actionContent) return;
     m_actionContent->removeAllChildren();
-    float y = m_actionSectionHeight - 40.f;
+    float actionNodeY = m_actionSectionHeight - 16.f; // Start from top, 16px for half node height
+    float actionNodeGap = 8.0f;
     for (const auto& actionId : m_commandActions) {
-        auto label = CCLabelBMFont::create(actionId.c_str(), "bigFont.fnt");
+        auto node = CCNode::create();
+        node->setContentSize(CCSize(m_actionContent->getContentSize().width, 32.f));
+        // Find the event label/title for this actionId
+        std::string eventLabel = actionId;
+        for (const auto& info : EventNodeFactory::getAllEventNodes()) {
+            if (info.id == actionId) {
+                eventLabel = info.label;
+                break;
+            }
+        }
+        // Label
+        auto label = CCLabelBMFont::create(eventLabel.c_str(), "bigFont.fnt");
         label->setScale(0.5f);
         label->setAnchorPoint({0, 0.5f});
         label->setAlignment(kCCTextAlignmentLeft);
-        label->setPosition(10.f, y);
-        m_actionContent->addChild(label);
-        y -= 40.f;
+        label->setPosition(20.f, 16.f);
+        label->setID("action-" + actionId + "-label");
+        // Remove button (always use GJ_trashBtn_001.png)
+        auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
+        removeSprite->setScale(0.5f);
+        auto removeBtn = CCMenuItemSpriteExtra::create(
+            removeSprite,
+            this,
+            menu_selector(CommandSettingsPopup::onRemoveAction)
+        );
+        removeBtn->setID("action-" + actionId + "-remove-btn");
+        removeBtn->setPosition(m_actionContent->getContentSize().width - 60.f, 16.f);
+        removeBtn->setUserObject(CCString::create(actionId));
+        // Menu for button
+        auto menu = CCMenu::create();
+        menu->addChild(removeBtn);
+        menu->setPosition(0, 0);
+        node->addChild(label);
+        node->addChild(menu);
+        // Add a background to the action node
+        auto nodeBg = CCScale9Sprite::create("square02_001.png");
+        nodeBg->setContentSize(node->getContentSize());
+        nodeBg->setOpacity(60);
+        nodeBg->setAnchorPoint({0, 0});
+        nodeBg->setPosition(0, 0);
+        node->addChild(nodeBg, -1);
+        node->setPosition(0, actionNodeY - 16.f); // 16.f is half node height
+        m_actionContent->addChild(node);
+        actionNodeY -= (32.f + actionNodeGap);
+    }
+}
+
+void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
+    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    std::string actionId;
+    if (btn->getUserObject()) {
+        actionId = static_cast<CCString*>(btn->getUserObject())->getCString();
+    }
+    if (!actionId.empty()) {
+        auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionId);
+        if (it != m_commandActions.end()) {
+            m_commandActions.erase(it);
+            refreshActionsList();
+        }
     }
 }
 

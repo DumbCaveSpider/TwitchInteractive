@@ -1,5 +1,9 @@
-
+#pragma once
+#include <Geode/Geode.hpp>
 #include <vector>
+
+using namespace geode::prelude;
+
 class CCObject;
 struct EventNodeInfo {
     std::string label;
@@ -11,11 +15,6 @@ public:
     // Returns a list of all event node definitions
     static std::vector<EventNodeInfo> getAllEventNodes();
 };
-#pragma once
-
-#include <Geode/Geode.hpp>
-
-using namespace geode::prelude;
 
 class EventNode : public CCNode {
 public:
