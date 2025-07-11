@@ -19,8 +19,6 @@ bool TwitchDashboard::setup() {
     setTitle("Twitch Dashboard");
     auto layerSize = m_mainLayer->getContentSize();
 
-    // No need to scale here since create() already handles proper sizing
-
     // Set ID for the main popup layer
     setID("twitch-dashboard-popup");
     m_mainLayer->setID("twitch-dashboard-main-layer");

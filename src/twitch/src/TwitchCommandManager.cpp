@@ -225,9 +225,11 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             // Helper for countdown logging
             struct CountdownLogger : public CCObject {
                 int remaining;
-                CountdownLogger(int rem) : remaining(rem) {}
+                std::string commandName;
+                size_t actionIndex;
+                CountdownLogger(int rem, const std::string& cmd, size_t idx) : remaining(rem), commandName(cmd), actionIndex(idx) {}
                 void log(CCObject*) {
-                    log::info("[TwitchCommandManager] Wait countdown: {} second(s) remaining", remaining);
+                    log::info("[TwitchCommandManager] Wait countdown for command '{}', action {}: {} second(s) remaining", commandName, actionIndex, remaining);
                 }
             };
             void execute(CCObject* obj) {
@@ -252,11 +254,11 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                 if (action.type == CommandActionType::Wait) {
                     int delay = action.index;
                     if (delay > 0) {
-                        log::info("[TwitchCommandManager] Waiting for {} seconds before next action", delay);
-                        // Countdown log for each second using CCCallFuncO
+                        log::info("[TwitchCommandManager] Waiting for {} seconds before next action (command '{}', action {})", delay, ctx->commandName, ctx->index);
+                        // Countdown log for each second using CCCallFuncO, only for this wait action
                         if (auto scene = CCDirector::sharedDirector()->getRunningScene()) {
                             for (int i = 1; i <= delay; ++i) {
-                                auto logger = new CountdownLogger(delay - i + 1);
+                                auto logger = new CountdownLogger(delay - i + 1, ctx->commandName, ctx->index);
                                 scene->runAction(CCSequence::create(
                                     CCDelayTime::create(static_cast<float>(i)),
                                     CCCallFuncO::create(logger, callfuncO_selector(CountdownLogger::log), logger),
@@ -279,9 +281,19 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                         return;
                     }
                 }
-                if (action.type == CommandActionType::Event && action.arg == "kill_player") {
-                    log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
-                    PlayLayerEvent::killPlayer();
+                if (action.type == CommandActionType::Event) {
+                    if (action.arg == "kill_player") {
+                        log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
+                        PlayLayerEvent::killPlayer();
+                    } else if (action.arg.rfind("jump:", 0) == 0) {
+                        // Parse player index from arg (jump:1 or jump:2)
+                        int playerIdx = 1;
+                        try {
+                            playerIdx = std::stoi(action.arg.substr(5));
+                        } catch (...) {}
+                        log::info("[TwitchCommandManager] Triggering jump event for player {} (command: {})", playerIdx, ctx->commandName);
+                        PlayLayerEvent::jumpPlayer(playerIdx);
+                    }
                 }
                 // Add more action types here as needed
                 ctx->index++;

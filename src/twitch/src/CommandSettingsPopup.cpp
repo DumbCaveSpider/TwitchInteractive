@@ -1,11 +1,23 @@
 
 #include "../CommandSettingsPopup.hpp"
-#include <Geode/Geode.hpp>
 #include <cocos2d.h>
-#include "events/PlayLayerEvent.hpp"
+#include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/EventNode.hpp"
-
+using namespace cocos2d;
 using namespace geode::prelude;
+
+void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
+    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    int actionIndex = 1;
+    if (btn->getUserObject()) {
+        actionIndex = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+    }
+    // Find the jump action in m_commandActions by order
+    int jumpIdx = 0;
+
+    // TODO: Implement or move to handler/JumpSettingsPopup.cpp
+}
+
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
     this->setTitle(fmt::format("!{} settings", command.name));
@@ -224,7 +236,12 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
         eventId = static_cast<CCString*>(btn->getUserObject())->getCString();
     }
     if (!eventId.empty()) {
-        m_commandActions.push_back(eventId);
+        if (eventId == "jump") {
+            // Default to player 1
+            m_commandActions.push_back("jump:1");
+        } else {
+            m_commandActions.push_back(eventId);
+        }
         refreshActionsList();
     }
 }
@@ -238,9 +255,13 @@ void CommandSettingsPopup::refreshActionsList() {
     for (const auto& actionIdRaw : m_commandActions) {
         std::string actionId = actionIdRaw;
         std::string waitValue;
+        std::string jumpPlayerValue;
         if (actionIdRaw.rfind("wait:", 0) == 0) {
             actionId = "wait";
             waitValue = actionIdRaw.substr(5);
+        } else if (actionIdRaw.rfind("jump:", 0) == 0) {
+            actionId = "jump";
+            jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
         }
         auto node = CCNode::create();
         node->setContentSize(CCSize(m_actionContent->getContentSize().width, 32.f));
@@ -264,6 +285,9 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Label for action type
         std::string labelText = eventLabel;
+        if (actionId == "jump" && !jumpPlayerValue.empty()) {
+            labelText += " (Player " + jumpPlayerValue + ")";
+        }
         auto label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
         label->setScale(0.5f);
         label->setAnchorPoint({0, 0.5f});
@@ -292,6 +316,25 @@ void CommandSettingsPopup::refreshActionsList() {
             if (!waitValue.empty()) waitInput->setString(waitValue.c_str());
             node->addChild(waitInput);
         }
+        // If this is a jump action, add a settings button to open a popup for player selection
+        if (actionId == "jump") {
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5f);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onJumpSettings)
+            );
+            settingsBtn->setID("jump-settings-btn-" + actionIdRaw);
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+            settingsBtn->setUserObject(CCInteger::create(actionIndex));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            node->addChild(settingsMenu);
+        }
+
+
         // Menu for button
         auto menu = CCMenu::create();
         menu->addChild(removeBtn);
@@ -374,9 +417,13 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     for (const auto& actionIdRaw : m_commandActions) {
         std::string actionId = actionIdRaw;
         std::string waitValue;
+        std::string jumpPlayerValue;
         if (actionIdRaw.rfind("wait:", 0) == 0) {
             actionId = "wait";
             waitValue = actionIdRaw.substr(5);
+        } else if (actionIdRaw.rfind("jump:", 0) == 0) {
+            actionId = "jump";
+            jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
         }
         if (actionId == "wait") {
             std::string inputId = "wait-delay-input-" + actionIdRaw;
@@ -403,12 +450,32 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             try {
                 int delay = std::stoi(delayStr);
                 actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
-                // Update m_commandActions with the value for next refresh
                 const_cast<std::string&>(actionIdRaw) = "wait:" + std::to_string(delay);
             } catch (...) {
                 Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
                 return;
             }
+        } else if (actionId == "jump") {
+            // Get player selection from toggle
+            std::string toggleId = "jump-player-toggle-" + actionIdRaw;
+            CCMenuItemToggler* playerToggle = nullptr;
+            auto children = m_actionContent->getChildren();
+            if (children) {
+                for (int i = 0; i < children->count(); ++i) {
+                    auto node = static_cast<CCNode*>(children->objectAtIndex(i));
+                    if (node) {
+                        auto toggleNode = node->getChildByID(toggleId);
+                        if (toggleNode) {
+                            playerToggle = dynamic_cast<CCMenuItemToggler*>(toggleNode);
+                            if (playerToggle) break;
+                        }
+                    }
+                }
+            }
+            int playerIdx = 1;
+            if (playerToggle && playerToggle->isToggled()) playerIdx = 2;
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "jump:" + std::to_string(playerIdx), 0));
+            const_cast<std::string&>(actionIdRaw) = "jump:" + std::to_string(playerIdx);
         } else if (actionId == "kill_player") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
         } else {

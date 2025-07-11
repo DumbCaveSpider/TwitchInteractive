@@ -2,7 +2,6 @@
 
 #include "TwitchCommandManager.hpp"
 #include "TwitchDashboard.hpp"
-
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
@@ -12,7 +11,6 @@ protected:
     TwitchDashboard* m_parent = nullptr;
     TwitchCommand m_command = TwitchCommand("Name", "Description", "This argument has no use but the int is the cooldown", 0, {});
 
-    // Cooldown state
     int m_cooldownRemaining = 0;
     CCLabelBMFont* m_cooldownLabel = nullptr;
     CCScale9Sprite* m_commandBg = nullptr;
@@ -24,7 +22,7 @@ protected:
 
     void onEditCommand(CCObject* sender);
     void onDeleteCommand(CCObject* sender);
-    void onCopyCommandName(CCObject* sender); // Copy command name to clipboard
+    void onCopyCommandName(CCObject* sender);
     void onSettingsCommand(CCObject* sender);
 
     bool init(TwitchDashboard* parent, TwitchCommand command, float width);
@@ -34,5 +32,5 @@ protected:
 public:
     static CommandNode* create(TwitchDashboard* parent, TwitchCommand command, float width);
     std::string getCommandName() const { return m_command.name; }
-    void triggerCommand(); // Call this when the command is triggered
+    void triggerCommand();
 };

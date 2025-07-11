@@ -25,4 +25,5 @@ public:
     void refreshActionsList();
     void onAddEventAction(cocos2d::CCObject* sender);
     void onRemoveAction(cocos2d::CCObject* sender);
+    void onJumpSettings(cocos2d::CCObject* sender);
 };
