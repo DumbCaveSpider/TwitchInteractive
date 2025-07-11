@@ -2,26 +2,55 @@
 #include <cocos2d.h>
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/EventNode.hpp"
+#include "../handler/ActionNode.hpp"
+#include <algorithm>
+
 using namespace cocos2d;
 using namespace geode::prelude;
 
+
+void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
+    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) {
+        idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+    }
+    if (idx > 0 && idx < static_cast<int>(this->m_commandActions.size())) {
+        std::swap(this->m_commandActions[idx], this->m_commandActions[idx - 1]);
+        this->refreshActionsList();
+    }
+}
+
+void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
+    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) {
+        idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+    }
+    if (idx >= 0 && idx < static_cast<int>(this->m_commandActions.size()) - 1) {
+        std::swap(this->m_commandActions[idx], this->m_commandActions[idx + 1]);
+        this->refreshActionsList();
+    }
+}
+
 void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
-    int actionIndex = 1;
+    std::string actionStr;
     if (btn->getUserObject()) {
-        actionIndex = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+        actionStr = static_cast<CCString*>(btn->getUserObject())->getCString();
+    } else {
+        return;
     }
-    // actionIndex is 1-based, so subtract 1 for vector index
-    int jumpIdx = actionIndex - 1;
-    if (jumpIdx < 0 || jumpIdx >= static_cast<int>(m_commandActions.size())) return;
-    // Only allow editing jump actions
-    std::string& actionStr = m_commandActions[jumpIdx];
+    // Find the index of the action string in m_commandActions
+    auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionStr);
+    if (it == m_commandActions.end()) return;
+    int jumpIdx = static_cast<int>(std::distance(m_commandActions.begin(), it));
     if (actionStr.rfind("jump:", 0) != 0) return;
     int currentPlayer = 1;
     try {
         currentPlayer = std::stoi(actionStr.substr(5));
     } catch (...) {}
-    JumpSettingsPopup::create(currentPlayer, [this, jumpIdx](int selectedPlayer) {
+    JumpSettingsPopup::create(jumpIdx + 1, [this, jumpIdx](int selectedPlayer) {
         m_commandActions[jumpIdx] = "jump:" + std::to_string(selectedPlayer);
         this->refreshActionsList();
     })->show();
@@ -105,6 +134,10 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     actionScrollLayer->setID("actions-scroll");
     actionScrollLayer->setPosition(actionSectionX, scrollY);
 
+    // Ensure scroll layers start at the top
+    eventScrollLayer->scrollToTop();
+    actionScrollLayer->scrollToTop();
+
 
     // Content layer for event nodes
     auto eventContent = eventScrollLayer->m_contentLayer;
@@ -140,15 +173,20 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
             // Store as "wait:<delay>" so we can restore the value
             m_commandActions.push_back("wait:" + std::to_string(action.index));
         } else if (action.type == CommandActionType::Event) {
-            m_commandActions.push_back(action.arg);
+            // For jump actions, preserve the player number (e.g., "jump:2")
+            if (action.arg.rfind("jump:", 0) == 0) {
+                m_commandActions.push_back(action.arg); // e.g., "jump:2"
+            } else {
+                m_commandActions.push_back(action.arg);
+            }
         }
     }
     m_actionContent = actionContent;
     m_actionSectionHeight = sectionHeight;
     refreshActionsList();
 
-    // Dynamically add all event nodes from EventNodeFactory, each with an add button (manual layout)
-    float eventNodeY = eventScrollSize.height - 16.f; // Start from top, 16px for half node height
+    // Dynamically add all event nodes from EventNodeFactory
+    float eventNodeY = eventScrollSize.height - 16.f;
     float eventNodeGap = 8.0f;
     for (const auto& info : EventNodeFactory::getAllEventNodes()) {
         auto node = CCNode::create();
@@ -258,10 +296,19 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
 void CommandSettingsPopup::refreshActionsList() {
     if (!m_actionContent) return;
     m_actionContent->removeAllChildren();
-    float actionNodeY = m_actionSectionHeight - 16.f; // Start from top, 16px for half node height
     float actionNodeGap = 8.0f;
-    int actionIndex = 1;
-    for (const auto& actionIdRaw : m_commandActions) {
+    float nodeHeight = 32.f;
+    int actionCount = static_cast<int>(m_commandActions.size());
+    // Dynamically expand content layer height if needed
+    float minContentHeight = m_actionSectionHeight;
+    float neededHeight = actionCount * (nodeHeight + actionNodeGap);
+    float contentHeight = std::max(minContentHeight, neededHeight);
+    m_actionContent->setContentSize(CCSize(m_actionContent->getContentSize().width, contentHeight));
+
+    float actionNodeY = contentHeight - 16.f;
+    int actionIndex = 0;
+    for (size_t i = 0; i < m_commandActions.size(); ++i) {
+        const auto& actionIdRaw = m_commandActions[i];
         std::string actionId = actionIdRaw;
         std::string waitValue;
         std::string jumpPlayerValue;
@@ -272,8 +319,6 @@ void CommandSettingsPopup::refreshActionsList() {
             actionId = "jump";
             jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
         }
-        auto node = CCNode::create();
-        node->setContentSize(CCSize(m_actionContent->getContentSize().width, 32.f));
         // Find the event label/title for this actionId
         std::string eventLabel = actionId;
         for (const auto& info : EventNodeFactory::getAllEventNodes()) {
@@ -282,28 +327,79 @@ void CommandSettingsPopup::refreshActionsList() {
                 break;
             }
         }
-        // Add action order label (number)
-        std::string orderStr = std::to_string(actionIndex);
-        auto orderLabel = CCLabelBMFont::create(orderStr.c_str(), "goldFont.fnt");
-        orderLabel->setScale(0.5f);
-        orderLabel->setAnchorPoint({0, 0.5f});
-        orderLabel->setAlignment(kCCTextAlignmentLeft);
-        orderLabel->setPosition(4.f, 16.f);
-        orderLabel->setID("action-order-label-" + std::to_string(actionIndex));
-        node->addChild(orderLabel);
 
-        // Label for action type
-        std::string labelText = eventLabel;
+        std::string nodeLabel = eventLabel;
+
+        // Add action index label (1-based)
+        auto indexLabel = CCLabelBMFont::create(std::to_string(actionIndex + 1).c_str(), "goldFont.fnt");
+        indexLabel->setScale(0.5f);
+        indexLabel->setAnchorPoint({0, 0.5f});
+        indexLabel->setAlignment(kCCTextAlignmentLeft);
+        indexLabel->setPosition(8.f, 16.f);
+        indexLabel->setID("action-index-label-" + std::to_string(actionIndex));
+
+        // Only show up arrow if not the first action, down arrow if not the last
+        bool showUp = (i > 0);
+        bool showDown = (i < m_commandActions.size() - 1);
+
+        // Create ActionNode with move up/down
+        auto actionNode = ActionNode::create(
+            nodeLabel,
+            nullptr, nullptr, 0.0f, // no checkbox for now
+            this,
+            menu_selector(CommandSettingsPopup::onMoveActionUp),
+            menu_selector(CommandSettingsPopup::onMoveActionDown),
+            static_cast<int>(i),
+            showUp,
+            showDown
+        );
+        actionNode->setPosition(0, actionNodeY - 16.f);
+        actionNode->addChild(indexLabel);
+        m_actionContent->addChild(actionNode);
+
+        // Add player info as a separate label in chatFont and settings button for jump actions
         if (actionId == "jump" && !jumpPlayerValue.empty()) {
-            labelText += " (Player " + jumpPlayerValue + ")";
-        }
-        auto label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
-        label->setScale(0.5f);
-        label->setAnchorPoint({0, 0.5f});
-        label->setAlignment(kCCTextAlignmentLeft);
-        label->setPosition(40.f, 16.f);
-        label->setID("action-" + actionId + "-label");
+            std::string playerInfo;
+            if (jumpPlayerValue == "3") {
+                playerInfo = " (Both Players)";
+            } else {
+                playerInfo = " (Player " + jumpPlayerValue + ")";
+            }
+            auto playerLabel = CCLabelBMFont::create(playerInfo.c_str(), "chatFont.fnt");
+            playerLabel->setScale(0.5f);
+            playerLabel->setAnchorPoint({0, 0.5f});
+            playerLabel->setAlignment(kCCTextAlignmentLeft);
+            // Place playerLabel right after the action text label (nodeLabel)
+            float labelX = 0.f;
+            if (auto label = actionNode->getLabel()) {
+                labelX = label->getPositionX() + label->getContentSize().width * label->getScale();
+            } else {
+                labelX = 32.f; // fallback
+            }
+            playerLabel->setPosition(labelX + 4.f, 16.f);
+            playerLabel->setID("action-" + actionId + "-player-label");
+            actionNode->addChild(playerLabel);
 
+            // Add settings button for jump action
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5f);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onJumpSettings)
+            );
+            settingsBtn->setID("jump-settings-btn-" + actionIdRaw);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+            // Store the action string for robust lookup after reordering
+            settingsBtn->setUserObject(CCString::create(actionIdRaw));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            actionNode->addChild(settingsMenu);
+        }
+
+        // Remove button
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
         removeSprite->setScale(0.5f);
         auto removeBtn = CCMenuItemSpriteExtra::create(
@@ -315,6 +411,7 @@ void CommandSettingsPopup::refreshActionsList() {
         float btnX = m_actionContent->getContentSize().width - 24.f;
         removeBtn->setPosition(btnX, 16.f);
         removeBtn->setUserObject(CCString::create(actionIdRaw));
+
         // If this is a wait action, add a TextInput to the left of the button
         TextInput* waitInput = nullptr;
         if (actionId == "wait") {
@@ -323,43 +420,24 @@ void CommandSettingsPopup::refreshActionsList() {
             waitInput->setScale(0.5f);
             waitInput->setID("wait-delay-input-" + actionIdRaw);
             if (!waitValue.empty()) waitInput->setString(waitValue.c_str());
-            node->addChild(waitInput);
+            actionNode->addChild(waitInput);
         }
-        // If this is a jump action, add a settings button to open a popup for player selection
-        if (actionId == "jump") {
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onJumpSettings)
-            );
-            settingsBtn->setID("jump-settings-btn-" + actionIdRaw);
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-            settingsBtn->setUserObject(CCInteger::create(actionIndex));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            node->addChild(settingsMenu);
-        }
-
 
         // Menu for button
         auto menu = CCMenu::create();
         menu->addChild(removeBtn);
         menu->setPosition(0, 0);
-        node->addChild(label);
-        node->addChild(menu);
+        actionNode->addChild(menu);
+
         // Add a background to the action node
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
-        nodeBg->setContentSize(node->getContentSize());
+        nodeBg->setContentSize(actionNode->getContentSize());
         nodeBg->setOpacity(60);
         nodeBg->setAnchorPoint({0, 0});
         nodeBg->setPosition(0, 0);
-        node->addChild(nodeBg, -1);
-        node->setPosition(0, actionNodeY - 16.f); // 16.f is half node height
-        m_actionContent->addChild(node);
-        actionNodeY -= (32.f + actionNodeGap);
+        actionNode->addChild(nodeBg, -1);
+
+        actionNodeY -= (nodeHeight + actionNodeGap);
         actionIndex++;
     }
 }
@@ -382,11 +460,6 @@ void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
 void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
     this->onClose(sender);
 }
-
-void CommandSettingsPopup::onKillPlayerToggled(CCObject* sender) {
-    // This just toggles the checkbox, actual logic is handled on save
-}
-
 
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
@@ -465,24 +538,11 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
                 return;
             }
         } else if (actionId == "jump") {
-            // Get player selection from toggle
-            std::string toggleId = "jump-player-toggle-" + actionIdRaw;
-            CCMenuItemToggler* playerToggle = nullptr;
-            auto children = m_actionContent->getChildren();
-            if (children) {
-                for (int i = 0; i < children->count(); ++i) {
-                    auto node = static_cast<CCNode*>(children->objectAtIndex(i));
-                    if (node) {
-                        auto toggleNode = node->getChildByID(toggleId);
-                        if (toggleNode) {
-                            playerToggle = dynamic_cast<CCMenuItemToggler*>(toggleNode);
-                            if (playerToggle) break;
-                        }
-                    }
-                }
-            }
+            // Always use the value from m_commandActions (jumpPlayerValue)
             int playerIdx = 1;
-            if (playerToggle && playerToggle->isToggled()) playerIdx = 2;
+            try {
+                playerIdx = std::stoi(jumpPlayerValue);
+            } catch (...) {}
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "jump:" + std::to_string(playerIdx), 0));
             const_cast<std::string&>(actionIdRaw) = "jump:" + std::to_string(playerIdx);
         } else if (actionId == "kill_player") {

@@ -7,7 +7,6 @@ using namespace cocos2d;
 
 bool JumpSettingsPopup::setup(int actionIndex) {
     m_actionIndex = actionIndex;
-
     this->setTitle(fmt::format("Jump Action #{}", m_actionIndex));
     this->setID("jump-settings-popup");
     float y = 140.f;

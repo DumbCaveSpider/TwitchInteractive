@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <Geode/ui/Popup.hpp>
-#include "../TwitchCommandManager.hpp" // Try to use the correct relative path, but if build fails, use "twitch/TwitchCommandManager.hpp"
+#include "../TwitchCommandManager.hpp"
 
 namespace cocos2d { class CCObject; class CCNode; }
 
@@ -14,7 +14,6 @@ protected:
     bool setup(TwitchCommand command) override;
     void onSave(cocos2d::CCObject* sender);
     void onCloseBtn(cocos2d::CCObject* sender);
-    void onKillPlayerToggled(cocos2d::CCObject* sender);
 
 public:
     static CommandSettingsPopup* create(TwitchCommand command);
@@ -26,4 +25,6 @@ public:
     void onAddEventAction(cocos2d::CCObject* sender);
     void onRemoveAction(cocos2d::CCObject* sender);
     void onJumpSettings(cocos2d::CCObject* sender);
+    void onMoveActionUp(cocos2d::CCObject* sender);
+    void onMoveActionDown(cocos2d::CCObject* sender);
 };
