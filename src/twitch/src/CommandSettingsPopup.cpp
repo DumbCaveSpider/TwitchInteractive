@@ -1,6 +1,7 @@
 
 #include "../CommandSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
+#include <cocos2d.h>
 #include "events/PlayLayerEvent.hpp"
 #include "../handler/EventNode.hpp"
 
@@ -38,52 +39,113 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
 
 
-    // --- Event Section ---
-    // Center the event section in the popup
-    float eventSectionWidth = 400.f;
-    float eventSectionHeight = 110.f;
+    // --- Event & Action Section ---
+    // Set fixed size for event and action scroll layers
+    float sectionWidth = 250.f;
+    float sectionHeight = 200.f;
     float popupWidth = layerSize.width;
     float popupHeight = layerSize.height;
-    float eventSectionX = (popupWidth - eventSectionWidth) / 2;
-    float eventSectionY = (popupHeight - eventSectionHeight) / 2 + 20.f;
+    float sectionY = (popupHeight - sectionHeight) / 2.0f;
+    // Center both sections horizontally
+    float gap = 20.f; // Gap between event and action layers
+    float totalSectionsWidth = sectionWidth * 2 + gap;
+    float startX = (popupWidth - totalSectionsWidth) / 2.0f;
+    float eventSectionX = startX;
+    float actionSectionX = startX + sectionWidth + gap;
 
-    // Define a consistent size for both background and scroll layer
-    CCSize eventScrollSize = CCSize(eventSectionWidth - 10.f, eventSectionHeight + 90.f);
+    CCSize eventScrollSize = CCSize(sectionWidth, sectionHeight);
+    CCSize actionScrollSize = CCSize(sectionWidth, sectionHeight);
 
-    // Background for the scroll layer
+    // Background for the event scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
     eventScrollBg->setContentSize(eventScrollSize);
     eventScrollBg->setOpacity(80);
     eventScrollBg->setID("events-scroll-background");
-    // Position background and scroll layer to be perfectly aligned
-    float scrollX = eventSectionX + 5.f;
-    float scrollY = eventSectionY - 65.f;
+    float scrollX = eventSectionX;
+    float scrollY = sectionY;
     eventScrollBg->setPosition(scrollX + eventScrollSize.width / 2, scrollY + eventScrollSize.height / 2);
     m_mainLayer->addChild(eventScrollBg);
 
-    // Scroll layer for events (now matches background size exactly)
+    // Background for the actions scroll layer
+    auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
+    actionScrollBg->setContentSize(actionScrollSize);
+    actionScrollBg->setOpacity(80);
+    actionScrollBg->setID("actions-scroll-background");
+    actionScrollBg->setPosition(actionSectionX + actionScrollSize.width / 2, scrollY + actionScrollSize.height / 2);
+    m_mainLayer->addChild(actionScrollBg);
+
+    // Scroll layer for events
     auto eventScrollLayer = ScrollLayer::create(eventScrollSize);
     eventScrollLayer->setID("events-scroll");
     eventScrollLayer->setPosition(scrollX, scrollY);
 
+    // Scroll layer for actions
+    auto actionScrollLayer = ScrollLayer::create(actionScrollSize);
+    actionScrollLayer->setID("actions-scroll");
+    actionScrollLayer->setPosition(actionSectionX, scrollY);
+
+
     // Content layer for event nodes
     auto eventContent = eventScrollLayer->m_contentLayer;
     eventContent->setID("events-content");
-    // Fill the entire scroll background
-    eventContent->setContentSize(eventScrollSize - 10.f);
-    // Use a vertical column layout for event nodes, aligned to the top
+    eventContent->setContentSize(eventScrollSize);
     auto eventLayout = ColumnLayout::create()
+        ->setAxisReverse(true) // Make items stack from the top
+        ->setAxisAlignment(AxisAlignment::Start)
+        ->setCrossAxisAlignment(AxisAlignment::Start)
         ->setAutoGrowAxis(eventScrollSize.height)
         ->setGap(8.0f);
     eventContent->setLayout(eventLayout);
 
+    // Content layer for actions
+    auto actionContent = actionScrollLayer->m_contentLayer;
+    actionContent->setID("actions-content");
+    actionContent->setContentSize(actionScrollSize);
+    auto actionLayout = ColumnLayout::create()
+        ->setAxisReverse(false)
+        ->setAxisAlignment(AxisAlignment::Start)
+        ->setCrossAxisAlignment(AxisAlignment::Start)
+        ->setAutoGrowAxis(actionScrollSize.height)
+        ->setGap(8.0f);
+    actionContent->setLayout(actionLayout);
 
-    // Dynamically add all event nodes from EventNodeFactory
+
+    // Store actions for this command as a member
+    m_commandActions.clear();
+    m_actionContent = actionContent;
+    m_actionSectionHeight = sectionHeight;
+    refreshActionsList();
+
+    // Dynamically add all event nodes from EventNodeFactory, each with an add button (manual layout)
+    float eventNodeY = eventScrollSize.height - 16.f; // Start from top, 16px for half node height
+    float eventNodeGap = 8.0f;
     for (const auto& info : EventNodeFactory::getAllEventNodes()) {
-        auto node = EventNode::create(info.label, this, menu_selector(CommandSettingsPopup::onKillPlayerToggled), 0.6f);
+        auto node = CCNode::create();
         node->setContentSize(CCSize(eventScrollSize.width, 32.f));
-        node->m_checkbox->setID("command-settings-" + info.id + "-checkbox");
-        node->m_label->setID("event-" + info.id + "-label");
+        // Label
+        auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
+        label->setScale(0.5f);
+        label->setAnchorPoint({0, 0.5f});
+        label->setAlignment(kCCTextAlignmentLeft);
+        label->setPosition(20.f, 16.f);
+        label->setID("event-" + info.id + "-label");
+        // Add button
+        auto addSprite = CCSprite::create("edit_addCBtn_001.png");
+        addSprite->setScale(0.5f);
+        auto addBtn = CCMenuItemSpriteExtra::create(
+            addSprite,
+            this,
+            menu_selector(CommandSettingsPopup::onAddEventAction)
+        );
+        addBtn->setID("event-" + info.id + "-add-btn");
+        addBtn->setPosition(eventScrollSize.width - 60.f, 16.f);
+        addBtn->setUserObject(CCString::create(info.id));
+        // Menu for button
+        auto menu = CCMenu::create();
+        menu->addChild(addBtn);
+        menu->setPosition(0, 0);
+        node->addChild(label);
+        node->addChild(menu);
         // Add a background to the event node
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(node->getContentSize());
@@ -91,13 +153,13 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         nodeBg->setAnchorPoint({0, 0});
         nodeBg->setPosition(0, 0);
         node->addChild(nodeBg, -1);
+        node->setPosition(0, eventNodeY - 16.f); // 16.f is half node height
         eventContent->addChild(node);
-
-        if (info.id == "kill_player") m_killPlayerCheckbox = node->m_checkbox;
+        eventNodeY -= (32.f + eventNodeGap);
     }
 
+    m_mainLayer->addChild(actionScrollLayer);
     m_mainLayer->addChild(eventScrollLayer);
-
     // Set checkbox state from command actions
     bool killChecked = false;
     for (const auto& action : command.actions) {
@@ -141,6 +203,33 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     m_mainLayer->addChild(commandBtnMenu);
 
     return true;
+}
+
+void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
+    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    std::string eventId;
+    if (btn->getUserObject()) {
+        eventId = static_cast<CCString*>(btn->getUserObject())->getCString();
+    }
+    if (!eventId.empty()) {
+        m_commandActions.push_back(eventId);
+        refreshActionsList();
+    }
+}
+
+void CommandSettingsPopup::refreshActionsList() {
+    if (!m_actionContent) return;
+    m_actionContent->removeAllChildren();
+    float y = m_actionSectionHeight - 40.f;
+    for (const auto& actionId : m_commandActions) {
+        auto label = CCLabelBMFont::create(actionId.c_str(), "bigFont.fnt");
+        label->setScale(0.5f);
+        label->setAnchorPoint({0, 0.5f});
+        label->setAlignment(kCCTextAlignmentLeft);
+        label->setPosition(10.f, y);
+        m_actionContent->addChild(label);
+        y -= 40.f;
+    }
 }
 
 void CommandSettingsPopup::onCloseBtn(CCObject* sender) {

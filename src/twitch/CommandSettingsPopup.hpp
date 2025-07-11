@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <string>
 #include <Geode/ui/Popup.hpp>
 #include "TwitchCommandManager.hpp"
 
@@ -17,4 +19,9 @@ protected:
 public:
     static CommandSettingsPopup* create(TwitchCommand command);
     std::string getNotificationText() const;
+    std::vector<std::string> m_commandActions;
+    cocos2d::CCNode* m_actionContent = nullptr;
+    float m_actionSectionHeight = 0.f;
+    void refreshActionsList();
+    void onAddEventAction(cocos2d::CCObject* sender);
 };
