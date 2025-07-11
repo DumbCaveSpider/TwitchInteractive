@@ -233,14 +233,72 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             dashboard->triggerCommandCooldown(commandName);
         }
 
-        // Execute kill player if enabled for this command
-        for (const auto& action : it->actions) {
-            log::info("[TwitchCommandManager] Checking action: type={}, arg={}", (int)action.type, action.arg);
-            if (action.type == CommandActionType::Event && action.arg == "kill_player") {
-                log::info("[TwitchCommandManager] Triggering kill player event for command: {}", commandName);
-                PlayLayerEvent::killPlayer();
-                break;
+
+        // --- Sequential Action Execution with Wait Support ---
+        // Use std::function to allow recursion
+
+        // --- Sequential Action Execution with Wait Support ---
+
+        struct ActionContext : public CCObject {
+            std::vector<TwitchCommandAction> actions;
+            size_t index = 0;
+            std::string commandName;
+            std::string username;
+            std::string commandArgs;
+            TwitchCommandManager* manager = nullptr;
+            void execute(CCObject* obj) {
+                auto* ctx = static_cast<ActionContext*>(obj);
+                if (!ctx || ctx->index >= ctx->actions.size()) {
+                    if (ctx) ctx->release();
+                    return;
+                }
+                const auto& action = ctx->actions[ctx->index];
+                log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, action.arg, action.index);
+                if (action.type == CommandActionType::Wait) {
+                    int delay = action.index;
+                    if (delay > 0) {
+                        log::info("[TwitchCommandManager] Waiting for {} seconds before next action", delay);
+                        ctx->index++;
+                        auto seq = CCSequence::create(
+                            CCDelayTime::create(static_cast<float>(delay)),
+                            CCCallFuncO::create(ctx, callfuncO_selector(ActionContext::execute), ctx),
+                            nullptr
+                        );
+                        if (auto scene = CCDirector::sharedDirector()->getRunningScene()) {
+                            ctx->retain(); // Retain for the callback
+                            scene->runAction(seq);
+                        } else {
+                            ctx->execute(ctx);
+                        }
+                        return;
+                    }
+                }
+                if (action.type == CommandActionType::Event && action.arg == "kill_player") {
+                    log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
+                    PlayLayerEvent::killPlayer();
+                }
+                // Add more action types here as needed
+                ctx->index++;
+                ctx->execute(ctx);
             }
+        };
+
+        // Collect non-default actions in order
+        std::vector<TwitchCommandAction> orderedActions;
+        for (const auto& action : it->actions) {
+            if (action.type != CommandActionType::Notification || !action.arg.empty() || action.index != 0) {
+                orderedActions.push_back(action);
+            }
+        }
+        if (!orderedActions.empty()) {
+            auto* ctx = new ActionContext();
+            ctx->actions = orderedActions;
+            ctx->index = 0;
+            ctx->commandName = commandName;
+            ctx->username = username;
+            ctx->commandArgs = commandArgs;
+            ctx->manager = this;
+            ctx->execute(ctx);
         }
 
         // Execute command callback if it exists

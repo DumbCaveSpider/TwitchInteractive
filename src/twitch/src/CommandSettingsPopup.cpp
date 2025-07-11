@@ -254,7 +254,7 @@ void CommandSettingsPopup::refreshActionsList() {
         }
         // Add action order label (number)
         std::string orderStr = std::to_string(actionIndex);
-        auto orderLabel = CCLabelBMFont::create(orderStr.c_str(), "bigFont.fnt");
+        auto orderLabel = CCLabelBMFont::create(orderStr.c_str(), "goldFont.fnt");
         orderLabel->setScale(0.5f);
         orderLabel->setAnchorPoint({0, 0.5f});
         orderLabel->setAlignment(kCCTextAlignmentLeft);
@@ -264,9 +264,6 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Label for action type
         std::string labelText = eventLabel;
-        if (actionId == "wait") {
-            labelText = "Wait (seconds)";
-        }
         auto label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
         label->setScale(0.5f);
         label->setAnchorPoint({0, 0.5f});

@@ -6,7 +6,7 @@ std::vector<EventNodeInfo> EventNodeFactory::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
         {"kill_player", "Kill Player"},
         {"jump", "Jump"},
-        {"wait", "Wait (Delay)"},
+        {"wait", "Wait"},
         /* Example: {"freeze_player", "Freeze Player"}, */
     };
     return nodes;
