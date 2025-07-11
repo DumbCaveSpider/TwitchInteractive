@@ -1,13 +1,14 @@
 #pragma once
-#include <Geode/Geode.hpp>
+
 #include <vector>
 #include <string>
+#include <Geode/Geode.hpp>
 
 namespace cocos2d { class CCObject; class CCNode; class CCLabelBMFont; }
 
 namespace cocos2d { class CCLabelBMFont; }
 class CCMenuItemToggler;
-typedef void (cocos2d::CCObject::*SEL_MenuHandler)(cocos2d::CCObject*);
+typedef void (cocos2d::CCObject::* SEL_MenuHandler)(cocos2d::CCObject*);
 
 struct EventNodeInfo {
     std::string id;

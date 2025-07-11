@@ -1,6 +1,8 @@
 #pragma once
-#include <Geode/Geode.hpp>
+
 #include "TwitchCommandManager.hpp"
+
+#include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
 

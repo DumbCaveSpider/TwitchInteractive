@@ -1,20 +1,22 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 #include <string>
 #include <array>
 #include <vector>
 #include <functional>
 #include <unordered_map>
 
+#include <Geode/Geode.hpp>
+
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+
 using namespace geode::prelude;
 
-// Enums for the type of callbacks
+// Enums for the type of callback
 enum class CommandActionType {
     Notification = 0,
-    Keybind = 1, 
-    Chat = 2, 
+    Keybind = 1,
+    Chat = 2,
     Event = 3,
     Wait = 4
 };

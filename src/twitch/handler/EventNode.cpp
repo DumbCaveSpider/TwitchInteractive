@@ -1,7 +1,8 @@
 #include "EventNode.hpp"
+
+#include <vector>
 #include <cocos2d.h>
 #include <Geode/Geode.hpp>
-#include <vector>
 
 std::vector<EventNodeInfo> EventNodeFactory::getAllEventNodes() {
     // Add new events here. For each event, provide id and label

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <functional>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <functional>
 
 class NotificationSettingsPopup : public geode::Popup<std::string> {
 protected:

@@ -1,6 +1,7 @@
+#include "./twitch/TwitchLoginPopup.hpp"
+
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
-#include "./twitch/TwitchLoginPopup.hpp"
 
 using namespace geode::prelude;
 
@@ -20,7 +21,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
         if (!menu) menu = getChildByID("social-media-menu");
 
         if (menu) {
-            static_cast<CCMenu*>(menu)->addChild(twitchBtn);
+            as<CCMenu*>(menu)->addChild(twitchBtn);
             // Position it at the bottom of existing buttons
             twitchBtn->setPosition(0, -60);
         } else {

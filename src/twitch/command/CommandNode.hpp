@@ -1,6 +1,8 @@
 #pragma once
+
 #include "../TwitchCommandManager.hpp"
 #include "../TwitchDashboard.hpp"
+
 #include <Geode/Geode.hpp>
 
 namespace cocos2d { class CCMenuItem; class CCLabelBMFont; class CCObject; }

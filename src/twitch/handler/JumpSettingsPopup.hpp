@@ -1,6 +1,7 @@
 #pragma once
-#include <Geode/ui/Popup.hpp>
+
 #include <functional>
+#include <Geode/ui/Popup.hpp>
 
 namespace cocos2d { class CCObject; }
 

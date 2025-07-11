@@ -1,14 +1,16 @@
 #include "TwitchCommandManager.hpp"
+
 #include "TwitchDashboard.hpp"
 #include "command/events/PlayLayerEvent.hpp"
-#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+
 #include <algorithm>
 #include <unordered_map>
-#include <fstream>
+
+#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
 matjson::Value TwitchCommandAction::toJson() const {
     matjson::Value v = matjson::Value::object();
-    v["type"] = static_cast<int>(type);
+    v["type"] = as<int>(type);
     v["arg"] = arg;
     v["index"] = index;
 
@@ -20,9 +22,9 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     std::string arg = "";
     int index = 0;
 
-    if (v.contains("type") && v["type"].asInt().ok())type = static_cast<CommandActionType>(v["type"].asInt().unwrap());
+    if (v.contains("type") && v["type"].asInt().ok())type = as<CommandActionType>(v["type"].asInt().unwrap());
     if (v.contains("arg") && v["arg"].asString().ok()) arg = v["arg"].asString().unwrap();
-    if (v.contains("index") && v["index"].asInt().ok()) index = static_cast<int>(v["index"].asInt().unwrap());
+    if (v.contains("index") && v["index"].asInt().ok()) index = as<int>(v["index"].asInt().unwrap());
 
     return TwitchCommandAction(type, arg, index);
 };
@@ -61,7 +63,7 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     std::string description = (v.contains("description") && v["description"].asString().ok()) ? v["description"].asString().unwrap() : "";
     std::string response = (v.contains("response") && v["response"].asString().ok()) ? v["response"].asString().unwrap() : "";
 
-    int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
+    int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? as<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
 
     std::vector<TwitchCommandAction> actions;
@@ -241,7 +243,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                 };
             };
             void execute(CCObject* obj) {
-                auto* ctx = static_cast<ActionContext*>(obj);
+                auto* ctx = as<ActionContext*>(obj);
                 if (!ctx || ctx->index >= ctx->actions.size()) {
                     if (ctx) ctx->release();
                     return;
@@ -270,7 +272,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                             for (int i = 1; i <= delay; ++i) {
                                 auto logger = new CountdownLogger(delay - i + 1, ctx->commandName, ctx->index);
                                 scene->runAction(CCSequence::create(
-                                    CCDelayTime::create(static_cast<float>(i)),
+                                    CCDelayTime::create(as<float>(i)),
                                     CCCallFuncO::create(logger, callfuncO_selector(CountdownLogger::log), logger),
                                     nullptr
                                 ));
@@ -279,7 +281,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
                         ctx->index++;
                         auto seq = CCSequence::create(
-                            CCDelayTime::create(static_cast<float>(delay)),
+                            CCDelayTime::create(as<float>(delay)),
                             CCCallFuncO::create(ctx, callfuncO_selector(ActionContext::execute), ctx),
                             nullptr
                         );

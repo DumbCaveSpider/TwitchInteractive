@@ -1,8 +1,10 @@
 #include "CommandInputPopup.hpp"
+
 #include "../TwitchCommandManager.hpp"
 #include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
+
 using namespace geode::prelude;
 
 CCMenu* CommandInputPopup::createButtonMenu() {
@@ -107,7 +109,7 @@ void CommandInputPopup::setupForEdit(const std::string& commandName, const std::
 
         if (editBtnSprite) {
             // Update the label inside the button sprite
-            auto btnSprite = static_cast<ButtonSprite*>(editBtnSprite->getNormalImage());
+            auto btnSprite = as<ButtonSprite*>(editBtnSprite->getNormalImage());
             if (btnSprite && btnSprite->m_label) btnSprite->m_label->setString("Edit");
         };
     };

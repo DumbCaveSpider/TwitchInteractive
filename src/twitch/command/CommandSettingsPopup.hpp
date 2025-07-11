@@ -1,9 +1,12 @@
 #pragma once
-#include <vector>
-#include <string>
-#include <Geode/ui/Popup.hpp>
+
 #include "../TwitchCommandManager.hpp"
 #include "../handler/NotificationSettingsPopup.hpp"
+
+#include <vector>
+#include <string>
+
+#include <Geode/ui/Popup.hpp>
 
 namespace cocos2d { class CCObject; class CCNode; }
 

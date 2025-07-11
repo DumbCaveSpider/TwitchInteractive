@@ -1,12 +1,12 @@
 #include "TwitchLoginPopup.hpp"
+
 #include "TwitchDashboard.hpp"
 
+#include <memory>
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
-
-#include <memory>
 
 bool TwitchLoginPopup::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();

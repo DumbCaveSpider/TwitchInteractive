@@ -1,19 +1,21 @@
 #include "CommandSettingsPopup.hpp"
-#include <cocos2d.h>
+
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/EventNode.hpp"
 #include "../handler/ActionNode.hpp"
+
 #include <algorithm>
+#include <cocos2d.h>
 
 using namespace cocos2d;
 using namespace geode::prelude;
 
 // Notification settings handler
 void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
-    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
-    if (btn->getUserObject()) idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
 
     std::string& actionStr = m_commandActions[idx];
     if (actionStr.rfind("Notification", 0) != 0) return;
@@ -30,33 +32,33 @@ void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
 };
 
 void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
-    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
 
-    if (btn->getUserObject()) idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
 
-    if (idx > 0 && idx < static_cast<int>(m_commandActions.size())) {
+    if (idx > 0 && idx < as<int>(m_commandActions.size())) {
         std::swap(m_commandActions[idx], m_commandActions[idx - 1]);
         refreshActionsList();
     };
 };
 
 void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
-    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
-    if (btn->getUserObject()) idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
 
-    if (idx >= 0 && idx < static_cast<int>(m_commandActions.size()) - 1) {
+    if (idx >= 0 && idx < as<int>(m_commandActions.size()) - 1) {
         std::swap(m_commandActions[idx], m_commandActions[idx + 1]);
         refreshActionsList();
     };
 };
 
 void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
-    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     std::string actionStr;
     if (btn->getUserObject()) {
-        actionStr = static_cast<CCString*>(btn->getUserObject())->getCString();
+        actionStr = as<CCString*>(btn->getUserObject())->getCString();
     } else {
         return;
     };
@@ -65,7 +67,7 @@ void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
     auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionStr);
     if (it == m_commandActions.end()) return;
 
-    int jumpIdx = static_cast<int>(std::distance(m_commandActions.begin(), it));
+    int jumpIdx = as<int>(std::distance(m_commandActions.begin(), it));
     if (actionStr.rfind("jump:", 0) != 0) return;
 
     int currentPlayer = 1;
@@ -276,10 +278,10 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 }
 
 void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
-    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     std::string eventId;
     if (btn->getUserObject()) {
-        eventId = static_cast<CCString*>(btn->getUserObject())->getCString();
+        eventId = as<CCString*>(btn->getUserObject())->getCString();
     }
     if (!eventId.empty()) {
         if (eventId == "jump") {
@@ -298,7 +300,7 @@ void CommandSettingsPopup::refreshActionsList() {
     m_actionContent->removeAllChildren();
     float actionNodeGap = 8.0f;
     float nodeHeight = 32.f;
-    int actionCount = static_cast<int>(m_commandActions.size());
+    int actionCount = as<int>(m_commandActions.size());
     // Dynamically expand content layer height if needed
     float minContentHeight = m_actionSectionHeight;
     float neededHeight = actionCount * (nodeHeight + actionNodeGap);
@@ -350,7 +352,7 @@ void CommandSettingsPopup::refreshActionsList() {
             this,
             menu_selector(CommandSettingsPopup::onMoveActionUp),
             menu_selector(CommandSettingsPopup::onMoveActionDown),
-            static_cast<int>(i),
+            as<int>(i),
             showUp,
             showDown
         );
@@ -408,7 +410,7 @@ void CommandSettingsPopup::refreshActionsList() {
             );
             settingsBtn->setID("notification-settings-btn-" + std::to_string(actionIndex));
             float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
+            settingsBtn->setUserObject(CCInteger::create(as<int>(i)));
             // Find or create the menu for the remove button
             CCMenu* menu = nullptr;
             for (auto child : CCArrayExt<CCNode*>(actionNode->getChildren())) {
@@ -523,10 +525,10 @@ void CommandSettingsPopup::refreshActionsList() {
 }
 
 void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
-    auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     std::string actionId;
     if (btn->getUserObject()) {
-        actionId = static_cast<CCString*>(btn->getUserObject())->getCString();
+        actionId = as<CCString*>(btn->getUserObject())->getCString();
     }
     if (!actionId.empty()) {
         auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionId);
@@ -583,7 +585,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             auto children = m_actionContent->getChildren();
             if (children) {
                 for (int i = 0; i < children->count(); ++i) {
-                    auto node = static_cast<CCNode*>(children->objectAtIndex(i));
+                    auto node = as<CCNode*>(children->objectAtIndex(i));
                     if (node) {
                         auto inputNode = node->getChildByID("wait-delay-input-" + std::to_string(idx));
                         if (inputNode) {
@@ -663,7 +665,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
 }
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
-    if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
+    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
         m_commandActions[actionIdx] = "Notification:" + nextText;
         // Find the Nth notification action node (among all notification nodes)
         int notifNodeIdx = -1;
@@ -691,7 +693,7 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
     // Update the label in the action node to show the new custom notification text (or 'Notification' if empty)
     auto children = m_actionContent->getChildren();
     if (!children || actionIdx < 0 || actionIdx >= children->count()) return;
-    auto actionNode = static_cast<CCNode*>(children->objectAtIndex(actionIdx));
+    auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
     if (!actionNode) return;
     std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIdx);
     std::string labelText = nextText.empty() ? "Notification" : nextText;

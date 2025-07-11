@@ -1,13 +1,14 @@
 #include "TwitchDashboard.hpp"
-#include "TwitchCommandManager.hpp"
-#include "command/CommandNode.hpp"
 
+#include "TwitchCommandManager.hpp"
+
+#include "command/CommandNode.hpp"
 #include "command/CommandInputPopup.hpp"
 #include "command/events/PlayLayerEvent.hpp"
 
+#include <unordered_set>
 #include <Geode/Geode.hpp>
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
-#include <unordered_set>
 
 using namespace geode::prelude;
 
@@ -189,7 +190,7 @@ void TwitchDashboard::setupCommandInput() {
     addCommandBtn->setPosition(m_commandControlsMenu->getContentWidth() / 2, m_commandControlsMenu->getContentHeight() / 2); // Center vertically in the menu
 
     // Set content size to match the menu's height
-    auto btnSprite = static_cast<ButtonSprite*>(addCommandBtn->getNormalImage());
+    auto btnSprite = as<ButtonSprite*>(addCommandBtn->getNormalImage());
 
     if (btnSprite) {
         auto btnSize = btnSprite->getContentSize();
@@ -416,11 +417,11 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
 
 void TwitchDashboard::onEditCommand(CCObject* sender) {
     // Handle the edit button click
-    auto button = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto button = as<CCMenuItemSpriteExtra*>(sender);
     if (!button) return;
 
     // The command name should be stored in the button's tag or parent node
-    auto node = static_cast<CommandNode*>(button->getParent()->getParent());
+    auto node = as<CommandNode*>(button->getParent()->getParent());
     if (!node) return;
 
     std::string commandName = node->getCommandName();

@@ -1,6 +1,7 @@
-#include "../TwitchDashboard.hpp"
-#include "CommandSettingsPopup.hpp"
 #include "CommandNode.hpp"
+#include "CommandSettingsPopup.hpp"
+
+#include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
 
@@ -181,7 +182,7 @@ CCMenuItem* CommandNode::createDeleteButton() {
 
 void CommandNode::onDeleteCommand(CCObject* sender) {
     // Get the menu item that was clicked
-    auto menuItem = static_cast<CCMenuItem*>(sender);
+    auto menuItem = as<CCMenuItem*>(sender);
 
     // Find and visually disable the parent command item as well
     runAction(CCFadeTo::create(0.2f, 120)); // Add a slight fade effect to indicate deletion
@@ -194,7 +195,7 @@ void CommandNode::onDeleteCommand(CCObject* sender) {
 
 void CommandNode::onEditCommand(CCObject* sender) {
     // Get the menu item that was clicked
-    auto menuItem = static_cast<CCMenuItem*>(sender);
+    auto menuItem = as<CCMenuItem*>(sender);
 
     log::info("Editing command: {}", m_command.name);
 

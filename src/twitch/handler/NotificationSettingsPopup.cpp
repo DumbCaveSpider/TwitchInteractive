@@ -1,4 +1,5 @@
 #include "NotificationSettingsPopup.hpp"
+
 #include <Geode/Geode.hpp>
 #include <Geode/ui/TextInput.hpp>
 

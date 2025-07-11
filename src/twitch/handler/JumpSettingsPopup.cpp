@@ -1,6 +1,7 @@
 #include "JumpSettingsPopup.hpp"
-#include <Geode/Geode.hpp>
+
 #include <fmt/core.h>
+#include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
 using namespace cocos2d;
