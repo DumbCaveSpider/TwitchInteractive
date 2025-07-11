@@ -1,4 +1,3 @@
-
 #include "../TwitchCommandManager.hpp"
 #include "../TwitchDashboard.hpp"
 #include "events/PlayLayerEvent.hpp"
@@ -29,14 +28,6 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     return TwitchCommandAction(type, arg, index);
 }
 
-#include "../TwitchCommandManager.hpp"
-#include "../TwitchDashboard.hpp"
-#include "events/PlayLayerEvent.hpp"
-#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
-#include <algorithm>
-#include <unordered_map>
-#include <fstream>
-
 using namespace geode::prelude;
 
 // Save commands to file
@@ -49,27 +40,8 @@ void TwitchCommandManager::saveCommands() {
     if (ofs) ofs << arr.dump(2);
 }
 
-// Serialize a TwitchCommand to matjson::Value
-matjson::Value TwitchCommand::toJson() const {
-    matjson::Value v = matjson::Value::object();
-    v["name"] = name;
-    v["description"] = description;
-    v["response"] = response;
-    v["cooldown"] = cooldown;
-    v["enabled"] = enabled;
-    // Serialize actions
-    std::vector<matjson::Value> actionsVec;
-    for (const auto& action : actions) {
-        // Only serialize non-default actions (type or arg set)
-        if (action.type != CommandActionType::Notification || !action.arg.empty() || action.index != 0) {
-            actionsVec.push_back(action.toJson());
-        }
-    }
-    v["actions"] = matjson::Value(actionsVec);
-    return v;
-}
+// NOTE: Update TwitchCommand definition to use std::vector<TwitchCommandAction> for actions
 
-// Load commands from file
 void TwitchCommandManager::loadCommands() {
     using namespace matjson;
     std::ifstream ifs(getSavePath());
@@ -91,11 +63,11 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     std::string response = (v.contains("response") && v["response"].asString().ok()) ? v["response"].asString().unwrap() : "";
     int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
-    std::array<TwitchCommandAction, 10> actions = {};
+    std::vector<TwitchCommandAction> actions;
     if (v.contains("actions") && v["actions"].isArray()) {
         auto& actionsArr = v["actions"];
-        for (size_t i = 0; i < actionsArr.size() && i < 10; ++i) {
-            actions[i] = TwitchCommandAction::fromJson(actionsArr[i]);
+        for (size_t i = 0; i < actionsArr.size(); ++i) {
+            actions.push_back(TwitchCommandAction::fromJson(actionsArr[i]));
         }
     }
     TwitchCommand cmd(name, description, response, cooldown, actions);
@@ -108,17 +80,21 @@ std::string TwitchCommandManager::getSavePath() const {
     // Save in the mod's directory as commands.json
     return "commands.json";
 }
-#include "../TwitchCommandManager.hpp"
-#include "../TwitchDashboard.hpp"
-#include "events/PlayLayerEvent.hpp"
 
-#include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
-#include <algorithm>
-#include <unordered_map>
-#include <fstream>
-
-
-using namespace geode::prelude;
+matjson::Value TwitchCommand::toJson() const {
+    matjson::Value v = matjson::Value::object();
+    v["name"] = name;
+    v["description"] = description;
+    v["response"] = response;
+    v["cooldown"] = cooldown;
+    v["enabled"] = enabled;
+    std::vector<matjson::Value> actionsVec;
+    for (const auto& action : actions) {
+        actionsVec.push_back(action.toJson());
+    }
+    v["actions"] = matjson::Value(actionsVec);
+    return v;
+}
 
 TwitchCommandManager* TwitchCommandManager::getInstance() {
     static TwitchCommandManager instance;
@@ -246,18 +222,48 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             std::string username;
             std::string commandArgs;
             TwitchCommandManager* manager = nullptr;
+            // Helper for countdown logging
+            struct CountdownLogger : public CCObject {
+                int remaining;
+                CountdownLogger(int rem) : remaining(rem) {}
+                void log(CCObject*) {
+                    log::info("[TwitchCommandManager] Wait countdown: {} second(s) remaining", remaining);
+                }
+            };
             void execute(CCObject* obj) {
                 auto* ctx = static_cast<ActionContext*>(obj);
                 if (!ctx || ctx->index >= ctx->actions.size()) {
                     if (ctx) ctx->release();
                     return;
                 }
+                // Debug log: print the full action order and current action
+                std::ostringstream orderLog;
+                orderLog << "[TwitchCommandManager] Action order for command '" << ctx->commandName << "': ";
+                for (size_t i = 0; i < ctx->actions.size(); ++i) {
+                    const auto& a = ctx->actions[i];
+                    orderLog << "[" << i << "] type=" << (int)a.type << ", arg=" << a.arg << ", index=" << a.index;
+                    if (i == ctx->index) orderLog << " <-- executing";
+                    orderLog << "; ";
+                }
+                log::debug("{}", orderLog.str());
+
                 const auto& action = ctx->actions[ctx->index];
                 log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, action.arg, action.index);
                 if (action.type == CommandActionType::Wait) {
                     int delay = action.index;
                     if (delay > 0) {
                         log::info("[TwitchCommandManager] Waiting for {} seconds before next action", delay);
+                        // Countdown log for each second using CCCallFuncO
+                        if (auto scene = CCDirector::sharedDirector()->getRunningScene()) {
+                            for (int i = 1; i <= delay; ++i) {
+                                auto logger = new CountdownLogger(delay - i + 1);
+                                scene->runAction(CCSequence::create(
+                                    CCDelayTime::create(static_cast<float>(i)),
+                                    CCCallFuncO::create(logger, callfuncO_selector(CountdownLogger::log), logger),
+                                    nullptr
+                                ));
+                            }
+                        }
                         ctx->index++;
                         auto seq = CCSequence::create(
                             CCDelayTime::create(static_cast<float>(delay)),
@@ -286,11 +292,26 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         // Collect non-default actions in order
         std::vector<TwitchCommandAction> orderedActions;
         for (const auto& action : it->actions) {
-            if (action.type != CommandActionType::Notification || !action.arg.empty() || action.index != 0) {
-                orderedActions.push_back(action);
-            }
+            // Only skip truly default/empty actions (all fields default)
+            if (action.type == CommandActionType::Notification && action.arg.empty() && action.index == 0) continue;
+            if (action.type == CommandActionType::Event && action.arg.empty() && action.index == 0) continue;
+            if (action.type == CommandActionType::Wait && action.arg.empty() && action.index == 0) continue;
+            if (action.type == CommandActionType::Keybind && action.arg.empty() && action.index == 0) continue;
+            if (action.type == CommandActionType::Chat && action.arg.empty() && action.index == 0) continue;
+            orderedActions.push_back(action);
         }
         if (!orderedActions.empty()) {
+
+            // Debug log: print action order before execution (use ostringstream for MSVC compatibility)
+            std::ostringstream orderLog;
+            orderLog << "[TwitchCommandManager] Action order for command '" << commandName << "': ";
+            for (size_t i = 0; i < orderedActions.size(); ++i) {
+                const auto& a = orderedActions[i];
+                orderLog << "[" << i << "] type=" << (int)a.type << ", arg=" << a.arg << ", index=" << a.index << "; ";
+            }
+            std::string orderLogStr = orderLog.str();
+            log::debug("{}", orderLogStr);
+
             auto* ctx = new ActionContext();
             ctx->actions = orderedActions;
             ctx->index = 0;

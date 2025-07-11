@@ -9,6 +9,7 @@ namespace {
         void update(float) {
             auto playLayer = PlayLayer::get();
             if (playLayer && g_pendingKillPlayer) {
+                log::debug("[PlayLayerEvent] KillPlayerScheduler: Executing kill player");
                 playLayer->destroyPlayer(playLayer->m_player1, nullptr);
                 g_pendingKillPlayer = false;
                 this->unscheduleAllSelectors();
@@ -16,6 +17,7 @@ namespace {
             }
         }
         static void start() {
+            log::debug("[PlayLayerEvent] KillPlayerScheduler: Scheduling kill player");
             auto node = new KillPlayerScheduler();
             node->autorelease();
             CCDirector::sharedDirector()->getRunningScene()->addChild(node);
@@ -25,10 +27,12 @@ namespace {
 }
 
 void PlayLayerEvent::killPlayer() {
+    log::debug("[PlayLayerEvent] killPlayer called");
     g_pendingKillPlayer = true;
     Loader::get()->queueInMainThread([] {
         auto playLayer = PlayLayer::get();
         if (playLayer && g_pendingKillPlayer) {
+            log::debug("[PlayLayerEvent] killPlayer: Executing kill immediately");
             playLayer->destroyPlayer(playLayer->m_player1, nullptr);
             g_pendingKillPlayer = false;
         } else if (g_pendingKillPlayer) {

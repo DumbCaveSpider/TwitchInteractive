@@ -222,84 +222,10 @@ void TwitchDashboard::setupCommandListening() {
     // Note: The API design doesn't let us unregister callbacks, but since this only runs once
     // during setup, we won't get duplicate registrations unless the dashboard is opened multiple times
     api->registerOnMessageCallback([this](const ChatMessage& chatMessage) {
-        std::string message = chatMessage.getMessage(); // Chat message
-        std::string username = chatMessage.getUsername(); // Chat author username
-        std::string messageId = chatMessage.getMessageID(); // Chat message ID
-
-        // Check if message starts with '!' (command prefix)
-        if (message.empty() || message[0] != '!') return;
-
-        // Extract command name (everything after '!' until first space)
-        std::string command = message.substr(1); // Remove '!'
-        size_t spacePos = command.find(' '); // Split first space
-        std::string commandName = command.substr(0, spacePos); // First argument as command name
-        std::string args = (spacePos != std::string::npos) ? command.substr(spacePos + 1) : ""; // Command arguments
-
-        // Get command manager and check if command exists
+        // Use the backend's handler to ensure sequential, ordered action execution
         auto commandManager = TwitchCommandManager::getInstance();
-        auto& commands = commandManager->getCommands();
-
-        // Track if we've already processed this message ID to prevent duplicate notifications
-        static std::unordered_set<std::string> processedMessageIds;
-
-        // Check if we've already processed this message
-        if (processedMessageIds.find(messageId) != processedMessageIds.end()) {
-            // Already processed this message, skip to prevent duplicates
-            return;
-        };
-
-        // Add to processed set
-        processedMessageIds.insert(messageId);
-
-        // Limit the size of the processed set to prevent memory growth
-        if (processedMessageIds.size() > 100) processedMessageIds.clear();  // Simple approach: just clear when it gets too big
-
-        for (const auto& cmd : commands) {
-            if (cmd.name == commandName && cmd.enabled) {
-                // Check cooldown (must match logic in TwitchCommandManager)
-                extern std::unordered_map<std::string, time_t> commandCooldowns;
-                time_t now = time(nullptr);
-                auto cooldownIt = commandCooldowns.find(commandName);
-
-                if (cooldownIt != commandCooldowns.end() && cooldownIt->second > now) {
-                    log::info("Command '{}' is currently on cooldown ({}s remaining) [UI]", commandName, cooldownIt->second - now);
-                    return;
-                };
-
-                // Show custom notification if set for this command
-                std::string customNotif;
-                bool killPlayerEvent = false;
-                for (const auto& action : cmd.actions) {
-                    if (action.type == CommandActionType::Notification && !action.arg.empty()) {
-                        customNotif = action.arg;
-                    }
-                    if (action.type == CommandActionType::Event && action.arg == "kill_player") {
-                        killPlayerEvent = true;
-                    }
-                }
-                if (!customNotif.empty()) {
-                    Notification::create(customNotif, NotificationIcon::Success)->show();
-                }
-
-                // If kill player event is enabled, trigger it
-                if (killPlayerEvent) {
-                    PlayLayerEvent::killPlayer();
-                    log::info("Triggered kill player event for command '{}' from Twitch chat", commandName);
-                }
-
-                // Execute command callback if available
-                if (cmd.callback) cmd.callback(args);
-
-                // Set cooldown
-                if (cmd.cooldown > 0) {
-                    commandCooldowns[commandName] = now + cmd.cooldown;
-                    log::info("Command '{}' is now on cooldown for {}s [UI]", commandName, cmd.cooldown);
-                };
-
-                break;
-            };
-        };
-                                   });
+        commandManager->handleChatMessage(chatMessage);
+    });
 
     log::info("Command listening setup complete");
 };

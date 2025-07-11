@@ -41,7 +41,7 @@ struct TwitchCommand {
     std::string name; // All lowercase name of the command
     std::string description; // Brief description of the command
 
-    std::array<TwitchCommandAction, 10> actions = {}; // List of up to 10 actions in order
+    std::vector<TwitchCommandAction> actions; // List of actions in order
 
     bool enabled = true; // If the command is enabled
     int cooldown = 0; // Cooldown in seconds
@@ -50,11 +50,11 @@ struct TwitchCommand {
     std::string response; // Custom chat response
 
     TwitchCommand(
-        const std::string& cmdName,
-        const std::string& cmdDesc,
-        const std::string& cmdResponse,
+        const std::string& cmdName = "",
+        const std::string& cmdDesc = "",
+        const std::string& cmdResponse = "",
         int cmdCooldown = 0,
-        std::array<TwitchCommandAction, 10> cmdActions = {}
+        std::vector<TwitchCommandAction> cmdActions = {}
     ) : name(cmdName), description(cmdDesc), response(cmdResponse), cooldown(cmdCooldown), actions(cmdActions) {};
 };
 
