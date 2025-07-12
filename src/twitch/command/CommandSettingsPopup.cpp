@@ -613,18 +613,6 @@ void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
     onClose(sender);
 };
 
-CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
-    auto ret = new CommandSettingsPopup();
-
-    if (ret && ret->initAnchored(560.f, 300.f, command)) {
-        ret->autorelease();
-        return ret;
-    };
-
-    CC_SAFE_DELETE(ret);
-    return nullptr;
-};
-
 std::string CommandSettingsPopup::getNotificationText() const {
     if (m_notificationInput) {
         std::string text = m_notificationInput->getString();
@@ -797,4 +785,16 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
     std::string labelText = nextText.empty() ? "Notification" : nextText;
 
     if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
+};
+
+CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
+    auto ret = new CommandSettingsPopup();
+
+    if (ret && ret->initAnchored(560.f, 325.f, command)) {
+        ret->autorelease();
+        return ret;
+    };
+
+    CC_SAFE_DELETE(ret);
+    return nullptr;
 };
