@@ -310,6 +310,11 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                         }
                         log::info("[TwitchCommandManager] Triggering jump event for player {} (command: {})", playerIdx, ctx->commandName);
                         PlayLayerEvent::jumpPlayer(playerIdx);
+                    } else if (action.arg.rfind("keycode:", 0) == 0) {
+                        // Parse key string from arg (keycode:<key>)
+                        std::string keyStr = action.arg.substr(8);
+                        log::info("[TwitchCommandManager] Triggering keycode event: '{}' (command: {})", keyStr, ctx->commandName);
+                        PlayLayerEvent::pressKey(keyStr);
                     }
                 };
 

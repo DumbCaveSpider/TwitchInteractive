@@ -9,7 +9,7 @@ using namespace cocos2d;
 bool JumpSettingsPopup::setup(int actionIndex) {
     m_actionIndex = actionIndex;
 
-    setTitle("EditJump Action");
+    setTitle("Edit Jump Action");
     setID("jump-settings-popup");
 
     float y = 140.f;

@@ -53,7 +53,6 @@ void PlayLayerEvent::killPlayer() {
 void PlayLayerEvent::jumpPlayer(int playerIdx) {
     Loader::get()->queueInMainThread([playerIdx] {
         auto playLayer = PlayLayer::get();
-
         if (!playLayer) {
             log::debug("[PlayLayerEvent] jumpPlayer: PlayLayer not found");
             return;
@@ -78,5 +77,53 @@ void PlayLayerEvent::jumpPlayer(int playerIdx) {
             log::info("[PlayLayerEvent] jumpPlayer: Making player{} jump", playerIdx);
             player->pushButton(PlayerButton::Jump);
         };
-                                     });
-};
+    });
+}
+
+// Simulate a keypress by key string (universal, works anywhere in the game if supported)
+void PlayLayerEvent::pressKey(const std::string& key) {
+    Loader::get()->queueInMainThread([key] {
+        cocos2d::enumKeyCodes keyCode = cocos2d::KEY_None;
+        if (key == "Space" || key == "Jump") keyCode = cocos2d::KEY_Space;
+        else if (key == "Left") keyCode = cocos2d::KEY_Left;
+        else if (key == "Right") keyCode = cocos2d::KEY_Right;
+        else if (key == "Up") keyCode = cocos2d::KEY_Up;
+        else if (key == "Down") keyCode = cocos2d::KEY_Down;
+        else if (key.length() == 1 && std::isalpha(key[0])) keyCode = static_cast<cocos2d::enumKeyCodes>(std::toupper(key[0]));
+
+        if (keyCode == cocos2d::KEY_None) {
+            log::info("[PlayLayerEvent] pressKey: Unrecognized key '{}', no action taken", key);
+            return;
+        }
+
+
+        auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
+        if (glView) {
+#if defined(GEODE_SUPPORTS_SIMULATE_KEY) || defined(CCEGLVIEW_SUPPORTS_SIMULATE_KEY)
+            glView->simulateKeyDown(keyCode);
+            glView->simulateKeyUp(keyCode);
+            log::info("[PlayLayerEvent] pressKey: Simulated universal key event for '{}' (code {})", key, static_cast<int>(keyCode));
+            return;
+#endif
+        }
+
+        // Fallback: Only works in PlayLayer
+        auto playLayer = PlayLayer::get();
+        if (playLayer) {
+            if (keyCode == cocos2d::KEY_Space || keyCode == cocos2d::KEY_Up) {
+                if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
+                log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player1");
+            } else if (keyCode == cocos2d::KEY_Left) {
+                if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Left);
+                log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Left for player1");
+            } else if (keyCode == cocos2d::KEY_Right) {
+                if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Right);
+                log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Right for player1");
+            } else {
+                log::info("[PlayLayerEvent] pressKey: Fallback - Key '{}' not mapped in PlayLayer", key);
+            }
+        } else {
+            log::info("[PlayLayerEvent] pressKey: No universal key simulation available for '{}', code {}", key, static_cast<int>(keyCode));
+        }
+    });
+}

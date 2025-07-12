@@ -7,7 +7,8 @@
 class KeyCodesSettingsPopup : public geode::Popup<std::string> {
 protected:
     std::string m_keyCode;
-    geode::TextInput* m_input = nullptr;
+    cocos2d::CCLabelBMFont* m_keyLabel = nullptr;
+    void keyDown(cocos2d::enumKeyCodes key) override;
     std::function<void(const std::string&)> m_onSelect;
     bool setup(std::string keyCode) override;
     void onSave(cocos2d::CCObject* sender);
