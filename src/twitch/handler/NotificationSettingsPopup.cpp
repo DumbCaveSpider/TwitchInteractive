@@ -1,3 +1,4 @@
+#include <Geode/utils/cocos.hpp>
 #include "NotificationSettingsPopup.hpp"
 
 
@@ -28,24 +29,26 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     float iconY = y - 28.f;
     float arrowOffset = 60.f;
 
+    // Left arrow
+    auto leftArrowSprite = CCSprite::createWithSpriteFrameName("edit_leftBtn_001.png");
     m_leftArrow = CCMenuItemSpriteExtra::create(
-        CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png"),
+        leftArrowSprite,
         this,
         menu_selector(NotificationSettingsPopup::onLeftIcon)
     );
-    m_leftArrow->setScale(0.7f);
     m_leftArrow->setPosition(x - arrowOffset, iconY);
 
+    // Right arrow (ensure correct flip and scale)
+    auto rightArrowSprite = CCSprite::createWithSpriteFrameName("edit_rightBtn_001.png");
     m_rightArrow = CCMenuItemSpriteExtra::create(
-        CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png"),
+        rightArrowSprite,
         this,
         menu_selector(NotificationSettingsPopup::onRightIcon)
     );
-    m_rightArrow->setScaleX(-0.7f); // flip horizontally
-    m_rightArrow->setScaleY(0.7f);
+
     m_rightArrow->setPosition(x + arrowOffset, iconY);
 
-    m_iconLabel = CCLabelBMFont::create("Info", "goldFont.fnt");
+    m_iconLabel = CCLabelBMFont::create("Info", "bigFont.fnt");
     m_iconLabel->setScale(0.6f);
     m_iconLabel->setAnchorPoint({0.5f, 0.5f});
     m_iconLabel->setPosition(x, iconY);
@@ -105,17 +108,6 @@ void NotificationSettingsPopup::updateIconLabel() {
     float x = m_mainLayer->getContentSize().width / 2;
     float iconY = m_iconLabel->getPositionY();
     float arrowOffset = 60.f;
-    if (m_leftArrow) {
-        m_leftArrow->setScale(0.7f);
-        m_leftArrow->setScaleX(0.7f);
-        m_leftArrow->setScaleY(0.7f);
-        m_leftArrow->setPosition(x - arrowOffset, iconY);
-    }
-    if (m_rightArrow) {
-        m_rightArrow->setScaleX(-0.7f);
-        m_rightArrow->setScaleY(0.7f);
-        m_rightArrow->setPosition(x + arrowOffset, iconY);
-    }
 }
 
 NotificationSettingsPopup* NotificationSettingsPopup::create(const std::string& notificationText, std::function<void(const std::string&, NotificationIconType)> onSelect, NotificationIconType iconType) {

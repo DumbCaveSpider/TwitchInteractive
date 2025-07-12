@@ -11,6 +11,7 @@ std::vector<EventNodeInfo> EventNodeFactory::getAllEventNodes() {
         {"jump", "Jump"},
         {"wait", "Wait"},
         {"notification", "Notification"},
+        {"keycode", "Key Code"},
     };
 
     return nodes;
