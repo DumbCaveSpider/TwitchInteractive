@@ -13,31 +13,33 @@ using namespace geode::prelude;
 
 void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    std::string actionIdRaw;
-    if (btn->getUserObject()) actionIdRaw = as<CCString*>(btn->getUserObject())->getCString();
-    // Find the index of this jump action in m_commandActions
-    int idx = -1;
-    for (size_t i = 0; i < m_commandActions.size(); ++i) {
-        if (m_commandActions[i] == actionIdRaw) {
-            idx = static_cast<int>(i);
-            break;
-        }
-    }
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
-    // Extract current player value as int
+    std::string actionIdRaw = m_commandActions[idx];
+    // Extract current player value as int and hold state
     int jumpPlayerValue = 1;
+    bool isHold = false;
     size_t colonPos = actionIdRaw.find(":");
     if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
         std::string val = actionIdRaw.substr(colonPos + 1);
+        size_t holdPos = val.find(":hold");
+        if (holdPos != std::string::npos) {
+            isHold = true;
+            val = val.substr(0, holdPos);
+        }
         if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
             jumpPlayerValue = std::stoi(val);
         }
     }
     JumpSettingsPopup::create(
         jumpPlayerValue,
-        [this, idx](int newPlayer) {
+        isHold,
+        [this, idx](int newPlayer, bool hold) {
             if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
-                m_commandActions[idx] = "jump:" + std::to_string(newPlayer);
+                std::string action = "jump:" + std::to_string(newPlayer);
+                if (hold) action += ":hold";
+                m_commandActions[idx] = action;
                 refreshActionsList();
             }
         }
@@ -433,7 +435,8 @@ void CommandSettingsPopup::refreshActionsList() {
             };
         };
 
-        // For notification, always display the label as 'Notification'. For keycode, display as 'Key Code'.
+
+        // For jump actions, do not show hold state in nodeLabel
         std::string nodeLabel = (actionId.rfind("Notification", 0) == 0) ? "Notification" :
             (actionId.rfind("keycode", 0) == 0 ? "Key Code" : eventLabel);
 
@@ -601,12 +604,22 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Jump action node (unified UI with notification)
         if (actionId == "jump" && !jumpPlayerValue.empty()) {
+            // Remove any ":hold" from jumpPlayerValue for display
+            std::string playerValueClean = jumpPlayerValue;
+            size_t holdPos = playerValueClean.find(":hold");
+            if (holdPos != std::string::npos) {
+                playerValueClean = playerValueClean.substr(0, holdPos);
+            }
             std::string playerInfo;
-            if (jumpPlayerValue == "3") {
+            if (playerValueClean == "3") {
                 playerInfo = "Both Players";
             } else {
-                playerInfo = "Player " + jumpPlayerValue;
+                playerInfo = "Player " + playerValueClean;
             }
+            // Check if this jump action is a hold
+            bool isHold = false;
+            if (m_commandActions[i].find(":hold") != std::string::npos) isHold = true;
+            if (isHold) playerInfo += " (Hold)";
             auto playerLabelId = "jump-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
             float labelY = 6.f;
@@ -634,8 +647,8 @@ void CommandSettingsPopup::refreshActionsList() {
                 this,
                 menu_selector(CommandSettingsPopup::onJumpSettings)
             );
-            settingsBtn->setID("jump-settings-btn-" + actionIdRaw);
-            settingsBtn->setUserObject(CCString::create(actionIdRaw));
+            settingsBtn->setID("jump-settings-btn-" + std::to_string(i));
+            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);
             settingsMenu->setPosition(0, 0);
@@ -701,17 +714,37 @@ void CommandSettingsPopup::refreshActionsList() {
 
 void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    std::string actionId;
-    if (btn->getUserObject()) actionId = as<CCString*>(btn->getUserObject())->getCString();
-
-    if (!actionId.empty()) {
-        auto it = std::find(m_commandActions.begin(), m_commandActions.end(), actionId);
-
-        if (it != m_commandActions.end()) {
-            m_commandActions.erase(it);
-            refreshActionsList();
-        };
-    };
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
+    std::string actionIdRaw = m_commandActions[idx];
+    // Extract current player value as int and hold state
+    int jumpPlayerValue = 1;
+    bool isHold = false;
+    size_t colonPos = actionIdRaw.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+        std::string val = actionIdRaw.substr(colonPos + 1);
+        size_t holdPos = val.find(":hold");
+        if (holdPos != std::string::npos) {
+            isHold = true;
+            val = val.substr(0, holdPos);
+        }
+        if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
+            jumpPlayerValue = std::stoi(val);
+        }
+    }
+    JumpSettingsPopup::create(
+        jumpPlayerValue,
+        isHold,
+        [this, idx](int newPlayer, bool hold) {
+            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
+                std::string action = "jump:" + std::to_string(newPlayer);
+                if (hold) action += ":hold";
+                m_commandActions[idx] = action;
+                refreshActionsList();
+            }
+        }
+    )->show();
 };
 
 void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
@@ -736,19 +769,28 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     // Build up to 10 actions in order, validate all wait inputs
     std::vector<TwitchCommandAction> actionsVec;
     for (size_t idx = 0; idx < m_commandActions.size(); ++idx) {
-        const auto& actionIdRaw = m_commandActions[idx];
+        std::string& actionIdRaw = m_commandActions[idx];
 
         std::string actionId = actionIdRaw;
         std::string waitValue;
         std::string jumpPlayerValue;
+        bool isHold = false;
 
         if (actionIdRaw.rfind("wait:", 0) == 0) {
             actionId = "wait";
             waitValue = actionIdRaw.substr(5);
         } else if (actionIdRaw.rfind("jump:", 0) == 0) {
             actionId = "jump";
-            jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
-        };
+            // Parse jumpPlayerValue and hold
+            std::string val = actionIdRaw.substr(5); // could be "1", "1:hold", etc.
+            size_t holdPos = val.find(":hold");
+            if (holdPos != std::string::npos) {
+                isHold = true;
+                jumpPlayerValue = val.substr(0, holdPos);
+            } else {
+                jumpPlayerValue = val;
+            }
+        }
 
         if (actionId == "wait") {
             std::string inputId = "wait-delay-input-" + std::to_string(idx + 1); // match refreshActionsList index label (1-based)
@@ -764,10 +806,10 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
                         if (inputNode) {
                             waitInput = dynamic_cast<TextInput*>(inputNode);
                             if (waitInput) break;
-                        };
-                    };
-                };
-            };
+                        }
+                    }
+                }
+            }
 
             std::string delayStr = waitValue;
             if (waitInput) delayStr = waitInput->getString();
@@ -775,31 +817,29 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             if (delayStr.empty()) {
                 Notification::create("Please fill in all wait delay fields!", NotificationIcon::Error)->show();
                 return;
-            };
+            }
 
             {
                 bool valid = !delayStr.empty() && (delayStr.find_first_not_of("-0123456789") == std::string::npos);
                 if (valid) {
                     int delay = std::stoi(delayStr);
                     actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
-                    const_cast<std::string&>(actionId) = "wait:" + std::to_string(delay);
+                    actionIdRaw = "wait:" + std::to_string(delay);
                 } else {
                     Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
                     return;
                 }
             }
         } else if (actionId == "jump") {
-            // Always use the value from m_commandActions (jumpPlayerValue)
+            // Always use the value from m_commandActions (jumpPlayerValue and isHold)
             int playerIdx = 1;
-
-            {
-                if (!jumpPlayerValue.empty() && (jumpPlayerValue.find_first_not_of("-0123456789") == std::string::npos)) {
-                    playerIdx = std::stoi(jumpPlayerValue);
-                }
+            if (!jumpPlayerValue.empty() && (jumpPlayerValue.find_first_not_of("-0123456789") == std::string::npos)) {
+                playerIdx = std::stoi(jumpPlayerValue);
             }
-
-            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "jump:" + std::to_string(playerIdx), 0));
-            const_cast<std::string&>(actionIdRaw) = "jump:" + std::to_string(playerIdx);
+            std::string jumpActionStr = "jump:" + std::to_string(playerIdx);
+            if (isHold) jumpActionStr += ":hold";
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, jumpActionStr, 0));
+            actionIdRaw = jumpActionStr;
         } else if (actionId == "kill_player") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
         } else if (actionIdRaw.rfind("keycode:", 0) == 0) {
@@ -822,8 +862,8 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, std::to_string(iconTypeInt) + ":" + notifText, 0));
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
-        };
-    };
+        }
+    }
 
     // Replace m_command.actions with actionsVec (preserve order, no size limit)
     m_command.actions = actionsVec;

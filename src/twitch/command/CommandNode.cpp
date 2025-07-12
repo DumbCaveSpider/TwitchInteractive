@@ -91,30 +91,56 @@ bool CommandNode::init(TwitchDashboard* parent, TwitchCommand command, float wid
     auto commandEditMenu = CCMenu::create();
     commandEditMenu->setID("command-edit-menu");
     commandEditMenu->ignoreAnchorPointForPosition(false);
-    commandEditMenu->setContentSize({ 120, 40 }); // Wider for three buttons
+    commandEditMenu->setContentSize({ 180, 40 }); // Wider for four buttons
 
     // Create edit, delete, and settings buttons
     auto editBtn = createEditButton();
     auto deleteBtn = createDeleteButton();
     auto settingsBtn = createSettingsButton();
 
-    // Position buttons side by side (settings, edit, delete)
+    // Create enable/disable toggle button
+    auto enableOffSprite = ButtonSprite::create("Enabled", "bigFont.fnt", "GJ_button_01.png", 0.3f); // show enabled state when disabled
+    auto enableOnSprite = ButtonSprite::create("Disabled", "bigFont.fnt", "GJ_button_06.png", 0.3f); // show disabled state when enabled
+    auto enableToggle = CCMenuItemToggler::create(
+        enableOnSprite,
+        enableOffSprite,
+        this,
+        menu_selector(CommandNode::onToggleEnableCommand)
+    );
+    enableToggle->setID("enable-command-toggle");
+    enableToggle->setContentSize({ 60.0f, 40.0f });
+
+    // Position buttons side by side (settings, edit, delete, enable/disable)
     settingsBtn->setPosition(0, 0);
     editBtn->setPosition(40, 0);
     deleteBtn->setPosition(80, 0);
+    enableToggle->setPosition(160, enableToggle->getContentSize().height / 2);
 
     // Add buttons to menu in new order
     commandEditMenu->addChild(settingsBtn);
     commandEditMenu->addChild(editBtn);
     commandEditMenu->addChild(deleteBtn);
+    commandEditMenu->addChild(enableToggle);
+
+    // Set the correct toggle state *after* adding to menu and positioning, to ensure layout is correct
+    enableToggle->toggle(m_command.enabled);
 
     // Position menu at right side of the item, center vertically
-    commandEditMenu->setPosition(width - 70, itemHeight / 2);
+    commandEditMenu->setPosition(width - 110, itemHeight / 2);
 
     commandEditMenu->setTouchPriority(-130);
     addChild(commandEditMenu);
     return true;
-};
+}
+
+void CommandNode::onToggleEnableCommand(cocos2d::CCObject* sender) {
+    // Toggle the enabled state and update the command in the manager
+    m_command.enabled = !m_command.enabled;
+    log::info("Command '{}' enabled state set to {}", m_command.name, m_command.enabled);
+    // Update the command in the manager
+    auto commandManager = TwitchCommandManager::getInstance();
+    commandManager->enableCommand(m_command.name, m_command.enabled);
+}
 
 CCMenuItem* CommandNode::createSettingsButton() {
     // Create settings button sprite with proper scaling

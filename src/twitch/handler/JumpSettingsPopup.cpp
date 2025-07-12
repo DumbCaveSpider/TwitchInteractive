@@ -12,7 +12,7 @@ bool JumpSettingsPopup::setup(int actionIndex) {
     setTitle("Edit Jump Action");
     setID("jump-settings-popup");
 
-    float y = 140.f;
+    float y = 190.f;
     float x = m_mainLayer->getContentSize().width / 2;
     float spacing = 50.f;
 
@@ -37,11 +37,36 @@ bool JumpSettingsPopup::setup(int actionIndex) {
     );
     bothBtn->setPosition(x, y - 2 * spacing);
 
-    // Menu
+    float checkboxY = y - 3 * spacing;
+    float checkboxX = x - 10.f;
+    float labelOffset = 30.f;
+
+    m_holdJumpCheckbox = CCMenuItemToggler::create(
+        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
+        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+        this,
+        menu_selector(JumpSettingsPopup::onToggleHoldJump)
+    );
+    m_holdJumpCheckbox->setPosition(checkboxX, checkboxY);
+
+    auto checkboxLabel = CCLabelBMFont::create("Hold Jump", "bigFont.fnt");
+    checkboxLabel->setScale(0.4f);
+    checkboxLabel->setAnchorPoint({0.0f, 0.5f});
+    checkboxLabel->setPosition(checkboxX + labelOffset, checkboxY);
+
+    m_isHoldJump = false;
+    if (m_restoreHold && m_holdJumpCheckbox) {
+        m_holdJumpCheckbox->toggle(true);
+        m_isHoldJump = true;
+    }
+
+    // Button Menu
     auto menu = CCMenu::create();
     menu->addChild(p1Btn);
     menu->addChild(p2Btn);
     menu->addChild(bothBtn);
+    menu->addChild(m_holdJumpCheckbox);
+    menu->addChild(checkboxLabel);
     menu->setPosition(0, 0);
 
     m_mainLayer->addChild(menu);
@@ -49,15 +74,30 @@ bool JumpSettingsPopup::setup(int actionIndex) {
     return true;
 }
 
-void JumpSettingsPopup::onPlayer1(CCObject*) { if (m_onSelect) m_onSelect(1); onClose(nullptr); }
-void JumpSettingsPopup::onPlayer2(CCObject*) { if (m_onSelect) m_onSelect(2); onClose(nullptr); }
-void JumpSettingsPopup::onBoth(CCObject*) { if (m_onSelect) m_onSelect(3); onClose(nullptr); }
 
-JumpSettingsPopup* JumpSettingsPopup::create(int actionIndex, std::function<void(int)> onSelect) {
+void JumpSettingsPopup::onPlayer1(CCObject*) {
+    if (m_onSelect) m_onSelect(1, m_holdJumpCheckbox && m_holdJumpCheckbox->isOn());
+    onClose(nullptr);
+}
+void JumpSettingsPopup::onPlayer2(CCObject*) {
+    if (m_onSelect) m_onSelect(2, m_holdJumpCheckbox && m_holdJumpCheckbox->isOn());
+    onClose(nullptr);
+}
+void JumpSettingsPopup::onBoth(CCObject*) {
+    if (m_onSelect) m_onSelect(3, m_holdJumpCheckbox && m_holdJumpCheckbox->isOn());
+    onClose(nullptr);
+}
+
+void JumpSettingsPopup::onToggleHoldJump(CCObject*) {
+    m_isHoldJump = m_holdJumpCheckbox && m_holdJumpCheckbox->isOn();
+}
+
+JumpSettingsPopup* JumpSettingsPopup::create(int actionIndex, bool restoreHold, std::function<void(int, bool)> onSelect) {
     auto ret = new JumpSettingsPopup();
     ret->m_onSelect = onSelect;
+    ret->m_restoreHold = restoreHold;
 
-    if (ret && ret->initAnchored(220.f, 200.f, actionIndex)) {
+    if (ret && ret->initAnchored(220.f, 250.f, actionIndex)) {
         ret->autorelease();
         return ret;
     };

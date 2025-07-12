@@ -300,14 +300,24 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                         log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
                         PlayLayerEvent::killPlayer();
                     } else if (action.arg.rfind("jump:", 0) == 0) {
-                        // Parse player index from arg (jump:1 or jump:2)
+                        // Parse player index and hold from arg (jump:1 or jump:1:hold)
                         int playerIdx = 1;
+                        bool hold = false;
                         std::string idxStr = action.arg.substr(5);
+                        size_t holdPos = idxStr.find(":hold");
+                        if (holdPos != std::string::npos) {
+                            hold = true;
+                            idxStr = idxStr.substr(0, holdPos);
+                        }
                         if (!idxStr.empty() && (idxStr.find_first_not_of("-0123456789") == std::string::npos)) {
                             playerIdx = std::stoi(idxStr);
                         }
-                        log::info("[TwitchCommandManager] Triggering jump event for player {} (command: {})", playerIdx, ctx->commandName);
-                        PlayLayerEvent::jumpPlayer(playerIdx);
+                        log::info("[TwitchCommandManager] Triggering jump event for player {} (hold: {}) (command: {})", playerIdx, hold, ctx->commandName);
+                        if (hold) {
+                            PlayLayerEvent::jumpPlayerHold(playerIdx);
+                        } else {
+                            PlayLayerEvent::jumpPlayerTap(playerIdx);
+                        }
                     } else if (action.arg.rfind("keycode:", 0) == 0) {
                         // Parse key string and duration from arg (keycode:<key>|<duration>)
                         std::string keyStr = action.arg.substr(8);
