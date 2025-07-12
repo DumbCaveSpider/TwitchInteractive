@@ -135,26 +135,49 @@ void PlayLayerEvent::pressKey(const std::string& key, float duration) {
         auto playLayer = PlayLayer::get();
         if (playLayer) {
             auto pressAndRelease = [=]() {
-                if (keyCode == cocos2d::KEY_Space || keyCode == cocos2d::KEY_Up) {
+                // Player 1: W/A/D
+                if (key == "W") {
                     if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player1");
-                } else if (keyCode == cocos2d::KEY_Left) {
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player1 (W)");
+                } else if (key == "A") {
                     if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Left);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Left for player1");
-                } else if (keyCode == cocos2d::KEY_Right) {
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Left for player1 (A)");
+                } else if (key == "D") {
                     if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Right);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Right for player1");
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Right for player1 (D)");
+                }
+                // Player 2: Up/Left/Right
+                else if (keyCode == cocos2d::KEY_Up) {
+                    if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Jump);
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player2 (Up)");
+                } else if (keyCode == cocos2d::KEY_Left) {
+                    if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Left);
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Left for player2 (Left)");
+                } else if (keyCode == cocos2d::KEY_Right) {
+                    if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Right);
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Right for player2 (Right)");
+                } else if (keyCode == cocos2d::KEY_Space) {
+                    if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
+                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player1 (Space)");
                 } else {
                     log::info("[PlayLayerEvent] pressKey: Fallback - Key '{}' not mapped in PlayLayer", key);
                 }
             };
             auto release = [=]() {
-                if (keyCode == cocos2d::KEY_Space || keyCode == cocos2d::KEY_Up) {
+                if (key == "W") {
                     if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Jump);
-                } else if (keyCode == cocos2d::KEY_Left) {
+                } else if (key == "A") {
                     if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Left);
-                } else if (keyCode == cocos2d::KEY_Right) {
+                } else if (key == "D") {
                     if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Right);
+                } else if (keyCode == cocos2d::KEY_Up) {
+                    if (playLayer->m_player2) playLayer->m_player2->releaseButton(PlayerButton::Jump);
+                } else if (keyCode == cocos2d::KEY_Left) {
+                    if (playLayer->m_player2) playLayer->m_player2->releaseButton(PlayerButton::Left);
+                } else if (keyCode == cocos2d::KEY_Right) {
+                    if (playLayer->m_player2) playLayer->m_player2->releaseButton(PlayerButton::Right);
+                } else if (keyCode == cocos2d::KEY_Space) {
+                    if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Jump);
                 }
             };
             pressAndRelease();
