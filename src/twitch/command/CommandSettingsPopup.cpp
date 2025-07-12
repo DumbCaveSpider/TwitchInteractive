@@ -669,9 +669,9 @@ void CommandSettingsPopup::refreshActionsList() {
             this,
             menu_selector(CommandSettingsPopup::onRemoveAction)
         );
-        removeBtn->setID("action-" + actionIdRaw + "-remove-btn");
+        removeBtn->setID("action-" + std::to_string(i) + "-remove-btn");
         removeBtn->setPosition(btnX, 16.f);
-        removeBtn->setUserObject(CCString::create(actionIdRaw));
+        removeBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
         removeBtn->setScale(1.2f);
 
         // If this is a wait action, add a TextInput to the left of the button
@@ -717,34 +717,8 @@ void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
     int idx = 0;
     if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
-    std::string actionIdRaw = m_commandActions[idx];
-    // Extract current player value as int and hold state
-    int jumpPlayerValue = 1;
-    bool isHold = false;
-    size_t colonPos = actionIdRaw.find(":");
-    if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-        std::string val = actionIdRaw.substr(colonPos + 1);
-        size_t holdPos = val.find(":hold");
-        if (holdPos != std::string::npos) {
-            isHold = true;
-            val = val.substr(0, holdPos);
-        }
-        if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
-            jumpPlayerValue = std::stoi(val);
-        }
-    }
-    JumpSettingsPopup::create(
-        jumpPlayerValue,
-        isHold,
-        [this, idx](int newPlayer, bool hold) {
-            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
-                std::string action = "jump:" + std::to_string(newPlayer);
-                if (hold) action += ":hold";
-                m_commandActions[idx] = action;
-                refreshActionsList();
-            }
-        }
-    )->show();
+    m_commandActions.erase(m_commandActions.begin() + idx);
+    refreshActionsList();
 };
 
 void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
