@@ -326,15 +326,16 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                 };
 
                 if (action.type == CommandActionType::Notification) {
-                    if (!action.arg.empty()) {
-                        // Parse icon type and text: "<iconInt>:<text>"
-                        int iconTypeInt = 1; // Default to Info
-                        std::string notifText = action.arg;
-                        size_t colonPos = action.arg.find(":");
-                        if (colonPos != std::string::npos) {
-                            iconTypeInt = std::stoi(action.arg.substr(0, colonPos));
-                            notifText = action.arg.substr(colonPos + 1);
-                        }
+                    // Parse icon type and text: "<iconInt>:<text>"
+                    int iconTypeInt = 1; // Default to Info
+                    std::string notifText = action.arg;
+                    size_t colonPos = action.arg.find(":");
+                    if (colonPos != std::string::npos) {
+                        iconTypeInt = std::stoi(action.arg.substr(0, colonPos));
+                        notifText = action.arg.substr(colonPos + 1);
+                    }
+                    // Only show notification if text is not empty
+                    if (!notifText.empty()) {
                         NotificationIcon icon = NotificationIcon::Info;
                         switch (iconTypeInt) {
                             case 0: icon = NotificationIcon::None; break;
