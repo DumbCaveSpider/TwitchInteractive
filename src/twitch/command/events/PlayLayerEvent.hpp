@@ -11,5 +11,6 @@ class PlayLayerEvent {
 public:
     static void killPlayer();
     static void jumpPlayer(int playerIdx);
-    static void pressKey(const std::string& key);
+    // Accepts key and duration (in seconds, 0 = instant press/release)
+    static void pressKey(const std::string& key, float duration = 0.f);
 };

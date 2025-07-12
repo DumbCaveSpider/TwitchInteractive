@@ -311,10 +311,17 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                         log::info("[TwitchCommandManager] Triggering jump event for player {} (command: {})", playerIdx, ctx->commandName);
                         PlayLayerEvent::jumpPlayer(playerIdx);
                     } else if (action.arg.rfind("keycode:", 0) == 0) {
-                        // Parse key string from arg (keycode:<key>)
+                        // Parse key string and duration from arg (keycode:<key>|<duration>)
                         std::string keyStr = action.arg.substr(8);
-                        log::info("[TwitchCommandManager] Triggering keycode event: '{}' (command: {})", keyStr, ctx->commandName);
-                        PlayLayerEvent::pressKey(keyStr);
+                        float duration = 0.f;
+                        size_t pipePos = keyStr.find("|");
+                        if (pipePos != std::string::npos) {
+                            std::string durStr = keyStr.substr(pipePos + 1);
+                            keyStr = keyStr.substr(0, pipePos);
+                            try { duration = std::stof(durStr); } catch (...) { duration = 0.f; }
+                        }
+                        log::info("[TwitchCommandManager] Triggering keycode event: '{}' (duration: {}, command: {})", keyStr, duration, ctx->commandName);
+                        PlayLayerEvent::pressKey(keyStr, duration);
                     }
                 };
 
