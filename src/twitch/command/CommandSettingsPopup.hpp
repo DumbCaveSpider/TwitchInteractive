@@ -30,6 +30,7 @@ public:
     cocos2d::CCNode* m_actionContent = nullptr;
 
     void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
+    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType);
 
     static CommandSettingsPopup* create(TwitchCommand command);
 

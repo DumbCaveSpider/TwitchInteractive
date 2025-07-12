@@ -315,10 +315,28 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
                 if (action.type == CommandActionType::Notification) {
                     if (!action.arg.empty()) {
-                        log::info("[TwitchCommandManager] Showing notification: {} (command: {})", action.arg, ctx->commandName);
-                        Notification::create(action.arg, NotificationIcon::Info)->show();
-                    };
-                };
+                        // Parse icon type and text: "<iconInt>:<text>"
+                        int iconTypeInt = 1; // Default to Info
+                        std::string notifText = action.arg;
+                        size_t colonPos = action.arg.find(":");
+                        if (colonPos != std::string::npos) {
+                            iconTypeInt = std::stoi(action.arg.substr(0, colonPos));
+                            notifText = action.arg.substr(colonPos + 1);
+                        }
+                        NotificationIcon icon = NotificationIcon::Info;
+                        switch (iconTypeInt) {
+                            case 0: icon = NotificationIcon::None; break;
+                            case 1: icon = NotificationIcon::Info; break;
+                            case 2: icon = NotificationIcon::Success; break;
+                            case 3: icon = NotificationIcon::Warning; break;
+                            case 4: icon = NotificationIcon::Error; break;
+                            case 5: icon = NotificationIcon::Loading; break;
+                        }
+                        log::info("[TwitchCommandManager] Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
+                        Notification::create(notifText, icon)->show();
+                    }
+                }
+
 
                 // Add more action types here as needed
                 ctx->index++;

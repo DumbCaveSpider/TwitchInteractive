@@ -21,15 +21,26 @@ void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     std::string& actionStr = m_commandActions[idx];
     if (actionStr.rfind("Notification", 0) != 0) return;
 
+    // Parse icon type and text from actionStr: "Notification:<iconInt>:<text>"
+    int iconTypeInt = 1; // Default to Info
     std::string notifText;
-    if (actionStr.length() > 13) {
+    size_t firstColon = actionStr.find(":");
+    size_t secondColon = actionStr.find(":", firstColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        iconTypeInt = std::stoi(actionStr.substr(firstColon + 1, secondColon - firstColon - 1));
+        notifText = actionStr.substr(secondColon + 1);
+    } else if (actionStr.length() > 13) {
         notifText = actionStr.substr(13);
     } else {
         notifText = "";
-        NotificationSettingsPopup::create(notifText, [this, idx](const std::string& newText) {
-            updateNotificationNextTextLabel(idx, newText);
-                                          })->show();
-    };
+    }
+    NotificationSettingsPopup::create(
+        notifText,
+        [this, idx](const std::string& newText, NotificationIconType iconType) {
+            updateNotificationNextTextLabel(idx, newText, iconType);
+        },
+        static_cast<NotificationIconType>(iconTypeInt)
+    )->show();
 };
 
 void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
@@ -112,14 +123,14 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float actionSectionX = startX + sectionWidth + gap;
 
     // label :)
-    auto eventLabel = CCLabelBMFont::create("Events", "chatFont.fnt");
+    auto eventLabel = CCLabelBMFont::create("Events", "bigFont.fnt");
     eventLabel->setScale(0.6f);
     eventLabel->setAnchorPoint({0.5f, 0.5f});
     eventLabel->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
     eventLabel->setID("events-section-label");
     m_mainLayer->addChild(eventLabel);
 
-    auto actionLabel = CCLabelBMFont::create("Actions", "chatFont.fnt");
+    auto actionLabel = CCLabelBMFont::create("Actions", "bigFont.fnt");
     actionLabel->setScale(0.6f);
     actionLabel->setAnchorPoint({0.5f, 0.5f});
     actionLabel->setPosition(actionSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
@@ -419,17 +430,37 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Notification action node
         if (actionId.rfind("Notification", 0) == 0) {
-            // Display the label as the current custom notification text, or 'Notification' if empty
+            // Parse icon type and text: Notification:<iconInt>:<text>
+            int iconTypeInt = 1;
             std::string notifText;
-            size_t colonPos = actionIdRaw.find(":");
-
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-                notifText = actionIdRaw.substr(colonPos + 1);
+            size_t firstColon = actionIdRaw.find(":");
+            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                iconTypeInt = std::stoi(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1));
+                notifText = actionIdRaw.substr(secondColon + 1);
+            } else if (actionIdRaw.length() > 13) {
+                notifText = actionIdRaw.substr(13);
             } else {
                 notifText = "";
-            };
+            }
 
-            std::string notifLabelText = notifText.empty() ? "-" : notifText;
+            // Map iconTypeInt to icon name
+            std::string iconName = "Info";
+            switch (iconTypeInt) {
+                case 0: iconName = "None"; break;
+                case 1: iconName = "Info"; break;
+                case 2: iconName = "Success"; break;
+                case 3: iconName = "Warning"; break;
+                case 4: iconName = "Error"; break;
+                case 5: iconName = "Loading"; break;
+                default: iconName = "Info"; break;
+            }
+
+            std::string notifLabelText = iconName;
+            if (!notifText.empty()) {
+                notifLabelText += ": ";
+                notifLabelText += notifText;
+            }
             auto notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
 
             if (!actionNode->getChildByID(notifLabelId)) {
@@ -454,7 +485,7 @@ void CommandSettingsPopup::refreshActionsList() {
             } else {
                 // Update label if it already exists
                 if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(notifLabelText.c_str());
-            };
+            }
             // Add settings button for notification action
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5);
@@ -709,13 +740,20 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         } else if (actionId == "kill_player") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
         } else if (actionIdRaw.rfind("Notification:", 0) == 0) {
-            // Always parse the notification text directly from m_commandActions
-            std::string notifText = "";
-            size_t colonPos = actionIdRaw.find(":");
-
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) notifText = actionIdRaw.substr(colonPos + 1);
-
-            actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, notifText, 0));
+            // Parse icon type and text: Notification:<iconInt>:<text>
+            int iconTypeInt = 1;
+            std::string notifText;
+            size_t firstColon = actionIdRaw.find(":");
+            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                iconTypeInt = std::stoi(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1));
+                notifText = actionIdRaw.substr(secondColon + 1);
+            } else if (actionIdRaw.length() > 13) {
+                notifText = actionIdRaw.substr(13);
+            } else {
+                notifText = "";
+            }
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, std::to_string(iconTypeInt) + ":" + notifText, 0));
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         };
@@ -755,8 +793,14 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
 };
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
+    // Overload: default to Info if not provided
+    updateNotificationNextTextLabel(actionIdx, nextText, NotificationIconType::Info);
+}
+
+void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType) {
     if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
-        m_commandActions[actionIdx] = "Notification:" + nextText;
+        int iconTypeInt = static_cast<int>(iconType);
+        m_commandActions[actionIdx] = "Notification:" + std::to_string(iconTypeInt) + ":" + nextText;
 
         // Find the Nth notification action node (among all notification nodes)
         int notifNodeIdx = -1;
@@ -775,10 +819,9 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
             for (auto& action : m_command.actions) {
                 if (action.type == CommandActionType::Notification) {
                     if (notifIdx == notifNodeIdx) {
-                        action.arg = nextText;
+                        action.arg = std::to_string(iconTypeInt) + ":" + nextText;
                         break;
                     };
-
                     notifIdx++;
                 };
             };
@@ -793,8 +836,22 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
     if (!actionNode) return;
 
     std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIdx);
-    std::string labelText = nextText.empty() ? "Notification" : nextText;
-
+    // Show icon name and text
+    std::string iconName = "Info";
+    switch (iconType) {
+        case NotificationIconType::None: iconName = "None"; break;
+        case NotificationIconType::Info: iconName = "Info"; break;
+        case NotificationIconType::Success: iconName = "Success"; break;
+        case NotificationIconType::Warning: iconName = "Warning"; break;
+        case NotificationIconType::Error: iconName = "Error"; break;
+        case NotificationIconType::Loading: iconName = "Loading"; break;
+        default: iconName = "Info"; break;
+    }
+    std::string labelText = iconName;
+    if (!nextText.empty()) {
+        labelText += ": ";
+        labelText += nextText;
+    }
     if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
 };
 
