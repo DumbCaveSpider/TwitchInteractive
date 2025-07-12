@@ -82,44 +82,53 @@ void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
     JumpSettingsPopup::create(jumpIdx + 1, [this, jumpIdx](int selectedPlayer) {
         m_commandActions[jumpIdx] = "jump:" + std::to_string(selectedPlayer);
         refreshActionsList();
-                              })->show();
+    })->show();
 };
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
-    m_command = command;
-
-    setTitle(fmt::format("!{} settings", command.name));
-    setID("command-settings-popup");
-
     auto layerSize = m_mainLayer->getContentSize();
-
-    // --- Event & Action Section ---
-    // Set fixed size for event and action scroll layers
     float sectionWidth = 250.f;
     float sectionHeight = 200.f;
-
+    
     float popupWidth = layerSize.width - 7.5f;
     float popupHeight = layerSize.height - 7.5f;
-
-    float sectionY = (popupHeight - sectionHeight) / 2.0f;
-
-    // Center both sections horizontally
-    float gap = 20.f; // Gap between event and action layers
-    float totalSectionsWidth = sectionWidth * 2 + gap;
-
-    float startX = (popupWidth - totalSectionsWidth) / 2.0f;
-
-    float eventSectionX = startX;
-    float actionSectionX = startX + sectionWidth + gap;
-
     // Scroll layer size
     CCSize scrollSize = CCSize(sectionWidth, sectionHeight);
     CCSize scrollContentSize = scrollSize;
-
+    
+    float sectionY = (popupHeight - sectionHeight) / 2.0f;
     float scrollY = sectionY;
     // Align scroll backgrounds and scroll layers at the same Y position
     float scrollBgY = scrollY;
     float scrollLayerY = scrollY;
+    
+    // Center both sections horizontally
+    float gap = 20.f; // Gap between event and action layers
+    float totalSectionsWidth = sectionWidth * 2 + gap;
+    
+    float startX = (popupWidth - totalSectionsWidth) / 2.0f;
+    
+    float eventSectionX = startX;
+    float actionSectionX = startX + sectionWidth + gap;
+
+    // label :)
+    auto eventLabel = CCLabelBMFont::create("Events", "chatFont.fnt");
+    eventLabel->setScale(0.6f);
+    eventLabel->setAnchorPoint({0.5f, 0.5f});
+    eventLabel->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
+    eventLabel->setID("events-section-label");
+    m_mainLayer->addChild(eventLabel);
+
+    auto actionLabel = CCLabelBMFont::create("Actions", "chatFont.fnt");
+    actionLabel->setScale(0.6f);
+    actionLabel->setAnchorPoint({0.5f, 0.5f});
+    actionLabel->setPosition(actionSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
+    actionLabel->setID("actions-section-label");
+    m_mainLayer->addChild(actionLabel);
+    m_command = command;
+
+    setTitle(fmt::format("!{} settings", command.name));
+    setID("command-settings-popup");
 
     // Background for the event scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
