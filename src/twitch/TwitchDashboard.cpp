@@ -1,3 +1,4 @@
+#include <Geode/Geode.hpp>
 #include "TwitchDashboard.hpp"
 
 #include "TwitchCommandManager.hpp"
@@ -13,6 +14,21 @@
 using namespace geode::prelude;
 
 extern void resetCommandCooldown(const std::string& commandName);
+
+static bool s_listening = true;
+static geode::Mod* getThisMod() {
+    return geode::Loader::get()->getLoadedMod("arcticwoof.twitch_interactive");
+}
+static void loadListenState() {
+    if (auto mod = getThisMod()) {
+        s_listening = mod->getSavedValue<bool>("command-listen", true);
+    }
+}
+static void saveListenState() {
+    if (auto mod = getThisMod()) {
+        mod->setSavedValue("command-listen", s_listening);
+    }
+}
 
 bool TwitchDashboard::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -170,53 +186,99 @@ void TwitchDashboard::setupCommandInput() {
     // Create "Add Command" button that opens a popup
     m_commandControlsMenu = CCMenu::create();
     m_commandControlsMenu->setID("command-controls-menu");
+    m_commandControlsMenu->setScale(0.8f); 
 
     // Set content size to be same width as popup and 25 in height
     auto layerSize = m_mainLayer->getContentSize();
     m_commandControlsMenu->setContentSize(CCSize(layerSize.width, 25.f));
 
-    // Create the button with the same height as the menu
+    // Create the "Add Command" button
     auto addCommandBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Add Command", "goldFont.fnt", "GJ_button_01.png", 0.5f),
+        ButtonSprite::create("Add Command", "bigFont.fnt", "GJ_button_01.png", 0.5f),
         this,
         menu_selector(TwitchDashboard::onAddCustomCommand)
     );
     addCommandBtn->setID("add-command-btn");
-    addCommandBtn->setPosition(m_commandControlsMenu->getContentWidth() / 2.f, m_commandControlsMenu->getContentHeight() / 2.f); // Center vertically in the menu
+
+    // Create the CommandListen toggle button
+    loadListenState();
+    auto listenOffSprite = ButtonSprite::create("Listen", "bigFont.fnt", "GJ_button_01.png", 0.5f);
+    auto listenOnSprite = ButtonSprite::create("Listen", "bigFont.fnt", "GJ_button_06.png", 0.5f);
+    auto listenBtn = CCMenuItemToggler::create(
+        listenOnSprite,
+        listenOffSprite,
+        this,
+        menu_selector(TwitchDashboard::onToggleCommandListen)
+    );
+    listenBtn->setID("command-listen-btn");
+    listenBtn->toggle(s_listening);
 
     // Set content size to match the menu's height
     auto btnSprite = as<ButtonSprite*>(addCommandBtn->getNormalImage());
-
     if (btnSprite) {
         auto btnSize = btnSprite->getContentSize();
         btnSprite->setContentSize(CCSize(btnSize.width, 25.0f));
-    };
+    }
+    auto listenBtnSprite = as<ButtonSprite*>(listenOnSprite);
+    if (listenBtnSprite) {
+        auto btnSize = listenBtnSprite->getContentSize();
+        listenBtnSprite->setContentSize(CCSize(btnSize.width, 25.0f));
+    }
+    auto listenBtnOffSprite = as<ButtonSprite*>(listenOffSprite);
+    if (listenBtnOffSprite) {
+        auto btnSize = listenBtnOffSprite->getContentSize();
+        listenBtnOffSprite->setContentSize(CCSize(btnSize.width, 25.0f));
+    }
+
+    // Center both buttons as a group
+    float totalWidth = addCommandBtn->getContentSize().width + listenBtn->getContentSize().width + 16.0f; // 16px gap
+    float startX = (m_commandControlsMenu->getContentSize().width - totalWidth) / 2.0f;
+    addCommandBtn->setPosition(startX + addCommandBtn->getContentSize().width / 2.0f, m_commandControlsMenu->getContentHeight() / 2.f);
+    listenBtn->setPosition(startX + addCommandBtn->getContentSize().width + 16.0f + listenBtn->getContentSize().width / 2.0f, m_commandControlsMenu->getContentHeight() / 2.f);
 
     m_commandControlsMenu->addChild(addCommandBtn);
+    m_commandControlsMenu->addChild(listenBtn);
 
     // Position the menu at the bottom center of the screen
     m_commandControlsMenu->setPosition(0.f, 6.25f);
 
     m_mainLayer->addChild(m_commandControlsMenu);
-};
+}
+
+
+void TwitchDashboard::onToggleCommandListen(CCObject* sender) {
+    s_listening = !s_listening;
+    saveListenState();
+    log::info("CommandListen toggled: {}", s_listening ? "Listening" : "Not Listening");
+}
+
+bool TwitchDashboard::isListening() {
+    return s_listening;
+}
 
 void TwitchDashboard::setupCommandListening() {
+    // Ensure listen state is loaded on startup
+    loadListenState();
+    static bool callbackRegistered = false;
+    if (callbackRegistered) {
+        log::debug("TwitchDashboard::setupCommandListening: Callback already registered, skipping.");
+        return;
+    }
     auto api = TwitchChatAPI::get();
-
     if (!api) {
         log::error("TwitchChatAPI is not available for command listening");
         return;
-    };
-
-    // Register message callback to listen for custom commands
-    // Note: The API design doesn't let us unregister callbacks, but since this only runs once
-    // during setup, we won't get duplicate registrations unless the dashboard is opened multiple times
+    }
     api->registerOnMessageCallback([this](const ChatMessage& chatMessage) {
-        // Use the backend's handler to ensure sequential, ordered action execution
+        // Ignore all callbacks if not listening
+        if (!s_listening) {
+            log::debug("Command ignored: Not Listening");
+            return;
+        }
         auto commandManager = TwitchCommandManager::getInstance();
         commandManager->handleChatMessage(chatMessage);
-                                   });
-
+    });
+    callbackRegistered = true;
     log::info("Command listening setup complete");
 };
 

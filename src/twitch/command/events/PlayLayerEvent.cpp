@@ -1,21 +1,4 @@
-#include <functional>
-
-// Helper node to schedule a function call after a delay
-class KeyReleaseScheduler : public cocos2d::CCNode {
-public:
-    std::function<void()> m_func;
-    static KeyReleaseScheduler* create(std::function<void()> func, float delay) {
-        auto node = new KeyReleaseScheduler();
-        node->m_func = func;
-        node->autorelease();
-        node->scheduleOnce(schedule_selector(KeyReleaseScheduler::onRelease), delay);
-        return node;
-    }
-    void onRelease(float) {
-        if (m_func) m_func();
-        this->removeFromParentAndCleanup(true);
-    }
-};
+#include "KeyReleaseScheduler.hpp"
 #include "PlayLayerEvent.hpp"
 
 #include <Geode/loader/Loader.hpp>
@@ -114,83 +97,22 @@ void PlayLayerEvent::pressKey(const std::string& key, float duration) {
             return;
         }
 
-        auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
-        if (glView) {
-#if defined(GEODE_SUPPORTS_SIMULATE_KEY) || defined(CCEGLVIEW_SUPPORTS_SIMULATE_KEY)
-            glView->simulateKeyDown(keyCode);
+        // Use CCKeyboardDispatcher for global key simulation
+        auto dispatcher = cocos2d::CCKeyboardDispatcher::get();
+        if (dispatcher) {
+            dispatcher->dispatchKeyboardMSG(keyCode, true, 0); // key down
             if (duration > 0.f) {
-                auto node = KeyReleaseScheduler::create([glView, keyCode]() {
-                    glView->simulateKeyUp(keyCode);
+                auto node = KeyReleaseScheduler::create([dispatcher, keyCode]() {
+                    dispatcher->dispatchKeyboardMSG(keyCode, false, 0); // key up
                 }, duration);
                 cocos2d::CCDirector::sharedDirector()->getRunningScene()->addChild(node);
             } else {
-                glView->simulateKeyUp(keyCode);
+                dispatcher->dispatchKeyboardMSG(keyCode, false, 0); // key up
             }
-            log::info("[PlayLayerEvent] pressKey: Simulated universal key event for '{}' (code {}), duration {}", key, static_cast<int>(keyCode), duration);
+            log::info("[PlayLayerEvent] pressKey: Simulated universal key event for '{}' (code {}), duration {} via CCKeyboardDispatcher", key, static_cast<int>(keyCode), duration);
             return;
-#endif
         }
 
-        // Fallback: Only works in PlayLayer
-        auto playLayer = PlayLayer::get();
-        if (playLayer) {
-            auto pressAndRelease = [=]() {
-                // Player 1: W/A/D
-                if (key == "W") {
-                    if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player1 (W)");
-                } else if (key == "A") {
-                    if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Left);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Left for player1 (A)");
-                } else if (key == "D") {
-                    if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Right);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Right for player1 (D)");
-                }
-                // Player 2: Up/Left/Right
-                else if (keyCode == cocos2d::KEY_Up) {
-                    if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Jump);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player2 (Up)");
-                } else if (keyCode == cocos2d::KEY_Left) {
-                    if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Left);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Left for player2 (Left)");
-                } else if (keyCode == cocos2d::KEY_Right) {
-                    if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Right);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Right for player2 (Right)");
-                } else if (keyCode == cocos2d::KEY_Space) {
-                    if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Simulated Jump for player1 (Space)");
-                } else {
-                    log::info("[PlayLayerEvent] pressKey: Fallback - Key '{}' not mapped in PlayLayer", key);
-                }
-            };
-            auto release = [=]() {
-                if (key == "W") {
-                    if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Jump);
-                } else if (key == "A") {
-                    if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Left);
-                } else if (key == "D") {
-                    if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Right);
-                } else if (keyCode == cocos2d::KEY_Up) {
-                    if (playLayer->m_player2) playLayer->m_player2->releaseButton(PlayerButton::Jump);
-                } else if (keyCode == cocos2d::KEY_Left) {
-                    if (playLayer->m_player2) playLayer->m_player2->releaseButton(PlayerButton::Left);
-                } else if (keyCode == cocos2d::KEY_Right) {
-                    if (playLayer->m_player2) playLayer->m_player2->releaseButton(PlayerButton::Right);
-                } else if (keyCode == cocos2d::KEY_Space) {
-                    if (playLayer->m_player1) playLayer->m_player1->releaseButton(PlayerButton::Jump);
-                }
-            };
-            pressAndRelease();
-            if (duration > 0.f) {
-                auto node = KeyReleaseScheduler::create([release]() {
-                    release();
-                }, duration);
-                cocos2d::CCDirector::sharedDirector()->getRunningScene()->addChild(node);
-            } else {
-                release();
-            }
-        } else {
-            log::info("[PlayLayerEvent] pressKey: No universal key simulation available for '{}', code {}", key, static_cast<int>(keyCode));
-        }
+        log::info("[PlayLayerEvent] pressKey: No universal key simulation available for '{}', code {}", key, static_cast<int>(keyCode));
     });
 }

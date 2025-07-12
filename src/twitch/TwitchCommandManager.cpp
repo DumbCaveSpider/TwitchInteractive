@@ -13,7 +13,7 @@ matjson::Value TwitchCommandAction::toJson() const {
     v["type"] = as<int>(type);
     v["arg"] = arg;
     v["index"] = index;
-
+    
     return v;
 };
 
@@ -21,11 +21,11 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     CommandActionType type = CommandActionType::Notification;
     std::string arg = "";
     int index = 0;
-
+    
     if (v.contains("type") && v["type"].asInt().ok())type = as<CommandActionType>(v["type"].asInt().unwrap());
     if (v.contains("arg") && v["arg"].asString().ok()) arg = v["arg"].asString().unwrap();
     if (v.contains("index") && v["index"].asInt().ok()) index = as<int>(v["index"].asInt().unwrap());
-
+    
     return TwitchCommandAction(type, arg, index);
 };
 
@@ -35,7 +35,7 @@ using namespace geode::prelude;
 void TwitchCommandManager::saveCommands() {
     std::vector<matjson::Value> arrVec;
     for (const auto& cmd : m_commands) arrVec.push_back(cmd.toJson());
-
+    
     matjson::Value arr(arrVec);
     std::ofstream ofs(getSavePath());
     if (ofs) ofs << arr.dump(2);
@@ -46,13 +46,13 @@ void TwitchCommandManager::saveCommands() {
 void TwitchCommandManager::loadCommands() {
     std::ifstream ifs(getSavePath());
     if (!ifs) return;
-
+    
     auto result = matjson::parse(ifs);
     if (!result) return;
-
+    
     auto arr = result.unwrap();
     if (!arr.isArray()) return;
-
+    
     m_commands.clear();
     for (size_t i = 0; i < arr.size(); ++i) m_commands.push_back(TwitchCommand::fromJson(arr[i]));
 };
@@ -166,17 +166,18 @@ void resetCommandCooldown(const std::string& commandName) {
 };
 
 void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
+    // Check if CommandListen is enabled; if not, ignore all commands
+    if (!TwitchDashboard::isListening()) {
+        log::info("[TwitchCommandManager] CommandListen is OFF. Ignoring all Twitch chat commands.");
+        return;
+    }
+
     std::string message = chatMessage.getMessage();
     std::string username = chatMessage.getUsername();
     std::string messageID = chatMessage.getMessageID();
 
     // Log username and message ID whenever a message is received
-    log::info("Chat message received - Username: {}, Message ID: {}, Message: {}", username, messageID, message);
-
-    // Check if message starts with command prefix
-    if (message.empty() || message[0] != '!') return;
-
-    // Extract command name (everything after ! until first space)
+    log::debug("Chat message received - Username: {}, Message ID: {}, Message: {}", username, messageID, message);
     std::string commandName;
     std::string commandArgs;
 
@@ -190,11 +191,11 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
     log::debug("Processing command: '{}' with args: '{}' from user: {}", commandName, commandArgs, username);
 
-    // Find matching command
-    auto it = std::find_if(m_commands.begin(), m_commands.end(),
-                           [&commandName](const TwitchCommand& cmd) {
-                               return cmd.name == commandName && cmd.enabled;
-                           });
+// Find matching command
+auto it = std::find_if(m_commands.begin(), m_commands.end(),
+                       [&commandName](const TwitchCommand& cmd) {
+                           return cmd.name == commandName && cmd.enabled;
+                       });
 
     if (it != m_commands.end()) {
         // Check cooldown
@@ -217,10 +218,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         // Notify dashboard to trigger cooldown for this command
         if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup"))) dashboard->triggerCommandCooldown(commandName);
 
-        // --- Sequential Action Execution with Wait Support ---
-        // Use std::function to allow recursion
-
-        // --- Sequential Action Execution with Wait Support ---
+        // Sequential Action Execution
 
         struct ActionContext : public CCObject {
             std::vector<TwitchCommandAction> actions;
