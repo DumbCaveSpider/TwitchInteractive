@@ -72,9 +72,12 @@ void CommandSettingsPopup::onJumpSettings(CCObject* sender) {
     if (actionStr.rfind("jump:", 0) != 0) return;
 
     int currentPlayer = 1;
-    try {
-        currentPlayer = std::stoi(actionStr.substr(5));
-    } catch (...) {};
+    {
+        std::string idxStr = actionStr.substr(5);
+        if (!idxStr.empty() && (idxStr.find_first_not_of("-0123456789") == std::string::npos)) {
+            currentPlayer = std::stoi(idxStr);
+        }
+    }
 
     JumpSettingsPopup::create(jumpIdx + 1, [this, jumpIdx](int selectedPlayer) {
         m_commandActions[jumpIdx] = "jump:" + std::to_string(selectedPlayer);
@@ -681,21 +684,26 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
                 return;
             };
 
-            try {
-                int delay = std::stoi(delayStr);
-                actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
-                const_cast<std::string&>(actionId) = "wait:" + std::to_string(delay);
-            } catch (...) {
-                Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
-                return;
-            };
+            {
+                bool valid = !delayStr.empty() && (delayStr.find_first_not_of("-0123456789") == std::string::npos);
+                if (valid) {
+                    int delay = std::stoi(delayStr);
+                    actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
+                    const_cast<std::string&>(actionId) = "wait:" + std::to_string(delay);
+                } else {
+                    Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
+                    return;
+                }
+            }
         } else if (actionId == "jump") {
             // Always use the value from m_commandActions (jumpPlayerValue)
             int playerIdx = 1;
 
-            try {
-                playerIdx = std::stoi(jumpPlayerValue);
-            } catch (...) {};
+            {
+                if (!jumpPlayerValue.empty() && (jumpPlayerValue.find_first_not_of("-0123456789") == std::string::npos)) {
+                    playerIdx = std::stoi(jumpPlayerValue);
+                }
+            }
 
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "jump:" + std::to_string(playerIdx), 0));
             const_cast<std::string&>(actionIdRaw) = "jump:" + std::to_string(playerIdx);

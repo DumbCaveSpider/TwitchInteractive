@@ -34,19 +34,13 @@ bool TwitchDashboard::setup() {
 
     // Get the Twitch channel name for the welcome message
     std::string channelName = "Unknown";
-    try {
-        auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
-
-        if (twitchMod) {
-            auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
-
-            if (!savedChannel.empty()) channelName = savedChannel;
-        };
-    } catch (const std::exception& e) {
-        log::error("Exception while getting Twitch channel name: {}", e.what());
-    } catch (...) {
-        log::error("Unknown exception while getting Twitch channel name");
-    };
+    auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+    if (twitchMod) {
+        auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
+        if (!savedChannel.empty()) channelName = savedChannel;
+    } else {
+        log::error("TwitchChatAPI mod not found while getting Twitch channel name");
+    }
 
     // Create welcome label
     std::string welcomeText = "Welcome " + channelName + "!";
@@ -250,9 +244,11 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
         if (delim != std::string::npos) {
             desc = commandDesc.substr(0, delim);
             std::string cooldownStr = commandDesc.substr(delim + 1);
-
-            try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
-        };
+            cooldown = 0;
+            if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
+                cooldown = std::stoi(cooldownStr);
+            }
+        }
 
         // Create a new command that logs when triggered
         TwitchCommand newCmd(commandName, desc, "Custom command: " + desc, cooldown);
@@ -358,15 +354,19 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
         // Format: desc|cooldown
         desc = newDesc.substr(0, firstSep);
         std::string cooldownStr = newDesc.substr(lastSep + 1);
-
-        try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
+        cooldown = 0;
+        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
+            cooldown = std::stoi(cooldownStr);
+        }
     } else if (firstSep != std::string::npos) {
         // Format: desc|cooldown (if only one sep)
         desc = newDesc.substr(0, firstSep);
         std::string cooldownStr = newDesc.substr(firstSep + 1);
-
-        try { cooldown = std::stoi(cooldownStr); } catch (...) { cooldown = 0; }
-    };
+        cooldown = 0;
+        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
+            cooldown = std::stoi(cooldownStr);
+        }
+    }
 
     // Find the old command
     bool foundOld = false;

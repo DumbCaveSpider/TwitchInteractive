@@ -176,22 +176,27 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     // Validate cooldown input
     int cooldown = 0;
     if (!cooldownStr.empty()) {
-        try {
-            size_t idx = 0;
+        size_t idx = 0;
+        bool valid = !cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos);
+        if (valid) {
             cooldown = std::stoi(cooldownStr, &idx);
-
-            if (idx != cooldownStr.size()) throw std::invalid_argument("not int");
-            if (cooldown < 0) cooldown = 0;
-        } catch (...) {
+            if (idx != cooldownStr.size() || cooldown < 0) {
+                FLAlertLayer::create(
+                    "Invalid Cooldown",
+                    "You must only input a number in the cooldown field.",
+                    "OK"
+                )->show();
+                return;
+            }
+        } else {
             FLAlertLayer::create(
                 "Invalid Cooldown",
                 "You must only input a number in the cooldown field.",
                 "OK"
             )->show();
-
             return;
-        };
-    };
+        }
+    }
 
     m_cooldownSeconds = cooldown;
 
@@ -208,8 +213,11 @@ void CommandInputPopup::onAdd(CCObject* sender) {
 
         if (delim != std::string::npos) {
             std::string cooldownStrOrig = m_originalDesc.substr(delim + 1);
-            try { originalCooldown = std::stoi(cooldownStrOrig); } catch (...) { originalCooldown = 0; }
-        };
+            originalCooldown = 0;
+            if (!cooldownStrOrig.empty() && (cooldownStrOrig.find_first_not_of("-0123456789") == std::string::npos)) {
+                originalCooldown = std::stoi(cooldownStrOrig);
+            }
+        }
 
         cooldownChanged = (originalCooldown != m_cooldownSeconds);
         if (!nameChanged && !descChanged && !cooldownChanged) {

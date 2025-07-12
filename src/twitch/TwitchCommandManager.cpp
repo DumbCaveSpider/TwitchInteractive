@@ -304,13 +304,13 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                     } else if (action.arg.rfind("jump:", 0) == 0) {
                         // Parse player index from arg (jump:1 or jump:2)
                         int playerIdx = 1;
-                        try {
-                            playerIdx = std::stoi(action.arg.substr(5));
-                        } catch (...) {};
-
+                        std::string idxStr = action.arg.substr(5);
+                        if (!idxStr.empty() && (idxStr.find_first_not_of("-0123456789") == std::string::npos)) {
+                            playerIdx = std::stoi(idxStr);
+                        }
                         log::info("[TwitchCommandManager] Triggering jump event for player {} (command: {})", playerIdx, ctx->commandName);
                         PlayLayerEvent::jumpPlayer(playerIdx);
-                    };
+                    }
                 };
 
                 if (action.type == CommandActionType::Notification) {
