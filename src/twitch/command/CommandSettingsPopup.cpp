@@ -114,38 +114,40 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     // Scroll layer size
     CCSize scrollSize = CCSize(sectionWidth, sectionHeight);
-    CCSize scrollContentSize = CCSize(scrollSize.width - 3.75f, scrollSize.height - 3.75f);
+    CCSize scrollContentSize = scrollSize;
 
-    float scrollX = eventSectionX;
     float scrollY = sectionY;
+    // Align scroll backgrounds and scroll layers at the same Y position
+    float scrollBgY = scrollY;
+    float scrollLayerY = scrollY;
 
     // Background for the event scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
     eventScrollBg->setID("events-scroll-background");
     eventScrollBg->setContentSize(scrollSize);
     eventScrollBg->setOpacity(80);
-    eventScrollBg->setPosition(scrollX + scrollSize.width / 2, scrollY + scrollSize.height / 2 - 10.f);
-
+    eventScrollBg->setAnchorPoint({0, 0});
+    eventScrollBg->setPosition(eventSectionX, scrollBgY);
     m_mainLayer->addChild(eventScrollBg);
 
     // Scroll layer for events
-    auto eventScrollLayer = ScrollLayer::create(scrollContentSize);
+    auto eventScrollLayer = ScrollLayer::create(scrollSize);
     eventScrollLayer->setID("events-scroll");
-    eventScrollLayer->setPosition(scrollX, scrollY - 10.f);
+    eventScrollLayer->setPosition(eventSectionX, scrollLayerY);
 
     // Background for the actions scroll layer
     auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
     actionScrollBg->setID("actions-scroll-background");
     actionScrollBg->setContentSize(scrollSize);
     actionScrollBg->setOpacity(80);
-    actionScrollBg->setPosition(actionSectionX + scrollSize.width / 2, scrollY + scrollSize.height / 2 - 10.f);
+    actionScrollBg->setAnchorPoint({0, 0});
+    actionScrollBg->setPosition(actionSectionX, scrollBgY);
+    m_mainLayer->addChild(actionScrollBg);
 
     // Scroll layer for actions
-    auto actionScrollLayer = ScrollLayer::create(scrollContentSize);
+    auto actionScrollLayer = ScrollLayer::create(scrollSize);
     actionScrollLayer->setID("actions-scroll");
-    actionScrollLayer->setPosition(actionSectionX, scrollY - 10.f);
-
-    m_mainLayer->addChild(actionScrollBg);
+    actionScrollLayer->setPosition(actionSectionX, scrollLayerY);
 
     // Ensure scroll layers start at the top
     eventScrollLayer->scrollToTop();
@@ -790,7 +792,7 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
 
-    if (ret && ret->initAnchored(560.f, 325.f, command)) {
+    if (ret && ret->initAnchored(620.f, 325.f, command)) {
         ret->autorelease();
         return ret;
     };
