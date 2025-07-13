@@ -363,6 +363,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a message on screen. Supports identifiers like ${arg} to display chat input."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
+        {"profile", "Player Profile", "Opens the player's profile in-game. Useful for commands that interact with player data."},
         {"test", "Test", "A test event for debugging purposes. Does nothing at all."},
     };
     return nodes;

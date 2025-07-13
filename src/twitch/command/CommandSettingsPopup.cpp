@@ -72,7 +72,9 @@ void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
     std::string& actionStr = m_commandActions[idx];
-    if (actionStr.rfind("Notification", 0) != 0) return;
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("notification", 0) != 0) return;
     // Parse icon type and text: Notification:<iconInt>:<text>
     int iconTypeInt = 1;
     std::string notifText;
@@ -378,29 +380,34 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     if (!eventId.empty()) {
         if (eventId == "jump") {
             m_commandActions.push_back("jump:1");
+            refreshActionsList();
         } else if (eventId == "notification") {
-            m_commandActions.push_back("Notification:");
+            m_commandActions.push_back("notification:");
+            refreshActionsList();
         } else if (eventId == "keycode") {
             m_commandActions.push_back("keycode:"); // Store as keycode:<key>
+            refreshActionsList();
+        } else if (eventId == "profile") {
+            // For testing: add an empty action node for 'profile' (no popup, no callback)
+            m_commandActions.push_back("profile:");
+            refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
-        }
-        refreshActionsList();
-
-        if (m_actionContent && m_actionContent->getParent()) {
-            // No change for actions
-        }
-        // For event layer, update content size and scroll
-        auto eventScrollLayer = dynamic_cast<ScrollLayer*>(m_mainLayer->getChildByID("events-scroll"));
-        if (eventScrollLayer) {
-            auto eventContent = eventScrollLayer->m_contentLayer;
-            float eventNodeGap = 8.0f;
-            float nodeHeight = 32.f;
-            int eventCount = static_cast<int>(CommandActionEventNode::getAllEventNodes().size());
-            float minContentHeight = eventScrollLayer->getContentSize().height;
-            float neededHeight = eventCount * (nodeHeight + eventNodeGap);
-            float contentHeight = std::max(minContentHeight, neededHeight);
-            eventContent->setContentSize(CCSize(eventScrollLayer->getContentSize().width, contentHeight));
+            refreshActionsList();
+            // Only update event scroll layer for actual event nodes
+            if (m_mainLayer) {
+                auto eventScrollLayer = dynamic_cast<ScrollLayer*>(m_mainLayer->getChildByID("events-scroll"));
+                if (eventScrollLayer && eventScrollLayer->m_contentLayer) {
+                    auto eventContent = eventScrollLayer->m_contentLayer;
+                    float eventNodeGap = 8.0f;
+                    float nodeHeight = 32.f;
+                    int eventCount = static_cast<int>(CommandActionEventNode::getAllEventNodes().size());
+                    float minContentHeight = eventScrollLayer->getContentSize().height;
+                    float neededHeight = eventCount * (nodeHeight + eventNodeGap);
+                    float contentHeight = std::max(minContentHeight, neededHeight);
+                    eventContent->setContentSize(CCSize(eventScrollLayer->getContentSize().width, contentHeight));
+                }
+            }
         }
     }
 }
@@ -492,9 +499,18 @@ void CommandSettingsPopup::refreshActionsList() {
         };
 
 
-        // For jump actions, do not show hold state in nodeLabel
-        std::string nodeLabel = (actionId.rfind("Notification", 0) == 0) ? "Notification" :
-            (actionId.rfind("keycode", 0) == 0 ? "Key Code" : eventLabel);
+        // Change the node label based on actionId
+
+        std::string nodeLabel;
+        std::string actionIdLower = actionId;
+        std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
+        if (actionIdLower.rfind("notification", 0) == 0) {
+            nodeLabel = "Notification";
+        } else if (actionIdLower.rfind("keycode", 0) == 0) {
+            nodeLabel = "Key Code";
+        } else {
+            nodeLabel = eventLabel;
+        }
 
         // Add action index label (1-based)
         auto indexLabel = CCLabelBMFont::create(std::to_string(actionIndex + 1).c_str(), "goldFont.fnt");
@@ -525,15 +541,15 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Move the main action node text label for notification, keycode, and jump actions up by 4.f
         if (
-            actionId.rfind("Notification", 0) == 0 ||
-            actionId.rfind("keycode", 0) == 0 ||
+            actionIdLower.rfind("notification", 0) == 0 ||
+            actionIdLower.rfind("keycode", 0) == 0 ||
             actionId == "jump"
         ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
         }
 
-        // Notification action node
-        if (actionId.rfind("Notification", 0) == 0) {
+        // Notification action node (case-insensitive)
+        if (actionIdLower.rfind("notification", 0) == 0) {
             int iconTypeInt = 1;
             std::string notifText;
             size_t firstColon = actionIdRaw.find(":");
@@ -800,7 +816,7 @@ void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
     std::string eventName = "Event";
     std::string btnId = btn ? btn->getID() : "";
     std::string eventId;
-    
+
     // ID format: event-<id>-info-btn
     if (btnId.rfind("event-", 0) == 0) {
         size_t start = 6;
@@ -965,14 +981,14 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType) {
     if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
         int iconTypeInt = static_cast<int>(iconType);
-        m_commandActions[actionIdx] = "Notification:" + std::to_string(iconTypeInt) + ":" + nextText;
+        m_commandActions[actionIdx] = "notification:" + std::to_string(iconTypeInt) + ":" + nextText;
 
         // Find the Nth notification action node (among all notification nodes)
         int notifNodeIdx = -1;
         int notifCount = 0;
 
         for (int i = 0; i <= actionIdx; ++i) {
-            if (m_commandActions[i].rfind("Notification:", 0) == 0) {
+            if (m_commandActions[i].rfind("notification:", 0) == 0) {
                 notifNodeIdx = notifCount;
                 notifCount++;
             };
