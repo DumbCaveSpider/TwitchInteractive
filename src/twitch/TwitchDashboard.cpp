@@ -460,8 +460,10 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     TwitchCommand newCmd(finalName, desc, "Custom command: " + desc, cooldown);
     newCmd.callback = [finalName, desc](const std::string& args) {
         log::info("Custom command '{}' ({}) triggered with args: '{}'", finalName, desc, args);
-        };
+    };
+    // Copy the old command's properties to the new command when command properties has changed
     newCmd.enabled = oldCommand.enabled;
+    newCmd.actions = oldCommand.actions;
 
     // Add the new command
     commandManager->addCommand(newCmd);
