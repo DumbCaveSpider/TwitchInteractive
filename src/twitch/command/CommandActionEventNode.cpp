@@ -1,5 +1,5 @@
-#include "CommandActionEventNode.hpp"
 #include <Geode/Geode.hpp>
+#include "CommandActionEventNode.hpp"
 #include "CommandSettingsPopup.hpp"
 
 using namespace geode::prelude;

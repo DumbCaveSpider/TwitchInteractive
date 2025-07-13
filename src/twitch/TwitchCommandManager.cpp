@@ -241,6 +241,7 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                     log::info("[TwitchCommandManager] Wait countdown for command '{}', action {}: {} second(s) remaining", commandName, actionIndex, remaining);
                 };
             };
+            
             // Helper to replace identifiers in action arguments
             std::string replaceIdentifiers(const std::string& input) {
                 std::string result = input;

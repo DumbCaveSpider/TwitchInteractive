@@ -8,7 +8,6 @@
 #include "command/events/PlayLayerEvent.hpp"
 
 #include <unordered_set>
-#include <Geode/Geode.hpp>
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
 using namespace geode::prelude;

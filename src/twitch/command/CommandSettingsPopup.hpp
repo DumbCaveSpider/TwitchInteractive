@@ -2,6 +2,7 @@
 
 #include "../TwitchCommandManager.hpp"
 #include "../handler/NotificationSettingsPopup.hpp"
+#include "../HandbookPopup.hpp"
 
 #include <vector>
 #include <string>
@@ -19,6 +20,7 @@ class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
     bool setup(TwitchCommand command) override;
     void onSave(cocos2d::CCObject* sender);
     void onCloseBtn(cocos2d::CCObject* sender);
+    void onHandbookBtn(cocos2d::CCObject* sender);
     
     public:
     float m_actionSectionHeight = 0.f;

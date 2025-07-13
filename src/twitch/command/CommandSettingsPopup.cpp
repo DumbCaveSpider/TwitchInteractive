@@ -299,6 +299,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     if (m_killPlayerCheckbox) m_killPlayerCheckbox->toggle(killChecked);
 
+
     // Save button
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
@@ -306,6 +307,14 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         menu_selector(CommandSettingsPopup::onSave)
     );
     saveBtn->setID("command-settings-save-btn");
+
+    // Handbook button
+    auto handbookBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Handbook", "bigFont.fnt", "GJ_button_05.png", 0.6f),
+        this,
+        menu_selector(CommandSettingsPopup::onHandbookBtn)
+    );
+    handbookBtn->setID("command-settings-handbook-btn");
 
     // Close button
     auto closeBtn = CCMenuItemSpriteExtra::create(
@@ -319,6 +328,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto commandBtnMenu = CCMenu::create();
     commandBtnMenu->setID("command-settings-button-menu");
     commandBtnMenu->addChild(saveBtn);
+    commandBtnMenu->addChild(handbookBtn);
     commandBtnMenu->addChild(closeBtn);
     commandBtnMenu->setContentSize({ 570.f, 25.f });
 
@@ -330,14 +340,20 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float centerY = menuHeight / 2;
     float spacing = 120.0f;
 
-    saveBtn->setPosition(menuWidth / 2 - spacing / 2, centerY);
-    closeBtn->setPosition(menuWidth / 2 + spacing / 2, centerY);
+    saveBtn->setPosition(menuWidth / 2 - spacing, centerY);
+    handbookBtn->setPosition(menuWidth / 2, centerY);
+    closeBtn->setPosition(menuWidth / 2 + spacing, centerY);
     commandBtnMenu->setPosition(25.f, 15.f);
 
     m_mainLayer->addChild(commandBtnMenu);
-
     return true;
-};
+}
+
+// Handbook button handler
+void CommandSettingsPopup::onHandbookBtn(cocos2d::CCObject* sender) {
+    auto popup = HandbookPopup::create();
+    if (popup) popup->show();
+}
 
 void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
