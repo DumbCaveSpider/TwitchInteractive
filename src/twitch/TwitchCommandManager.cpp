@@ -220,6 +220,7 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
 
         // Sequential Action Execution
 
+        // Future: Use an enum for identifiers (e.g., ${arg}, ${username}, etc.)
         struct ActionContext : public CCObject {
             std::vector<TwitchCommandAction> actions;
             size_t index = 0;
@@ -240,6 +241,17 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                     log::info("[TwitchCommandManager] Wait countdown for command '{}', action {}: {} second(s) remaining", commandName, actionIndex, remaining);
                 };
             };
+            // Helper to replace identifiers in action arguments
+            std::string replaceIdentifiers(const std::string& input) {
+                std::string result = input;
+                // Replace ${arg} with commandArgs
+                size_t pos = result.find("${arg}");
+                if (pos != std::string::npos) {
+                    result.replace(pos, 6, commandArgs);
+                }
+                // Future: Add more identifier replacements here (e.g., ${username})
+                return result;
+            }
             void execute(CCObject* obj) {
                 auto* ctx = as<ActionContext*>(obj);
                 if (!ctx || ctx->index >= ctx->actions.size()) {
@@ -260,7 +272,9 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                 log::debug("{}", orderLog.str());
 
                 const auto& action = ctx->actions[ctx->index];
-                log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, action.arg, action.index);
+                // Replace identifiers in action.arg before use
+                std::string processedArg = ctx->replaceIdentifiers(action.arg);
+                log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, processedArg, action.index);
                 if (action.type == CommandActionType::Wait) {
                     int delay = action.index;
                     if (delay > 0) {
@@ -296,14 +310,14 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                 };
 
                 if (action.type == CommandActionType::Event) {
-                    if (action.arg == "kill_player") {
+                    if (processedArg == "kill_player") {
                         log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
                         PlayLayerEvent::killPlayer();
-                    } else if (action.arg.rfind("jump:", 0) == 0) {
+                    } else if (processedArg.rfind("jump:", 0) == 0) {
                         // Parse player index and hold from arg (jump:1 or jump:1:hold)
                         int playerIdx = 1;
                         bool hold = false;
-                        std::string idxStr = action.arg.substr(5);
+                        std::string idxStr = processedArg.substr(5);
                         size_t holdPos = idxStr.find(":hold");
                         if (holdPos != std::string::npos) {
                             hold = true;
@@ -318,15 +332,18 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                         } else {
                             PlayLayerEvent::jumpPlayerTap(playerIdx);
                         }
-                    } else if (action.arg.rfind("keycode:", 0) == 0) {
+                    } else if (processedArg.rfind("keycode:", 0) == 0) {
                         // Parse key string and duration from arg (keycode:<key>|<duration>)
-                        std::string keyStr = action.arg.substr(8);
+                        std::string keyStr = processedArg.substr(8);
                         float duration = 0.f;
                         size_t pipePos = keyStr.find("|");
                         if (pipePos != std::string::npos) {
                             std::string durStr = keyStr.substr(pipePos + 1);
                             keyStr = keyStr.substr(0, pipePos);
-                            try { duration = std::stof(durStr); } catch (...) { duration = 0.f; }
+                            // No try/catch, just check if durStr is a valid float
+                            if (!durStr.empty() && durStr.find_first_not_of("-.0123456789") == std::string::npos) {
+                                duration = std::stof(durStr);
+                            }
                         }
                         log::info("[TwitchCommandManager] Triggering keycode event: '{}' (duration: {}, command: {})", keyStr, duration, ctx->commandName);
                         PlayLayerEvent::pressKey(keyStr, duration);
@@ -336,11 +353,11 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                 if (action.type == CommandActionType::Notification) {
                     // Parse icon type and text: "<iconInt>:<text>"
                     int iconTypeInt = 1; // Default to Info
-                    std::string notifText = action.arg;
-                    size_t colonPos = action.arg.find(":");
+                    std::string notifText = processedArg;
+                    size_t colonPos = processedArg.find(":");
                     if (colonPos != std::string::npos) {
-                        iconTypeInt = std::stoi(action.arg.substr(0, colonPos));
-                        notifText = action.arg.substr(colonPos + 1);
+                        iconTypeInt = std::stoi(processedArg.substr(0, colonPos));
+                        notifText = processedArg.substr(colonPos + 1);
                     }
                     // Only show notification if text is not empty
                     if (!notifText.empty()) {
@@ -357,7 +374,6 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                         Notification::create(notifText, icon)->show();
                     }
                 }
-
 
                 // Add more action types here as needed
                 ctx->index++;
