@@ -1,7 +1,8 @@
-#include "CommandSettingsPopup.hpp"
 #include "../handler/KeyCodesSettingsPopup.hpp"
-
+#include "../handler/ProfileSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
+
+#include "CommandSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
 
 #include <algorithm>
@@ -410,6 +411,33 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     }
 }
 
+// Player Profile settings handler
+void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
+    std::string& actionStr = m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("profile", 0) != 0) return;
+    // Extract current accountId
+    std::string accountId = "7689052";
+    size_t colonPos = actionStr.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+        accountId = actionStr.substr(colonPos + 1);
+        if (accountId.empty()) accountId = "7689052";
+    }
+    ProfileSettingsPopup::create(
+        accountId,
+        [this, idx](const std::string& newAccountId) {
+            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
+                m_commandActions[idx] = "profile:" + newAccountId;
+                refreshActionsList();
+            }
+        }
+    )->show();
+}
 // KeyCode settings handler
 void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
@@ -497,8 +525,7 @@ void CommandSettingsPopup::refreshActionsList() {
         };
 
 
-        // Change the node label based on actionId
-
+        // mainLabel is always based on the event name label.
         std::string nodeLabel;
         std::string actionIdLower = actionId;
         std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
@@ -506,6 +533,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Notification";
         } else if (actionIdLower.rfind("keycode", 0) == 0) {
             nodeLabel = "Key Code";
+        } else if (actionIdLower.rfind("profile", 0) == 0) {
+            nodeLabel = "Player Profile";
         } else {
             nodeLabel = eventLabel;
         }
@@ -534,14 +563,19 @@ void CommandSettingsPopup::refreshActionsList() {
             showDown
         );
         actionNode->setPosition(0, actionNodeY - 16.f);
+        // Set a unique ID for the main action node text label
+        if (auto mainLabel = actionNode->getLabel()) {
+            mainLabel->setID("action-main-label-" + std::to_string(actionIndex));
+        }
         actionNode->addChild(indexLabel);
         m_actionContent->addChild(actionNode);
 
-        // Move the main action node text label for notification, keycode, and jump actions up by 4.f
+        // Always move the main action node text label up by 4.f for notification, keycode, jump, and profile actions
         if (
             actionIdLower.rfind("notification", 0) == 0 ||
             actionIdLower.rfind("keycode", 0) == 0 ||
-            actionId == "jump"
+            actionId == "jump" ||
+            actionIdLower.rfind("profile", 0) == 0
         ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
         }
@@ -603,6 +637,55 @@ void CommandSettingsPopup::refreshActionsList() {
                 menu_selector(CommandSettingsPopup::onNotificationSettings)
             );
             settingsBtn->setID("notification-settings-btn-" + std::to_string(actionIndex));
+            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            actionNode->addChild(settingsMenu);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+        }
+
+        // Player Profile action node (unified UI)
+        if (actionIdLower.rfind("profile", 0) == 0) {
+            // Format: profile:<accountId>
+            std::string accountId = "7689052";
+            size_t colonPos = actionIdRaw.find(":");
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+                accountId = actionIdRaw.substr(colonPos + 1);
+                if (accountId.empty()) accountId = "7689052";
+            }
+            // The main label is already set to eventLabel ("Player Profile") above, matching other nodes
+            // Place the accountId label below the main label, using chatFont
+            std::string profileLabelId = "profile-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            float labelY = 6.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
+            std::string labelText = "Account ID: " + accountId;
+            if (!actionNode->getChildByID(profileLabelId)) {
+                auto profileLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
+                profileLabel->setScale(0.5f);
+                profileLabel->setAnchorPoint({ 0, 0.5f });
+                profileLabel->setAlignment(kCCTextAlignmentLeft);
+                profileLabel->setPosition(labelX, labelY);
+                profileLabel->setID(profileLabelId);
+                actionNode->addChild(profileLabel);
+            } else {
+                if (auto profileLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(profileLabelId))) profileLabel->setString(labelText.c_str());
+            }
+            // Settings button for profile (same style as others)
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onProfileSettings)
+            );
+            settingsBtn->setID("profile-settings-btn-" + std::to_string(actionIndex));
             settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);

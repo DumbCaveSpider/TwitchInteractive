@@ -45,6 +45,7 @@ public:
     void onNotificationSettings(cocos2d::CCObject* sender);
     void onJumpSettings(cocos2d::CCObject* sender);
     void onKeyCodeSettings(cocos2d::CCObject* sender);
+    void onProfileSettings(cocos2d::CCObject* sender);
     
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey);
     void onMoveActionUp(cocos2d::CCObject* sender);
