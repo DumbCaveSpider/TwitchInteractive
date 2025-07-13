@@ -8,6 +8,7 @@ using namespace cocos2d;
 class HandbookPopup : public Popup<> {
 protected:
     bool setup() override;
+    void onEventsBtn(cocos2d::CCObject* sender);
 public:
     static HandbookPopup* create();
 };
