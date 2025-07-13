@@ -7,7 +7,7 @@ bool ProfileSettingsPopup::setup() {
     float y = 60.f;
     float x = m_mainLayer->getContentSize().width / 2;
 
-    m_accountIdInput = TextInput::create(120, "Account ID", "chatFont.fnt");
+    m_accountIdInput = TextInput::create(120, "Account ID (leave blank for default)", "chatFont.fnt");
     m_accountIdInput->setString(m_accountId.c_str());
     m_accountIdInput->setPosition(x, y + 10);
     m_mainLayer->addChild(m_accountIdInput);

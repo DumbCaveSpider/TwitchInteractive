@@ -141,7 +141,7 @@ void HandbookPopup::onIdentifiersBtn(CCObject*) {
 void HandbookPopup::onActionBtn(CCObject*) {
     std::string md =
         "# Actions\n\n"
-        "Actions are the list of events that the command will trigger.\n\n"
+        "Actions are the list of events that the command will trigger when activated.\n\n"
         "- Some actions can be modified using the settings button.\n"
         "- Actions are executed in order, from top to bottom.\n"
         "- You can move actions up or down to change their order of execution.\n"
@@ -159,8 +159,8 @@ void HandbookPopup::onEventsBtn(CCObject*) {
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
         "- Some events accept arguments, such as which player to affect.\n"
-        "## Suggestions?\n"
-        "- Consider contacting ArcticWoof for events suggestions.\n\n";
+        "## Got an Events Suggestions?\n"
+        "- Consider contacting ArcticWoof via Discord (@arcticwoof) or join my server for events suggestions.\n\n";
     geode::MDPopup::create("Events Help", md, "OK", nullptr, [] (bool) {})->show();
 }
 

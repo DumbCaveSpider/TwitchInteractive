@@ -358,13 +358,13 @@ CommandActionEventNode* CommandActionEventNode::createEventNode(const std::strin
 
 std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
-        {"kill_player", "Destroy Player", "Destroy player. Useful for challenge or punishment commands."},
-        {"jump", "Jump", "Makes the player jump once. Can be used to force jumps or for fun interactions."},
+        {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. Don't use this while beating extremes!"},
+        {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
-        {"notification", "Notification", "Shows a message on screen. Supports identifiers like ${arg} to display chat input."},
+        {"notification", "Notification", "Shows a notification message on the screen. Supports identifiers like `${arg}` to display chat input."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
-        {"profile", "Player Profile", "Opens the player's profile in-game. Account ID Only!"},
-        {"test", "Test", "A test event for debugging purposes. Does nothing at all."},
+        {"profile", "Profile", "Opens the Player Profile in-game. Only accepts Account ID only!"},
+        {"nothing", "Nothing", "Does nothing at all."},
     };
     return nodes;
 }
