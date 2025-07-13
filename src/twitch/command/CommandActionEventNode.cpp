@@ -332,16 +332,17 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
         }
     }
 
-    // Info button for event node is now handled in CommandSettingsPopup, not here.
     auto labelNode = CCNode::create();
     labelNode->addChild(m_label);
+    labelNode->setPosition(0, 0);
 
     auto eventMenu = CCMenu::create();
     eventMenu->addChild(m_checkbox);
     eventMenu->setPosition(0, 0);
+
     addChild(eventMenu);
-    labelNode->setPosition(0, 0);
     addChild(labelNode);
+    
     return true;
 }
 

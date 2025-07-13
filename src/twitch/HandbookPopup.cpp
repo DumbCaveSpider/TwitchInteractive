@@ -115,7 +115,8 @@ void HandbookPopup::onDashboardBtn(CCObject*) {
         "- Monitor cooldowns and command usage.\n"
         "## How it works\n"
         "- By default, all commands are disabled upon game bootup and only starts listening when you open the Dashboard.\n"
-        "- You can change each commands you created in the Dashboard.\n"
+        "- You can change each commands you created in the Dashboard with the buttons on the right.\n"
+        "- If you want to pause all commands in the chat, you can toggle the 'Listen' button in the Dashboard.\n"
         "- The Dashboard must be open and connected for chat commands to work.\n\n"
         "**Tip:** Use the Dashboard to quickly test, enable, or disable commands while streaming!";
     geode::MDPopup::create("Dashboard Help", md, "OK", nullptr, [] (bool) {})->show();
@@ -140,11 +141,13 @@ void HandbookPopup::onIdentifiersBtn(CCObject*) {
 void HandbookPopup::onActionBtn(CCObject*) {
     std::string md =
         "# Actions\n\n"
-        "Actions are the list of events that happen when a command is triggered.\n\n"
-        "- Each action can be modified using the settings button.\n"
+        "Actions are the list of events that the command will trigger.\n\n"
+        "- Some actions can be modified using the settings button.\n"
         "- Actions are executed in order, from top to bottom.\n"
-        "- You can add multiple actions to a command to create complex effects.\n"
-        "- You can use identifiers like `${arg}` to insert chat arguments into actions.\n\n"
+        "- You can move actions up or down to change their order of execution.\n"
+        "- You can remove actions by clicking the delete button on the right.\n"
+        "- Add multiple actions to a command to create complex effects.\n"
+        "- Use identifiers like `${arg}` to insert chat arguments into actions.\n\n"
         "**Tip:** Combine multiple actions for complex command effects!";
     geode::MDPopup::create("Actions Help", md, "OK", nullptr, [] (bool) {})->show();
 }
@@ -155,7 +158,9 @@ void HandbookPopup::onEventsBtn(CCObject*) {
         "Events are actions that can be added to the command.\n\n"
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
-        "- Some events accept arguments, such as which player to affect.\n\n";
+        "- Some events accept arguments, such as which player to affect.\n";
+        "## Suggestions?\n"
+        "- Consider contacting ArcticWoof for events suggestions.\n\n"
     geode::MDPopup::create("Events Help", md, "OK", nullptr, [] (bool) {})->show();
 }
 
