@@ -158,9 +158,9 @@ void HandbookPopup::onEventsBtn(CCObject*) {
         "Events are actions that can be added to the command.\n\n"
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
-        "- Some events accept arguments, such as which player to affect.\n";
+        "- Some events accept arguments, such as which player to affect.\n"
         "## Suggestions?\n"
-        "- Consider contacting ArcticWoof for events suggestions.\n\n"
+        "- Consider contacting ArcticWoof for events suggestions.\n\n";
     geode::MDPopup::create("Events Help", md, "OK", nullptr, [] (bool) {})->show();
 }
 

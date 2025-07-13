@@ -342,7 +342,7 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
 
     addChild(eventMenu);
     addChild(labelNode);
-    
+
     return true;
 }
 
@@ -358,7 +358,7 @@ CommandActionEventNode* CommandActionEventNode::createEventNode(const std::strin
 
 std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
-        {"kill_player", "Kill Player", "Destroy player. Useful for challenge or punishment commands."},
+        {"kill_player", "Destroy Player", "Destroy player. Useful for challenge or punishment commands."},
         {"jump", "Jump", "Makes the player jump once. Can be used to force jumps or for fun interactions."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a message on screen. Supports identifiers like ${arg} to display chat input."},
