@@ -15,6 +15,7 @@ protected:
 
     bool setup() override;
     void onSave(CCObject* sender);
+    void onOpenProfile(CCObject* sender);
 public:
     static ProfileSettingsPopup* create(const std::string& accountId, std::function<void(const std::string&)> callback);
 };

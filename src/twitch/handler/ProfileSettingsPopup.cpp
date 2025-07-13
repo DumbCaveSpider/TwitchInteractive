@@ -7,24 +7,47 @@ bool ProfileSettingsPopup::setup() {
     float y = 60.f;
     float x = m_mainLayer->getContentSize().width / 2;
 
+
     m_accountIdInput = TextInput::create(120, "Account ID (leave blank for default)", "chatFont.fnt");
     m_accountIdInput->setString(m_accountId.c_str());
-    m_accountIdInput->setPosition(x, y + 10);
+    m_accountIdInput->setPosition(x - 20, y + 10);
     m_mainLayer->addChild(m_accountIdInput);
 
+    // Add profile open button next to textbox
+    auto openBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Open", "bigFont.fnt", "GJ_button_05.png", 0.3f),
+        this,
+        menu_selector(ProfileSettingsPopup::onOpenProfile)
+    );
+    openBtn->setPosition(x + 80, y + 10);
+    openBtn->setID("profile-open-btn");
+    auto openMenu = CCMenu::create();
+    openMenu->addChild(openBtn);
+    openMenu->setPosition(0, 0);
+    m_mainLayer->addChild(openMenu);
+    // Add save button below
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
         menu_selector(ProfileSettingsPopup::onSave)
     );
-
     auto menu = CCMenu::create();
     saveBtn->setPosition(0, 0);
     menu->addChild(saveBtn);
     menu->setPosition(x, y - 30);
     m_mainLayer->addChild(menu);
-
     return true;
+}
+
+void ProfileSettingsPopup::onOpenProfile(CCObject* sender) {
+    std::string idStr = m_accountIdInput ? m_accountIdInput->getString() : m_accountId;
+    // Default fallback
+    if (idStr.empty()) idStr = "7689052";
+    // Only allow numbers
+    if (idStr.find_first_not_of("0123456789") == std::string::npos) {
+        int accountIdInt = std::stoi(idStr);
+        if (auto page = ProfilePage::create(accountIdInt, false)) page->show();
+    }
 }
 
 void ProfileSettingsPopup::onSave(CCObject* sender) {
