@@ -31,6 +31,7 @@ void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
             jumpPlayerValue = std::stoi(val);
         }
     }
+
     JumpSettingsPopup::create(
         jumpPlayerValue,
         isHold,
@@ -144,8 +145,9 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     eventScrollBg->setID("events-scroll-background");
     eventScrollBg->setContentSize(scrollSize);
     eventScrollBg->setOpacity(80);
-    eventScrollBg->setAnchorPoint({0, 0});
-    eventScrollBg->setPosition(eventSectionX, scrollBgY);
+    eventScrollBg->setAnchorPoint({0.5f, 0.5f});
+    eventScrollBg->setScale(1.05f);
+    eventScrollBg->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height / 2);
     m_mainLayer->addChild(eventScrollBg);
 
     // Scroll layer for events
@@ -158,8 +160,9 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     actionScrollBg->setID("actions-scroll-background");
     actionScrollBg->setContentSize(scrollSize);
     actionScrollBg->setOpacity(80);
-    actionScrollBg->setAnchorPoint({0, 0});
-    actionScrollBg->setPosition(actionSectionX, scrollBgY);
+    actionScrollBg->setAnchorPoint({0.5f, 0.5f});
+    actionScrollBg->setScale(1.05f);
+    actionScrollBg->setPosition(actionSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height / 2);
     m_mainLayer->addChild(actionScrollBg);
 
     // Scroll layer for actions
@@ -200,7 +203,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     // Store actions for this command as a member
     m_commandActions.clear();
 
-    // Initialize m_commandActions from command.actions (do NOT skip notification actions)
+    // Initialize m_commandActions from command.actions
     for (const auto& action : command.actions) {
         if (action.type == CommandActionType::Notification) {
             m_commandActions.push_back("Notification:" + action.arg);
