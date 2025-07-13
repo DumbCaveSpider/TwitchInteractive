@@ -347,6 +347,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"wait", "Wait"},
         {"notification", "Notification"},
         {"keycode", "Key Code"},
+        {"test", "Test"},
     };
     return nodes;
 }

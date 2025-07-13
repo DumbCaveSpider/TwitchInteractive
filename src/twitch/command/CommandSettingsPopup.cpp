@@ -223,13 +223,19 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     refreshActionsList();
 
-    // Dynamically add all event nodes from EventNodeFactory
-    float eventNodeY = scrollSize.height - 16.f;
+    // Dynamically add all event nodes
     float eventNodeGap = 8.0f;
+    float nodeHeight = 32.f;
+    int eventCount = static_cast<int>(CommandActionEventNode::getAllEventNodes().size());
+    float minContentHeight = scrollSize.height;
+    float neededHeight = eventCount * (nodeHeight + eventNodeGap);
+    float contentHeight = std::max(minContentHeight, neededHeight);
+    eventContent->setContentSize(CCSize(scrollSize.width, contentHeight));
 
+    float eventNodeY = contentHeight - 16.f;
     for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
         auto node = CCNode::create();
-        node->setContentSize(CCSize(scrollSize.width, 32.f));
+        node->setContentSize(CCSize(scrollSize.width, nodeHeight));
 
         // Label
         auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
@@ -273,8 +279,10 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
         eventContent->addChild(node);
 
-        eventNodeY -= (32.f + eventNodeGap);
-    };
+        eventNodeY -= (nodeHeight + eventNodeGap);
+    }
+    // After adding all event nodes, scroll to top
+    eventScrollLayer->scrollToTop();
 
     // Add action nodes for existing actions
     m_mainLayer->addChild(actionScrollLayer);
@@ -348,6 +356,22 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back(eventId);
         }
         refreshActionsList();
+
+        if (m_actionContent && m_actionContent->getParent()) {
+            // No change for actions
+        }
+        // For event layer, update content size and scroll
+        auto eventScrollLayer = dynamic_cast<ScrollLayer*>(m_mainLayer->getChildByID("events-scroll"));
+        if (eventScrollLayer) {
+            auto eventContent = eventScrollLayer->m_contentLayer;
+            float eventNodeGap = 8.0f;
+            float nodeHeight = 32.f;
+            int eventCount = static_cast<int>(CommandActionEventNode::getAllEventNodes().size());
+            float minContentHeight = eventScrollLayer->getContentSize().height;
+            float neededHeight = eventCount * (nodeHeight + eventNodeGap);
+            float contentHeight = std::max(minContentHeight, neededHeight);
+            eventContent->setContentSize(CCSize(eventScrollLayer->getContentSize().width, contentHeight));
+        }
     }
 }
 
