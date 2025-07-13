@@ -1,5 +1,6 @@
 #include "../handler/KeyCodesSettingsPopup.hpp"
 #include "../handler/ProfileSettingsPopup.hpp"
+#include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
 
 #include "CommandSettingsPopup.hpp"
@@ -10,92 +11,6 @@
 
 using namespace cocos2d;
 using namespace geode::prelude;
-
-void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
-    std::string actionIdRaw = m_commandActions[idx];
-    // Extract current player value as int and hold state
-    int jumpPlayerValue = 1;
-    bool isHold = false;
-    size_t colonPos = actionIdRaw.find(":");
-    if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-        std::string val = actionIdRaw.substr(colonPos + 1);
-        size_t holdPos = val.find(":hold");
-        if (holdPos != std::string::npos) {
-            isHold = true;
-            val = val.substr(0, holdPos);
-        }
-        if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
-            jumpPlayerValue = std::stoi(val);
-        }
-    }
-
-    JumpSettingsPopup::create(
-        jumpPlayerValue,
-        isHold,
-        [this, idx](int newPlayer, bool hold) {
-            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
-                std::string action = "jump:" + std::to_string(newPlayer);
-                if (hold) action += ":hold";
-                m_commandActions[idx] = action;
-                refreshActionsList();
-            }
-        }
-    )->show();
-}
-
-
-void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx <= 0 || idx >= as<int>(m_commandActions.size())) return;
-    std::swap(m_commandActions[idx], m_commandActions[idx - 1]);
-    refreshActionsList();
-}
-
-void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= as<int>(m_commandActions.size()) - 1) return;
-    std::swap(m_commandActions[idx], m_commandActions[idx + 1]);
-    refreshActionsList();
-}
-
-// Notification settings handler
-void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
-    std::string& actionStr = m_commandActions[idx];
-    std::string actionStrLower = actionStr;
-    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-    if (actionStrLower.rfind("notification", 0) != 0) return;
-    int iconTypeInt = 1;
-    std::string notifText;
-    size_t firstColon = actionStr.find(":");
-    size_t secondColon = actionStr.find(":", firstColon + 1);
-    if (firstColon != std::string::npos && secondColon != std::string::npos) {
-        iconTypeInt = std::stoi(actionStr.substr(firstColon + 1, secondColon - firstColon - 1));
-        notifText = actionStr.substr(secondColon + 1);
-    } else if (actionStr.length() > 13) {
-        notifText = actionStr.substr(13);
-    } else {
-        notifText = "";
-    }
-    NotificationSettingsPopup::create(
-        notifText,
-        [this, idx](const std::string& newText, NotificationIconType newIconType) {
-            updateNotificationNextTextLabel(idx, newText, newIconType);
-        },
-        static_cast<NotificationIconType>(iconTypeInt)
-    )->show();
-}
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto layerSize = m_mainLayer->getContentSize();
@@ -365,6 +280,128 @@ eventScrollLayer->scrollToTop();
     return true;
 }
 
+void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
+    std::string actionIdRaw = m_commandActions[idx];
+    // Extract current player value as int and hold state
+    int jumpPlayerValue = 1;
+    bool isHold = false;
+    size_t colonPos = actionIdRaw.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+        std::string val = actionIdRaw.substr(colonPos + 1);
+        size_t holdPos = val.find(":hold");
+        if (holdPos != std::string::npos) {
+            isHold = true;
+            val = val.substr(0, holdPos);
+        }
+        if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
+            jumpPlayerValue = std::stoi(val);
+        }
+    }
+
+    JumpSettingsPopup::create(
+        jumpPlayerValue,
+        isHold,
+        [this, idx](int newPlayer, bool hold) {
+            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
+                std::string action = "jump:" + std::to_string(newPlayer);
+                if (hold) action += ":hold";
+                m_commandActions[idx] = action;
+                refreshActionsList();
+            }
+        }
+    )->show();
+}
+
+
+void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx <= 0 || idx >= as<int>(m_commandActions.size())) return;
+    std::swap(m_commandActions[idx], m_commandActions[idx - 1]);
+    refreshActionsList();
+}
+
+void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= as<int>(m_commandActions.size()) - 1) return;
+    std::swap(m_commandActions[idx], m_commandActions[idx + 1]);
+    refreshActionsList();
+}
+
+// Move Player settings handler
+void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
+    std::string& actionStr = m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("move", 0) != 0) return;
+    // Parse player and direction
+    int player = 1;
+    bool moveRight = true;
+    size_t firstColon = actionStr.find(":");
+    size_t secondColon = actionStr.find(":", firstColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        std::string playerStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+        std::string dirStr = actionStr.substr(secondColon + 1);
+        if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
+            player = std::stoi(playerStr);
+        }
+        moveRight = (dirStr == "right");
+    }
+    MoveSettingsPopup::create(
+        player,
+        moveRight,
+        [this, idx](int newPlayer, bool newMoveRight) {
+            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
+                std::string dirStr = newMoveRight ? "right" : "left";
+                m_commandActions[idx] = "move:" + std::to_string(newPlayer) + ":" + dirStr;
+                refreshActionsList();
+            }
+        }
+    )->show();
+}
+
+// Notification settings handler
+void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
+    std::string& actionStr = m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("notification", 0) != 0) return;
+    int iconTypeInt = 1;
+    std::string notifText;
+    size_t firstColon = actionStr.find(":");
+    size_t secondColon = actionStr.find(":", firstColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        iconTypeInt = std::stoi(actionStr.substr(firstColon + 1, secondColon - firstColon - 1));
+        notifText = actionStr.substr(secondColon + 1);
+    } else if (actionStr.length() > 13) {
+        notifText = actionStr.substr(13);
+    } else {
+        notifText = "";
+    }
+    NotificationSettingsPopup::create(
+        notifText,
+        [this, idx](const std::string& newText, NotificationIconType newIconType) {
+            updateNotificationNextTextLabel(idx, newText, newIconType);
+        },
+        static_cast<NotificationIconType>(iconTypeInt)
+    )->show();
+}
+
 // Handbook button handler
 void CommandSettingsPopup::onHandbookBtn(cocos2d::CCObject* sender) {
     auto popup = HandbookPopup::create();
@@ -385,15 +422,17 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back("notification:");
             refreshActionsList();
         } else if (eventId == "keycode") {
-            m_commandActions.push_back("keycode:"); // Store as keycode:<key>
+            m_commandActions.push_back("keycode:");
             refreshActionsList();
         } else if (eventId == "profile") {
             m_commandActions.push_back("profile:");
             refreshActionsList();
+        } else if (eventId == "move") {
+            m_commandActions.push_back("move:1:right");
+            refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
             refreshActionsList();
-            // Only update event scroll layer for actual event nodes
             if (m_mainLayer) {
                 auto eventScrollLayer = dynamic_cast<ScrollLayer*>(m_mainLayer->getChildByID("events-scroll"));
                 if (eventScrollLayer && eventScrollLayer->m_contentLayer) {
@@ -535,6 +574,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Key Code";
         } else if (actionIdLower.rfind("profile", 0) == 0) {
             nodeLabel = "Player Profile";
+        } else if (actionIdLower.rfind("move", 0) == 0) {
+            nodeLabel = "Move Player";
         } else {
             nodeLabel = eventLabel;
         }
@@ -810,6 +851,58 @@ void CommandSettingsPopup::refreshActionsList() {
             settingsBtn->setPosition(btnX - 40.f, 16.f);
         }
 
+        // Move Player action node (unified UI)
+        if (actionIdLower.rfind("move", 0) == 0) {
+            // Format: move:<player>:<direction>
+            int player = 1;
+            std::string direction = "right";
+            size_t firstColon = actionIdRaw.find(":");
+            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                std::string playerStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                direction = actionIdRaw.substr(secondColon + 1);
+                if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
+                    player = std::stoi(playerStr);
+                }
+            }
+            std::string moveLabelId = "move-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            float labelY = 6.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
+            std::string labelText = "Player " + std::to_string(player) + ": " + (direction == "right" ? "Right" : "Left");
+            if (!actionNode->getChildByID(moveLabelId)) {
+                auto moveLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
+                moveLabel->setScale(0.5f);
+                moveLabel->setAnchorPoint({ 0, 0.5f });
+                moveLabel->setAlignment(kCCTextAlignmentLeft);
+                moveLabel->setPosition(labelX, labelY);
+                moveLabel->setID(moveLabelId);
+                actionNode->addChild(moveLabel);
+            } else {
+                if (auto moveLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(moveLabelId))) moveLabel->setString(labelText.c_str());
+            }
+            // Settings button for move (same style as others)
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onMoveSettings)
+            );
+            settingsBtn->setID("move-settings-btn-" + std::to_string(actionIndex));
+            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            actionNode->addChild(settingsMenu);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+        }
+
         // Remove button
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
         removeSprite->setScale(0.5f);
@@ -1016,6 +1109,9 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
                 notifText = "";
             }
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, std::to_string(iconTypeInt) + ":" + notifText, 0));
+        } else if (actionIdRaw.rfind("move:", 0) == 0) {
+            // Save as event with arg 'move:<player>:<direction>'
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         }

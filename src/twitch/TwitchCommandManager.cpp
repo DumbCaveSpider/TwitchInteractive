@@ -365,6 +365,22 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                         } else {
                             PlayLayerEvent::jumpPlayerTap(playerIdx);
                         }
+                    } else if (processedArg.rfind("move:", 0) == 0) {
+                        // Parse player and direction from arg (move:<player>:<direction>)
+                        int playerIdx = 1;
+                        bool moveRight = true;
+                        size_t firstColon = processedArg.find(":");
+                        size_t secondColon = processedArg.find(":", firstColon + 1);
+                        if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                            std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                            std::string dirStr = processedArg.substr(secondColon + 1);
+                            if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
+                                playerIdx = std::stoi(playerStr);
+                            }
+                            moveRight = (dirStr == "right");
+                        }
+                        log::info("[TwitchCommandManager] Triggering move event for player {} direction {} (command: {})", playerIdx, moveRight ? "right" : "left", ctx->commandName);
+                        PlayLayerEvent::movePlayer(playerIdx, moveRight);
                     } else if (processedArg.rfind("keycode:", 0) == 0) {
                         // Parse key string and duration from arg (keycode:<key>|<duration>)
                         std::string keyStr = processedArg.substr(8);

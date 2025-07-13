@@ -1,7 +1,8 @@
 #include "KeyReleaseScheduler.hpp"
 #include "PlayLayerEvent.hpp"
-
 #include <Geode/loader/Loader.hpp>
+#include <Geode/Bindings.hpp>
+#include <Geode/Geode.hpp>
 
 namespace {
     bool g_pendingKillPlayer = false;
@@ -149,5 +150,27 @@ void PlayLayerEvent::pressKey(const std::string& key, float duration) {
         }
 
         log::debug("[PlayLayerEvent] No universal key simulation available for '{}', code {}", key, static_cast<int>(keyCode));
+    });
+}
+
+// Move player left or right
+void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight) {
+    Loader::get()->queueInMainThread([playerIdx, moveRight] {
+        auto playLayer = PlayLayer::get();
+        if (!playLayer) {
+            log::debug("[PlayLayerEvent] movePlayer: PlayLayer not found");
+            return;
+        }
+        auto player = (playerIdx == 2) ? playLayer->m_player2 : playLayer->m_player1;
+        if (!player) return;
+        // Simulate left/right movement by pushing the corresponding button
+        auto btn = moveRight ? PlayerButton::Right : PlayerButton::Left;
+        player->pushButton(btn);
+        // Release after a short delay
+        auto node = KeyReleaseScheduler::create([player, btn]() {
+            player->releaseButton(btn);
+        }, 0.2f);
+        cocos2d::CCDirector::sharedDirector()->getRunningScene()->addChild(node);
+        log::info("[PlayLayerEvent] Moved player {} {}", playerIdx, moveRight ? "right" : "left");
     });
 }

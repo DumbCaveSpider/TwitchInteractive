@@ -58,7 +58,7 @@ public:
     
     // Event node
     static CommandActionEventNode* createEventNode(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale = 0.6f);
-    static std::vector<EventNodeInfo> getAllEventNodes();
+    static std::vector<EventNodeInfo> getAllEventNodes(); // Now includes 'move' event
     
     // Unified
     static CommandActionEventNode* create(TwitchCommandAction action, CCSize scrollSize);

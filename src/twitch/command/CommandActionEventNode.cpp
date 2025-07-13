@@ -360,6 +360,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
         {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. Don't use this while beating extremes!"},
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
+        {"move", "Move Player", "Move the player left or right. Lets you pick the player and direction."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports identifiers like `${arg}` to display chat input."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},

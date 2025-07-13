@@ -1,9 +1,6 @@
 #include <Geode/utils/cocos.hpp>
-#include "NotificationSettingsPopup.hpp"
-
-
 #include <Geode/Geode.hpp>
-#include <Geode/ui/TextInput.hpp>
+#include "NotificationSettingsPopup.hpp"
 
 using namespace geode::prelude;
 using namespace cocos2d;
