@@ -3,7 +3,7 @@
 
 #include "TwitchCommandManager.hpp"
 
-#include "command/CommandNode.hpp"
+#include "command/CommandActionEventNode.hpp"
 #include "command/CommandInputPopup.hpp"
 #include "command/events/PlayLayerEvent.hpp"
 
@@ -171,7 +171,7 @@ void TwitchDashboard::refreshCommandsList() {
 
     // Create command items
     for (const auto& command : commands) {
-        m_commandLayer->addChild(CommandNode::create(
+        m_commandLayer->addChild(CommandActionEventNode::createCommandNode(
             this,
             command,
             m_mainLayer->getContentWidth() * 0.9f
@@ -484,7 +484,7 @@ void TwitchDashboard::onEditCommand(CCObject* sender) {
     if (!button) return;
 
     // The command name should be stored in the button's tag or parent node
-    auto node = as<CommandNode*>(button->getParent()->getParent());
+    auto node = as<CommandActionEventNode*>(button->getParent()->getParent());
     if (!node) return;
 
     std::string commandName = node->getCommandName();
@@ -523,7 +523,7 @@ void TwitchDashboard::triggerCommandCooldown(const std::string& commandName) {
     if (!m_commandLayer) return;
 
     for (auto child : CCArrayExt<CCNode*>(m_commandLayer->getChildren())) {
-        if (auto node = dynamic_cast<CommandNode*>(child)) {
+        if (auto node = dynamic_cast<CommandActionEventNode*>(child)) {
             if (node->getCommandName() == commandName) {
                 node->triggerCommand();
                 break;

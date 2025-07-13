@@ -6,10 +6,10 @@
 
 using namespace geode::prelude;
 
-class CommandNode;
+
 
 class TwitchDashboard : public Popup<> {
-    friend class CommandNode;
+    friend class CommandActionEventNode;
 protected:
     CCLabelBMFont* m_welcomeLabel = nullptr;
 

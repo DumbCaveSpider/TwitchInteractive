@@ -2,8 +2,7 @@
 #include "../handler/KeyCodesSettingsPopup.hpp"
 
 #include "../handler/JumpSettingsPopup.hpp"
-#include "../handler/EventNode.hpp"
-#include "../handler/ActionNode.hpp"
+#include "CommandActionEventNode.hpp"
 
 #include <algorithm>
 #include <cocos2d.h>
@@ -225,7 +224,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float eventNodeY = scrollSize.height - 16.f;
     float eventNodeGap = 8.0f;
 
-    for (const auto& info : EventNodeFactory::getAllEventNodes()) {
+    for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
         auto node = CCNode::create();
         node->setContentSize(CCSize(scrollSize.width, 32.f));
 
@@ -428,7 +427,7 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Find the event label/title for this actionId
         std::string eventLabel = actionId;
-        for (const auto& info : EventNodeFactory::getAllEventNodes()) {
+        for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
             if (info.id == actionId) {
                 eventLabel = info.label;
                 break;
@@ -453,7 +452,7 @@ void CommandSettingsPopup::refreshActionsList() {
         bool showDown = (i < m_commandActions.size() - 1);
 
         // Create ActionNode with move up/down
-        auto actionNode = ActionNode::create(
+        auto actionNode = CommandActionEventNode::createActionNode(
             nodeLabel,
             nullptr, nullptr, 0.0f, // no checkbox for now
             this,
