@@ -362,7 +362,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
-        {"notification", "Notification", "Shows a notification message on the screen. Supports identifiers like `${arg}` to display chat input."},
+        {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
         {"profile", "Profile", "Opens the Player Profile in-game. Only accepts Account ID only!"},
         {"nothing", "Nothing", "Does nothing at all."},
