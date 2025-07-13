@@ -262,21 +262,18 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
         m_upBtn = nullptr;
         m_downBtn = nullptr;
         if (moveTarget && (moveUpSelector || moveDownSelector)) {
-        auto upSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-        upSprite->setScale(0.35f);
+        auto upSprite = CCSprite::createWithSpriteFrameName("edit_upBtn_001.png");
+        upSprite->setScale(0.5f);
         upSprite->setRotation(0.f);
         m_upBtn = ::CCMenuItemSpriteExtra::create(upSprite, moveTarget, moveUpSelector);
         m_upBtn->setPosition(38.f, 23.f);
-        m_upBtn->setRotation(90.f);
         m_upBtn->setUserObject(CCInteger::create(actionIndex));
         m_upBtn->setEnabled(canMoveUp);
         m_upBtn->setVisible(canMoveUp);
-        auto downSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-        downSprite->setScale(0.35f);
-        downSprite->setRotation(180.f);
+        auto downSprite = CCSprite::createWithSpriteFrameName("edit_downBtn_001.png");
+        downSprite->setScale(0.5f);
         m_downBtn = ::CCMenuItemSpriteExtra::create(downSprite, moveTarget, moveDownSelector);
         m_downBtn->setPosition(38.f, 9.f);
-        m_downBtn->setRotation(90.f);
         m_downBtn->setUserObject(CCInteger::create(actionIndex));
         m_downBtn->setEnabled(canMoveDown);
         m_downBtn->setVisible(canMoveDown);
@@ -286,19 +283,17 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
         arrowMenu->setPosition(0, 0);
         addChild(arrowMenu);
     }
-    m_checkbox = nullptr;
+
     m_label = nullptr;
-    // Checkbox
-    m_checkbox = CCMenuItemToggler::createWithStandardSprites(target, selector, checkboxScale);
-    m_checkbox->setPosition(20.f, 16.f);
+
     // Label
     m_label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
     m_label->setScale(0.5f);
     m_label->setAnchorPoint({ 0, 0.5f });
     m_label->setAlignment(kCCTextAlignmentLeft);
-    m_label->setPosition(36.f, 16.f);
+    m_label->setPosition(50.f, 16.f);
     auto eventMenu = CCMenu::create();
-    eventMenu->addChild(m_checkbox);
+
     eventMenu->setPosition(0, 0);
     addChild(eventMenu);
     addChild(m_label);
@@ -326,7 +321,7 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
     m_label->setScale(0.5f);
     m_label->setAnchorPoint({ 0, 0.5f });
     m_label->setAlignment(kCCTextAlignmentLeft);
-    m_label->setPosition(36.f, 16.f);
+    m_label->setPosition(50.f, 16.f);
     auto eventMenu = CCMenu::create();
     eventMenu->addChild(m_checkbox);
     eventMenu->setPosition(0, 0);

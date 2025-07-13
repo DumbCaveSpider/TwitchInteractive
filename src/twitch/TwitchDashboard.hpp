@@ -1,12 +1,8 @@
 #pragma once
-
 #include "TwitchCommandManager.hpp"
-
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
-
-
 
 class TwitchDashboard : public Popup<> {
     friend class CommandActionEventNode;
