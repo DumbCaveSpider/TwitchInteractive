@@ -58,7 +58,7 @@ bool TwitchDashboard::setup() {
     };
 
     // Create welcome label
-    std::string welcomeText = "Welcome " + channelName + "!";
+    std::string welcomeText = "Welcome, " + channelName + "!";
     m_welcomeLabel = CCLabelBMFont::create(welcomeText.c_str(), "bigFont.fnt");
     m_welcomeLabel->setPosition(layerSize.width / 5, layerSize.height - 22);
     m_welcomeLabel->setScale(0.3f);

@@ -34,7 +34,74 @@ class $modify(MyCreatorLayer, CreatorLayer) {
             addChild(newMenu);
         };
 
+        // login circle button on the side
+        if (auto bottomLeftMenu = getChildByID("bottom-left-menu")) {
+            auto twitchBtnSprite = CircleButtonSprite::createWithSpriteFrameName(
+                "GJ_hammerIcon_001.png", // change this to a custom texture
+                1.f,
+                CircleBaseColor::Green,
+                CircleBaseSize::Medium
+            );
+            twitchBtnSprite->setScale(0.875f);
+
+            auto twitchBtn = CCMenuItemSpriteExtra::create(
+                twitchBtnSprite,
+                this,
+                menu_selector(MyCreatorLayer::onTwitchPressed)
+            );
+            twitchBtn->setID("login-button"_spr);
+            twitchBtn->setZOrder(10);
+
+            bottomLeftMenu->addChild(twitchBtn);
+            bottomLeftMenu->updateLayout(true);
+        };
+
         return true;
+    };
+
+    void onTwitchPressed(CCObject*) {
+        // Check if Twitch Chat API mod is loaded
+        auto mod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+
+        if (!mod || !mod->isEnabled()) {
+            FLAlertLayer::create(
+                "Mod Missing",
+                "The <cb>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
+                "OK"
+            )->show();
+            return;
+        };
+
+        auto popup = TwitchLoginPopup::create();
+        popup->show();
+    };
+};
+
+class $modify(MyPauseLayer, PauseLayer) {
+    void customSetup() {
+        PauseLayer::customSetup();
+
+        // login circle button in right side menu
+        if (auto rightMenu = getChildByID("right-button-menu")) {
+            auto twitchBtnSprite = CircleButtonSprite::createWithSpriteFrameName(
+                "GJ_hammerIcon_001.png", // change this to a custom texture
+                1.f,
+                CircleBaseColor::Green,
+                CircleBaseSize::Medium
+            );
+            twitchBtnSprite->setScale(0.625f);
+
+            auto twitchBtn = CCMenuItemSpriteExtra::create(
+                twitchBtnSprite,
+                this,
+                menu_selector(MyPauseLayer::onTwitchPressed)
+            );
+            twitchBtn->setID("login-button"_spr);
+            twitchBtn->setZOrder(10);
+
+            rightMenu->addChild(twitchBtn);
+            rightMenu->updateLayout(true);
+        };
     };
 
     void onTwitchPressed(CCObject*) {
