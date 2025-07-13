@@ -332,22 +332,9 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
         }
     }
 
-    // Info button for event node, placed to the right of the label
-    auto infoBtnSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-    infoBtnSprite->setScale(0.5f);
-    auto infoBtn = CCMenuItemSpriteExtra::create(
-        infoBtnSprite,
-        this,
-        menu_selector(CommandActionEventNode::onEventInfoBtn)
-    );
-    infoBtn->setID("event-info-btn");
-    float infoBtnX = 50.f + m_label->getContentSize().width * m_label->getScale() + 12.f;
-    infoBtn->setPosition(infoBtnX, 16.f);
-
-    // Add label and info button to a node for proper layout
+    // Info button for event node is now handled in CommandSettingsPopup, not here.
     auto labelNode = CCNode::create();
     labelNode->addChild(m_label);
-    labelNode->addChild(infoBtn);
 
     auto eventMenu = CCMenu::create();
     eventMenu->addChild(m_checkbox);
@@ -396,14 +383,4 @@ CommandActionEventNode* CommandActionEventNode::create(TwitchCommandAction actio
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
-
-// Show MDPopup with event description when info button is clicked
-void CommandActionEventNode::onEventInfoBtn(cocos2d::CCObject*) {
-    std::string eventName = m_label ? m_label->getString() : "Event";
-    if (!m_eventDescription.empty()) {
-        FLAlertLayer::create(eventName.c_str(), m_eventDescription, "OK")->show();
-    } else {
-        FLAlertLayer::create(eventName.c_str(), "No description available.", "OK")->show();
-    }
 }

@@ -797,11 +797,30 @@ std::string CommandSettingsPopup::getNotificationText() const {
 void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
     std::string desc;
+    std::string eventName = "Event";
+    std::string btnId = btn ? btn->getID() : "";
+    std::string eventId;
+    
+    // ID format: event-<id>-info-btn
+    if (btnId.rfind("event-", 0) == 0) {
+        size_t start = 6;
+        size_t end = btnId.find("-info-btn");
+        if (end != std::string::npos && end > start) {
+            eventId = btnId.substr(start, end - start);
+        }
+    }
+    // Find the event name from EventNodeInfo
+    for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
+        if (info.id == eventId) {
+            eventName = info.label;
+            break;
+        }
+    }
     if (btn && btn->getUserObject()) desc = as<CCString*>(btn->getUserObject())->getCString();
     if (!desc.empty()) {
-        FLAlertLayer::create("Event Info", desc, "OK")->show();
+        FLAlertLayer::create(eventName.c_str(), desc, "OK")->show();
     } else {
-        FLAlertLayer::create("Event Info", "No description available.", "OK")->show();
+        FLAlertLayer::create(eventName.c_str(), "No description available.", "OK")->show();
     }
 }
 

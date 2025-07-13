@@ -7,12 +7,12 @@
 #include <vector>
 #include <string>
 
-#include <Geode/ui/Popup.hpp>
+#include <Geode/Geode.hpp>
 
 namespace cocos2d { class CCObject; class CCNode; }
 
 class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
-    protected:
+protected:
     TextInput* m_notificationInput = nullptr;
     CCMenuItemToggler* m_killPlayerCheckbox = nullptr;
     TwitchCommand m_command = TwitchCommand("", "", "", 0, {});
@@ -23,22 +23,22 @@ class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
     void onHandbookBtn(cocos2d::CCObject* sender);
     
 public:
-    void onEventInfoBtn(cocos2d::CCObject* sender);
     float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;
-    
+
     std::string getNotificationText() const;
     std::vector<std::string> m_commandActions;
-    
+
     cocos2d::CCNode* m_actionContent = nullptr;
-    
+
     void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
     void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType);
-    
+
     static CommandSettingsPopup* create(TwitchCommand command);
-    
+
     void refreshActionsList();
-    
+
+    void onEventInfoBtn(cocos2d::CCObject* sender);
     void onAddEventAction(cocos2d::CCObject* sender);
     void onRemoveAction(cocos2d::CCObject* sender);
 
