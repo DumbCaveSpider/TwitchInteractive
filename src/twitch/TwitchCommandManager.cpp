@@ -381,11 +381,16 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                         log::info("[TwitchCommandManager] Triggering keycode event: '{}' (duration: {}, command: {})", keyStr, duration, ctx->commandName);
                         PlayLayerEvent::pressKey(keyStr, duration);
                     } else if (processedArg.rfind("profile:", 0) == 0) {
-                        // Parse account ID and open profile page (stub)
+                        // Parse account ID and open profile page
                         std::string accountId = processedArg.substr(8);
                         if (accountId.empty()) accountId = "7689052";
-                        log::info("[TwitchCommandManager] Would open profile page for account ID: {} (command: {})", accountId, ctx->commandName);
-                        // TODO: Implement actual profile page opening logic here
+                        log::info("[TwitchCommandManager] Opening profile page for account ID: {} (command: {})", accountId, ctx->commandName);
+                        // Convert accountId string to int and call ProfilePage::create(int, bool)
+                        int accountIdInt = 7689052;
+                        if (!accountId.empty() && accountId.find_first_not_of("0123456789") == std::string::npos) {
+                            accountIdInt = std::stoi(accountId);
+                        }
+                        if (auto page = ProfilePage::create(accountIdInt, false)) page->show();
                     }
                 };
 
