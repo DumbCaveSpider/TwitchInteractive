@@ -22,7 +22,8 @@ class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
     void onCloseBtn(cocos2d::CCObject* sender);
     void onHandbookBtn(cocos2d::CCObject* sender);
     
-    public:
+public:
+    void onEventInfoBtn(cocos2d::CCObject* sender);
     float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;
     

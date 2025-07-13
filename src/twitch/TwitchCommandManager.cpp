@@ -174,6 +174,8 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
     std::string message = chatMessage.getMessage();
     std::string username = chatMessage.getUsername();
+    std::string displayName = chatMessage.getDisplayName();
+    std::string userID = chatMessage.getUserID();
     std::string messageID = chatMessage.getMessageID();
 
     // Log username and message ID whenever a message is received
@@ -226,7 +228,10 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
             size_t index = 0;
             std::string commandName;
             std::string username;
+            std::string displayName;
+            std::string userID;
             std::string commandArgs;
+            std::string streamerUsername;
             TwitchCommandManager* manager = nullptr;
 
             // Helper for countdown logging
@@ -241,16 +246,43 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                     log::info("[TwitchCommandManager] Wait countdown for command '{}', action {}: {} second(s) remaining", commandName, actionIndex, remaining);
                 };
             };
-            
+
             // Helper to replace identifiers in action arguments
             std::string replaceIdentifiers(const std::string& input) {
                 std::string result = input;
-                // Replace ${arg} with commandArgs
-                size_t pos = result.find("${arg}");
-                if (pos != std::string::npos) {
+                // Replace all ${arg} with commandArgs
+                size_t pos = 0;
+                while ((pos = result.find("${arg}", pos)) != std::string::npos) {
                     result.replace(pos, 6, commandArgs);
+                    pos += commandArgs.length();
                 }
-                // Future: Add more identifier replacements here (e.g., ${username})
+                // Replace all ${username} with username
+                pos = 0;
+                while ((pos = result.find("${username}", pos)) != std::string::npos) {
+                    result.replace(pos, 11, username);
+                    pos += username.length();
+                }
+                // Replace all ${displayname} with displayName
+                pos = 0;
+                while ((pos = result.find("${displayname}", pos)) != std::string::npos) {
+                    result.replace(pos, 13, displayName);
+                    pos += displayName.length();
+                }
+                // Replace all ${userid} with userID
+                pos = 0;
+                while ((pos = result.find("${userid}", pos)) != std::string::npos) {
+                    result.replace(pos, 9, userID);
+                    pos += userID.length();
+                }
+                // Replace all ${streamer} with the configured Twitch channel (streamer's username)
+                pos = 0;
+                if (auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api")) {
+                    streamerUsername = twitchMod->getSavedValue<std::string>("twitch-channel");
+                }
+                while ((pos = result.find("${streamer}", pos)) != std::string::npos) {
+                    result.replace(pos, 11, streamerUsername);
+                    pos += streamerUsername.length();
+                }
                 return result;
             }
             void execute(CCObject* obj) {
@@ -412,6 +444,8 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
             ctx->index = 0;
             ctx->commandName = commandName;
             ctx->username = username;
+            ctx->displayName = displayName;
+            ctx->userID = userID;
             ctx->commandArgs = commandArgs;
             ctx->manager = this;
 

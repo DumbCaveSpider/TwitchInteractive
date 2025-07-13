@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../TwitchCommandManager.hpp"
@@ -18,6 +17,7 @@ typedef void (cocos2d::CCObject::* SEL_MenuHandler)(cocos2d::CCObject*);
 struct EventNodeInfo {
     std::string id;
     std::string label;
+    std::string description;
 };
 
 class CommandActionEventNode : public cocos2d::CCNode {
@@ -40,6 +40,9 @@ protected:
     // (m_label and m_checkbox reused)
 
     TwitchCommandAction m_action;
+
+    // For event info popup
+    std::string m_eventDescription;
 
 public:
     // Command node
@@ -81,4 +84,7 @@ public:
     bool initEventNode(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale);
     
     bool init(TwitchCommandAction action, CCSize scrollSize);
+
+    // For event info popup
+    void onEventInfoBtn(cocos2d::CCObject* sender);
 };

@@ -322,11 +322,39 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
     m_label->setAnchorPoint({ 0, 0.5f });
     m_label->setAlignment(kCCTextAlignmentLeft);
     m_label->setPosition(50.f, 16.f);
+
+    // Store description for FLAlertLayer
+    m_eventDescription = "";
+    for (const auto& node : getAllEventNodes()) {
+        if (node.label == labelText) {
+            m_eventDescription = node.description;
+            break;
+        }
+    }
+
+    // Info button for event node, placed to the right of the label
+    auto infoBtnSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    infoBtnSprite->setScale(0.5f);
+    auto infoBtn = CCMenuItemSpriteExtra::create(
+        infoBtnSprite,
+        this,
+        menu_selector(CommandActionEventNode::onEventInfoBtn)
+    );
+    infoBtn->setID("event-info-btn");
+    float infoBtnX = 50.f + m_label->getContentSize().width * m_label->getScale() + 12.f;
+    infoBtn->setPosition(infoBtnX, 16.f);
+
+    // Add label and info button to a node for proper layout
+    auto labelNode = CCNode::create();
+    labelNode->addChild(m_label);
+    labelNode->addChild(infoBtn);
+
     auto eventMenu = CCMenu::create();
     eventMenu->addChild(m_checkbox);
     eventMenu->setPosition(0, 0);
     addChild(eventMenu);
-    addChild(m_label);
+    labelNode->setPosition(0, 0);
+    addChild(labelNode);
     return true;
 }
 
@@ -342,12 +370,12 @@ CommandActionEventNode* CommandActionEventNode::createEventNode(const std::strin
 
 std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
-        {"kill_player", "Kill Player"},
-        {"jump", "Jump"},
-        {"wait", "Wait"},
-        {"notification", "Notification"},
-        {"keycode", "Key Code"},
-        {"test", "Test"},
+        {"kill_player", "Kill Player", "Destroy player. Useful for challenge or punishment commands."},
+        {"jump", "Jump", "Makes the player jump once. Can be used to force jumps or for fun interactions."},
+        {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
+        {"notification", "Notification", "Shows a message on screen. Supports identifiers like ${arg} to display chat input."},
+        {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
+        {"test", "Test", "A test event for debugging purposes. Does nothing at all."},
     };
     return nodes;
 }
@@ -368,4 +396,14 @@ CommandActionEventNode* CommandActionEventNode::create(TwitchCommandAction actio
     }
     CC_SAFE_DELETE(ret);
     return nullptr;
+}
+
+// Show MDPopup with event description when info button is clicked
+void CommandActionEventNode::onEventInfoBtn(cocos2d::CCObject*) {
+    std::string eventName = m_label ? m_label->getString() : "Event";
+    if (!m_eventDescription.empty()) {
+        FLAlertLayer::create(eventName.c_str(), m_eventDescription, "OK")->show();
+    } else {
+        FLAlertLayer::create(eventName.c_str(), "No description available.", "OK")->show();
+    }
 }

@@ -1,50 +1,172 @@
 #include "HandbookPopup.hpp"
 #include <Geode/Geode.hpp>
 
-
 bool HandbookPopup::setup() {
     setTitle("Twitch Interactive Handbook");
     setID("handbook-popup");
-    float width = 480.f;
-    float height = 300.f;
-    this->setContentSize({width, height});
 
-    // Centered button menu
-    float btnY = height / 2;
+    float width = 480.f;
+    float height = 290.f;
+
+    float sectionSpacing = 70.f;
     float btnX = width / 2;
+
+    float tripleSpacing = 110.f;
+    float fixedBtnWidth = 0.5f;
+
+    // Commands Settings menu
+    auto topMenu = CCMenu::create();
+    CCLabelBMFont* commandsLabel = CCLabelBMFont::create("Commands Settings Help", "bigFont.fnt");
+    commandsLabel->setScale(0.5f);
+    commandsLabel->setPosition(width / 2, 60.f); // Near top of menu
+    topMenu->addChild(commandsLabel);
+
+
     auto eventsBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Events", "bigFont.fnt", "GJ_button_01.png", 0.6f),
+        ButtonSprite::create("Events", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
         this,
         menu_selector(HandbookPopup::onEventsBtn)
     );
     eventsBtn->setID("handbook-events-btn");
-    eventsBtn->setPosition({btnX, btnY});
+    eventsBtn->setPosition({width / 2 - tripleSpacing, 24.f});
+    auto actionBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Actions", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onActionBtn)
+    );
+    actionBtn->setID("handbook-action-btn");
+    actionBtn->setPosition({width / 2, 24.f});
+    auto identifiersBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Identifiers", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onIdentifiersBtn)
+    );
+    identifiersBtn->setID("handbook-identifiers-btn");
+    identifiersBtn->setPosition({width / 2 + tripleSpacing, 24.f});
+    topMenu->addChild(eventsBtn);
+    topMenu->addChild(actionBtn);
+    topMenu->addChild(identifiersBtn);
+    topMenu->setContentSize({width, 72.f});
+    topMenu->setPosition(0, height / 2 + 10.f); // Centered higher
+    topMenu->setID("handbook-top-menu");
+    m_mainLayer->addChild(topMenu);
 
-    auto menu = CCMenu::create();
-    menu->addChild(eventsBtn);
-    menu->setPosition(0, 0);
-    m_mainLayer->addChild(menu);
+
+    // Dashboard section
+    auto dashMenu = CCMenu::create();
+    CCLabelBMFont* dashLabel = CCLabelBMFont::create("Dashboard Help", "bigFont.fnt");
+    dashLabel->setScale(0.5f);
+    dashLabel->setPosition(width / 2, 60.f);
+    dashMenu->addChild(dashLabel);
+    // Dashboard button
+    auto dashBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Dashboard", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onDashboardBtn)
+    );
+    dashBtn->setID("handbook-dashboard-btn");
+    dashBtn->setPosition({width / 2 - 80.f, 24.f});
+    dashMenu->addChild(dashBtn);
+
+    // Commands button
+    auto commandsBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Commands", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onCommandsBtn)
+    );
+
+    commandsBtn->setID("handbook-commands-btn");
+    commandsBtn->setPosition({width / 2 + 80.f, 24.f});
+    dashMenu->addChild(commandsBtn);
+
+    dashMenu->setContentSize({width, 72.f});
+    dashMenu->setPosition(0, height / 2 - 80.f); // Centered lower
+    dashMenu->setID("handbook-dashboard-menu");
+    m_mainLayer->addChild(dashMenu);
 
     return true;
+
+}
+
+// Handbook MD instructions
+void HandbookPopup::onCommandsBtn(CCObject*) {
+    std::string md =
+        "# Commands\n\n"
+        "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
+        "## How to Use\n"
+        "- Each command starts with an exclamation mark (e.g., `!jump`).\n"
+        "- You can create, edit, or remove commands in the Dashboard.\n"
+        "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
+        "## Example\n"
+        "- If you create a command named `!jump`, viewers can type `!jump` in chat to trigger the associated action in-game.\n"
+        "- You can use identifiers like `${arg}` to allow users to pass arguments (e.g., `!say Hello`).\n\n"
+        "**Tip:** Use commands to make your stream interactive and fun!";
+    geode::MDPopup::create("Commands Help", md, "OK", nullptr, [] (bool) {})->show();
+}
+
+void HandbookPopup::onDashboardBtn(CCObject*) {
+    std::string md =
+        "# Dashboard\n\n"
+        "The Dashboard is your main control center for the Twitch Interactive mod.\n\n"
+        "## Features\n"
+        "- View and manage all Twitch chat commands.\n"
+        "- See real-time command triggers.\n"
+        "- Enable or disable command listening.\n"
+        "- Monitor cooldowns and command usage.\n"
+        "## How it works\n"
+        "- By default, all commands are disabled upon game bootup and only starts listening when you open the Dashboard.\n"
+        "- You can change each commands you created in the Dashboard.\n"
+        "- The Dashboard must be open and connected for chat commands to work.\n\n"
+        "**Tip:** Use the Dashboard to quickly test, enable, or disable commands while streaming!";
+    geode::MDPopup::create("Dashboard Help", md, "OK", nullptr, [] (bool) {})->show();
+}
+
+void HandbookPopup::onIdentifiersBtn(CCObject*) {
+    std::string md =
+        "# Identifiers\n\n"
+        "Identifiers are special placeholders you can use in actions to insert dynamic values from Twitch chat.\n\n"
+        "## Available Identifiers\n"
+        "- `${arg}`: Replaced with the argument(s) provided by the user in chat.\n"
+        "- `${username}`: Replaced with the username of the user who triggered the command.\n"
+        "- `${displayname}`: Replaced with the display name of the user who triggered the command.\n"
+        "- `${userid}`: Replaced with the user ID of the user who triggered the command.\n"
+        "- `${streamer}`: Replaced with the configured Twitch channel (streamer's username).\n\n"
+        "## Usage Example\n"
+        "- If your notification action is `Hello, ${arg}!`, and a user types `!hello world`, the notification will show `Hello, world!`\n\n"
+        "**Tip:** Identifiers can be used in any action argument that supports text.";
+    geode::MDPopup::create("Identifiers Help", md, "OK", nullptr, [] (bool) {})->show();
+}
+
+void HandbookPopup::onActionBtn(CCObject*) {
+    std::string md =
+        "# Actions\n\n"
+        "Actions are the list of events that happen when a command is triggered.\n\n"
+        "- Each action can be modified using the settings button.\n"
+        "- Actions are executed in order, from top to bottom.\n"
+        "- You can add multiple actions to a command to create complex effects.\n"
+        "- You can use identifiers like `${arg}` to insert chat arguments into actions.\n\n"
+        "**Tip:** Combine multiple actions for complex command effects!";
+    geode::MDPopup::create("Actions Help", md, "OK", nullptr, [] (bool) {})->show();
 }
 
 void HandbookPopup::onEventsBtn(CCObject*) {
     std::string md =
         "# Events\n\n"
-        "Event are actions that can be added to the command.\n\n"
+        "Events are actions that can be added to the command.\n\n"
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
-        "- You can add, remove, and reorder event nodes in the command settings.\n"
-        "- Some events accept arguments, such as which player to affect.\n\n"
-        "**Tip:** Use `${arg}` in event arguments to let chat users provide their own values!";
+        "- Click the info icon for more details on each event.\n"
+        "- Some events accept arguments, such as which player to affect.\n\n";
     geode::MDPopup::create("Events Help", md, "OK", nullptr, [] (bool) {})->show();
 }
 
 HandbookPopup* HandbookPopup::create() {
     auto ret = new HandbookPopup();
+
     if (ret && ret->initAnchored(480.f, 290.f)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
 }

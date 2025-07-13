@@ -245,7 +245,20 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         label->setAlignment(kCCTextAlignmentLeft);
         label->setPosition(20.f, 16.f);
 
-        // Menu for button
+        // Info button (FLAlertLayer)
+        auto infoBtnSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+        infoBtnSprite->setScale(0.5f);
+        auto infoBtn = CCMenuItemSpriteExtra::create(
+            infoBtnSprite,
+            this,
+            menu_selector(CommandSettingsPopup::onEventInfoBtn)
+        );
+        infoBtn->setID("event-" + info.id + "-info-btn");
+        infoBtn->setUserObject(CCString::create(info.description));
+        float infoBtnX = 20.f + label->getContentSize().width * label->getScale() + 12.f;
+        infoBtn->setPosition(infoBtnX, 16.f);
+
+        // Menu for add/info buttons
         auto menu = CCMenu::create();
         menu->setPosition(0, 0);
 
@@ -263,6 +276,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
         addBtn->setUserObject(CCString::create(info.id));
 
         menu->addChild(addBtn);
+        menu->addChild(infoBtn);
 
         node->addChild(label);
         node->addChild(menu);
@@ -279,10 +293,10 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
         eventContent->addChild(node);
 
-        eventNodeY -= (nodeHeight + eventNodeGap);
-    }
-    // After adding all event nodes, scroll to top
-    eventScrollLayer->scrollToTop();
+    eventNodeY -= (nodeHeight + eventNodeGap);
+}
+// After adding all event nodes, scroll to top
+eventScrollLayer->scrollToTop();
 
     // Add action nodes for existing actions
     m_mainLayer->addChild(actionScrollLayer);
@@ -774,12 +788,22 @@ std::string CommandSettingsPopup::getNotificationText() const {
         // Trim whitespace
         text.erase(0, text.find_first_not_of(" \t\n\r"));
         text.erase(text.find_last_not_of(" \t\n\r") + 1);
-
         return text;
-    };
-
+    }
     return "";
-};
+}
+
+// Info button handler for event list
+void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    std::string desc;
+    if (btn && btn->getUserObject()) desc = as<CCString*>(btn->getUserObject())->getCString();
+    if (!desc.empty()) {
+        FLAlertLayer::create("Event Info", desc, "OK")->show();
+    } else {
+        FLAlertLayer::create("Event Info", "No description available.", "OK")->show();
+    }
+}
 
 void CommandSettingsPopup::onSave(CCObject* sender) {
     // Build up to 10 actions in order, validate all wait inputs
