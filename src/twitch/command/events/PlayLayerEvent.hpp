@@ -15,7 +15,7 @@ public:
     // Accepts key and duration (in seconds, 0 = instant press/release)
     static void pressKey(const std::string& key, float duration = 0.f);
 
-    // Move player left or right
-    // playerIdx: 1 or 2, moveRight: true for right, false for left
-    static void movePlayer(int playerIdx, bool moveRight);
+    // Move player left or right by a distance
+    // playerIdx: 1 or 2, moveRight: true for right, false for left, distance: how far to move
+    static void movePlayer(int playerIdx, bool moveRight, float distance = 0.f);
 };

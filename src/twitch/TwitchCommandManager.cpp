@@ -366,21 +366,57 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                             PlayLayerEvent::jumpPlayerTap(playerIdx);
                         }
                     } else if (processedArg.rfind("move:", 0) == 0) {
-                        // Parse player and direction from arg (move:<player>:<direction>)
+                        // Parse player, direction, and distance from arg (move:<player>:<direction>:<distance>)
                         int playerIdx = 1;
                         bool moveRight = true;
+                        float distance = 0.f;
+                        bool validDistance = true;
                         size_t firstColon = processedArg.find(":");
                         size_t secondColon = processedArg.find(":", firstColon + 1);
+                        size_t thirdColon = processedArg.find(":", secondColon + 1);
                         if (firstColon != std::string::npos && secondColon != std::string::npos) {
                             std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
-                            std::string dirStr = processedArg.substr(secondColon + 1);
+                            std::string dirStr;
+                            std::string distStr;
+                            if (thirdColon != std::string::npos) {
+                                dirStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
+                                distStr = processedArg.substr(thirdColon + 1);
+                            } else {
+                                dirStr = processedArg.substr(secondColon + 1);
+                            }
                             if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
                                 playerIdx = std::stoi(playerStr);
                             }
                             moveRight = (dirStr == "right");
+                            // Accept ${arg} for distance
+                            if (!distStr.empty()) {
+                                std::string distStrTrim = distStr;
+                                // Remove whitespace
+                                distStrTrim.erase(0, distStrTrim.find_first_not_of(" \t\n\r"));
+                                distStrTrim.erase(distStrTrim.find_last_not_of(" \t\n\r") + 1);
+                                if (distStrTrim == "${arg}") {
+                                    // Use commandArgs as distance
+                                    std::string argVal = ctx->commandArgs;
+                                    argVal.erase(0, argVal.find_first_not_of(" \t\n\r"));
+                                    argVal.erase(argVal.find_last_not_of(" \t\n\r") + 1);
+                                    if (!argVal.empty() && argVal.find_first_not_of("-0123456789.") == std::string::npos) {
+                                        distance = std::stof(argVal);
+                                    } else {
+                                        validDistance = false;
+                                    }
+                                } else if (distStrTrim.find_first_not_of("-0123456789.") == std::string::npos) {
+                                    distance = std::stof(distStrTrim);
+                                } else {
+                                    validDistance = false;
+                                }
+                            }
                         }
-                        log::info("[TwitchCommandManager] Triggering move event for player {} direction {} (command: {})", playerIdx, moveRight ? "right" : "left", ctx->commandName);
-                        PlayLayerEvent::movePlayer(playerIdx, moveRight);
+                        if (!validDistance) {
+                            log::warn("[TwitchCommandManager] Ignoring move action: invalid distance value (command: {})", ctx->commandName);
+                        } else {
+                            log::info("[TwitchCommandManager] Triggering move event for player {} direction {} distance {} (command: {})", playerIdx, moveRight ? "right" : "left", distance, ctx->commandName);
+                            PlayLayerEvent::movePlayer(playerIdx, moveRight, distance);
+                        }
                     } else if (processedArg.rfind("keycode:", 0) == 0) {
                         // Parse key string and duration from arg (keycode:<key>|<duration>)
                         std::string keyStr = processedArg.substr(8);

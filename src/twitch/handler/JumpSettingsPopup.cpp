@@ -37,9 +37,9 @@ bool JumpSettingsPopup::setup(int actionIndex) {
     );
     bothBtn->setPosition(x, y - 2 * spacing);
 
+
     float checkboxY = y - 3 * spacing;
-    float checkboxX = x - 10.f;
-    float labelOffset = 30.f;
+    float checkboxX = x;
 
     m_holdJumpCheckbox = CCMenuItemToggler::create(
         CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
@@ -51,8 +51,8 @@ bool JumpSettingsPopup::setup(int actionIndex) {
 
     auto checkboxLabel = CCLabelBMFont::create("Hold Jump", "bigFont.fnt");
     checkboxLabel->setScale(0.4f);
-    checkboxLabel->setAnchorPoint({0.0f, 0.5f});
-    checkboxLabel->setPosition(checkboxX + labelOffset, checkboxY);
+    checkboxLabel->setAnchorPoint({0.5f, 1.0f});
+    checkboxLabel->setPosition(checkboxX, checkboxY - 18.f);
 
     m_isHoldJump = false;
     if (m_restoreHold && m_holdJumpCheckbox) {

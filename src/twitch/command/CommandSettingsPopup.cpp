@@ -348,27 +348,48 @@ void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
     // Parse player and direction
     int player = 1;
     bool moveRight = true;
+    float distance = 0.f;
     size_t firstColon = actionStr.find(":");
     size_t secondColon = actionStr.find(":", firstColon + 1);
+    size_t thirdColon = actionStr.find(":", secondColon + 1);
     if (firstColon != std::string::npos && secondColon != std::string::npos) {
         std::string playerStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
-        std::string dirStr = actionStr.substr(secondColon + 1);
+        std::string dirStr;
+        std::string distStr;
+        if (thirdColon != std::string::npos) {
+            dirStr = actionStr.substr(secondColon + 1, thirdColon - secondColon - 1);
+            distStr = actionStr.substr(thirdColon + 1);
+        } else {
+            dirStr = actionStr.substr(secondColon + 1);
+        }
         if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
             player = std::stoi(playerStr);
         }
         moveRight = (dirStr == "right");
+        if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) {
+            distance = std::stof(distStr);
+        }
     }
-    MoveSettingsPopup::create(
+    auto popup = MoveSettingsPopup::create(
         player,
         moveRight,
-        [this, idx](int newPlayer, bool newMoveRight) {
+        [this, idx](int newPlayer, bool newMoveRight, float newDistance) {
             if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
                 std::string dirStr = newMoveRight ? "right" : "left";
-                m_commandActions[idx] = "move:" + std::to_string(newPlayer) + ":" + dirStr;
+                m_commandActions[idx] = "move:" + std::to_string(newPlayer) + ":" + dirStr + ":" + std::to_string(newDistance);
                 refreshActionsList();
             }
         }
-    )->show();
+    );
+    if (popup) {
+        popup->setDistance(distance);
+        if (auto input = popup->getDistanceInput()) {
+            char distBuf[32];
+            snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
+            input->setString(distBuf);
+        }
+        popup->show();
+    }
 }
 
 // Notification settings handler
@@ -573,7 +594,7 @@ void CommandSettingsPopup::refreshActionsList() {
         } else if (actionIdLower.rfind("keycode", 0) == 0) {
             nodeLabel = "Key Code";
         } else if (actionIdLower.rfind("profile", 0) == 0) {
-            nodeLabel = "Player Profile";
+            nodeLabel = "Profile";
         } else if (actionIdLower.rfind("move", 0) == 0) {
             nodeLabel = "Move Player";
         } else {
@@ -611,12 +632,13 @@ void CommandSettingsPopup::refreshActionsList() {
         actionNode->addChild(indexLabel);
         m_actionContent->addChild(actionNode);
 
-        // Always move the main action node text label up by 4.f for notification, keycode, jump, and profile actions
+        // Always move the main action node text label up by 4.f for notification, keycode, jump, profile, and move actions
         if (
             actionIdLower.rfind("notification", 0) == 0 ||
             actionIdLower.rfind("keycode", 0) == 0 ||
-            actionId == "jump" ||
-            actionIdLower.rfind("profile", 0) == 0
+            actionIdLower.rfind("jump", 0) == 0 ||
+            actionIdLower.rfind("profile", 0) == 0 ||
+            actionIdLower.rfind("move", 0) == 0
         ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
         }
@@ -853,16 +875,29 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Move Player action node (unified UI)
         if (actionIdLower.rfind("move", 0) == 0) {
-            // Format: move:<player>:<direction>
+            // Format: move:<player>:<direction>:<distance>
             int player = 1;
             std::string direction = "right";
+            float distance = 0.f;
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
             if (firstColon != std::string::npos && secondColon != std::string::npos) {
                 std::string playerStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                direction = actionIdRaw.substr(secondColon + 1);
+                std::string dirStr;
+                std::string distStr;
+                if (thirdColon != std::string::npos) {
+                    dirStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+                    distStr = actionIdRaw.substr(thirdColon + 1);
+                } else {
+                    dirStr = actionIdRaw.substr(secondColon + 1);
+                }
                 if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
                     player = std::stoi(playerStr);
+                }
+                direction = dirStr;
+                if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) {
+                    distance = std::stof(distStr);
                 }
             }
             std::string moveLabelId = "move-action-text-label-" + std::to_string(actionIndex);
@@ -873,7 +908,9 @@ void CommandSettingsPopup::refreshActionsList() {
             } else {
                 labelX = 8.f;
             }
-            std::string labelText = "Player " + std::to_string(player) + ": " + (direction == "right" ? "Right" : "Left");
+            char distBuf[32];
+            snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
+            std::string labelText = "Player " + std::to_string(player) + ": " + (direction == "right" ? "Right" : "Left") + " (" + distBuf + ")";
             if (!actionNode->getChildByID(moveLabelId)) {
                 auto moveLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
                 moveLabel->setScale(0.5f);
