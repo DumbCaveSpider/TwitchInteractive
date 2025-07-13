@@ -19,7 +19,7 @@ bool ProfileSettingsPopup::setup() {
         this,
         menu_selector(ProfileSettingsPopup::onOpenProfile)
     );
-    openBtn->setPosition(x + 80, y + 10);
+    openBtn->setPosition(x + 70, y + 10);
     openBtn->setID("profile-open-btn");
     auto openMenu = CCMenu::create();
     openMenu->addChild(openBtn);
