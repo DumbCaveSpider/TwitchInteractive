@@ -649,11 +649,11 @@ void CommandSettingsPopup::refreshActionsList() {
         // Player Profile action node (unified UI)
         if (actionIdLower.rfind("profile", 0) == 0) {
             // Format: profile:<accountId>
-            std::string accountId = "7689052";
+            std::string accountId = "7689052"; // Default account ID (aka me)
             size_t colonPos = actionIdRaw.find(":");
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
                 accountId = actionIdRaw.substr(colonPos + 1);
-                if (accountId.empty()) accountId = "7689052";
+                if (accountId.empty()) accountId = "0";
             }
             // The main label is already set to eventLabel ("Player Profile") above, matching other nodes
             // Place the accountId label below the main label, using chatFont
