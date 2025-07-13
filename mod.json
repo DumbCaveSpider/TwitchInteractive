@@ -17,7 +17,8 @@
 		"cheat"
 	],
 	"links": {
-		"source": "https://github.com/DumbCaveSpider/TwitchInteractive"
+		"source": "https://github.com/DumbCaveSpider/TwitchInteractive",
+		"community": "https://discord.gg/gXcppxTNxC"
 	},
 	"dependencies": {
 		"geode.node-ids": {

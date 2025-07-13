@@ -15,19 +15,18 @@ using namespace geode::prelude;
 extern void resetCommandCooldown(const std::string& commandName);
 
 static bool s_listening = true;
+
 static geode::Mod* getThisMod() {
     return geode::Loader::get()->getLoadedMod("arcticwoof.twitch_interactive");
-}
+};
+
 static void loadListenState() {
-    if (auto mod = getThisMod()) {
-        s_listening = mod->getSavedValue<bool>("command-listen", true);
-    }
-}
+    if (auto mod = getThisMod()) s_listening = mod->getSavedValue<bool>("command-listen", true);
+};
+
 static void saveListenState() {
-    if (auto mod = getThisMod()) {
-        mod->setSavedValue("command-listen", s_listening);
-    }
-}
+    if (auto mod = getThisMod()) mod->setSavedValue("command-listen", s_listening);
+};
 
 bool TwitchDashboard::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -50,12 +49,13 @@ bool TwitchDashboard::setup() {
     // Get the Twitch channel name for the welcome message
     std::string channelName = "Unknown";
     auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+
     if (twitchMod) {
         auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
         if (!savedChannel.empty()) channelName = savedChannel;
     } else {
         log::error("TwitchChatAPI mod not found while getting Twitch channel name");
-    }
+    };
 
     // Create welcome label
     std::string welcomeText = "Welcome " + channelName + "!";
@@ -127,7 +127,8 @@ void TwitchDashboard::setupCommandsList() {
         );
         commandManager->addCommand(welcomeCmd);
     };
-*/
+    */
+
     refreshCommandsList();
 };
 
@@ -185,7 +186,7 @@ void TwitchDashboard::setupCommandInput() {
     // Create "Add Command" button that opens a popup
     m_commandControlsMenu = CCMenu::create();
     m_commandControlsMenu->setID("command-controls-menu");
-    m_commandControlsMenu->setScale(0.8f); 
+    m_commandControlsMenu->setScale(0.8f);
 
     // Set content size to be same width as popup and 25 in height
     auto layerSize = m_mainLayer->getContentSize();
@@ -203,6 +204,7 @@ void TwitchDashboard::setupCommandInput() {
     loadListenState();
     auto listenOffSprite = ButtonSprite::create("Listen", "bigFont.fnt", "GJ_button_01.png", 0.5f);
     auto listenOnSprite = ButtonSprite::create("Listen", "bigFont.fnt", "GJ_button_06.png", 0.5f);
+
     auto listenBtn = CCMenuItemToggler::create(
         listenOnSprite,
         listenOffSprite,
@@ -217,7 +219,8 @@ void TwitchDashboard::setupCommandInput() {
     if (btnSprite) {
         auto btnSize = btnSprite->getContentSize();
         btnSprite->setContentSize(CCSize(btnSize.width, 25.0f));
-    }
+    };
+
     auto listenBtnSprite = as<ButtonSprite*>(listenOnSprite);
     if (listenBtnSprite) {
         auto btnSize = listenBtnSprite->getContentSize();
@@ -242,32 +245,34 @@ void TwitchDashboard::setupCommandInput() {
     m_commandControlsMenu->setPosition(0.f, 6.25f);
 
     m_mainLayer->addChild(m_commandControlsMenu);
-}
-
+};
 
 void TwitchDashboard::onToggleCommandListen(CCObject* sender) {
     s_listening = !s_listening;
     saveListenState();
+
     log::info("CommandListen toggled: {}", s_listening ? "Listening" : "Not Listening");
-}
+};
 
 bool TwitchDashboard::isListening() {
     return s_listening;
-}
+};
 
 void TwitchDashboard::setupCommandListening() {
-    // Ensure listen state is loaded on startup
-    loadListenState();
+    loadListenState(); // Ensure listen state is loaded on startup
+
     static bool callbackRegistered = false;
     if (callbackRegistered) {
         log::debug("TwitchDashboard::setupCommandListening: Callback already registered, skipping.");
         return;
-    }
+    };
+
     auto api = TwitchChatAPI::get();
     if (!api) {
         log::error("TwitchChatAPI is not available for command listening");
         return;
-    }
+    };
+
     api->registerOnMessageCallback([this](const ChatMessage& chatMessage) {
         // Ignore all callbacks if not listening
         if (!s_listening) {
@@ -276,7 +281,7 @@ void TwitchDashboard::setupCommandListening() {
         }
         auto commandManager = TwitchCommandManager::getInstance();
         commandManager->handleChatMessage(chatMessage);
-    });
+                                   });
     callbackRegistered = true;
     log::info("Command listening setup complete");
 };
@@ -304,12 +309,12 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
 
         if (delim != std::string::npos) {
             desc = commandDesc.substr(0, delim);
+
             std::string cooldownStr = commandDesc.substr(delim + 1);
             cooldown = 0;
-            if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
-                cooldown = std::stoi(cooldownStr);
-            }
-        }
+
+            if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) cooldown = std::stoi(cooldownStr);
+        };
 
         // Create a new command that logs when triggered
         TwitchCommand newCmd(commandName, desc, "Custom command: " + desc, cooldown);
@@ -375,6 +380,7 @@ TwitchDashboard* TwitchDashboard::create() {
     // Calculate scale factor to fit within window
     float scaleX = winSize.width / baseWidth;
     float scaleY = winSize.height / baseHeight;
+
     float scaleFactor = std::min(scaleX, scaleY) * 0.8f; // Use 80% of available space
     scaleFactor = std::min(scaleFactor, 1.0f); // Don't scale up, only down if needed
 
@@ -414,20 +420,20 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep) {
         // Format: desc|cooldown
         desc = newDesc.substr(0, firstSep);
+
         std::string cooldownStr = newDesc.substr(lastSep + 1);
         cooldown = 0;
-        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
-            cooldown = std::stoi(cooldownStr);
-        }
+
+        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) cooldown = std::stoi(cooldownStr);
     } else if (firstSep != std::string::npos) {
         // Format: desc|cooldown (if only one sep)
         desc = newDesc.substr(0, firstSep);
+
         std::string cooldownStr = newDesc.substr(firstSep + 1);
         cooldown = 0;
-        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
-            cooldown = std::stoi(cooldownStr);
-        }
-    }
+
+        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) cooldown = std::stoi(cooldownStr);
+    };
 
     // Find the old command
     bool foundOld = false;
@@ -459,7 +465,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     TwitchCommand newCmd(finalName, desc, "Custom command: " + desc, cooldown);
     newCmd.callback = [finalName, desc](const std::string& args) {
         log::info("Custom command '{}' ({}) triggered with args: '{}'", finalName, desc, args);
-    };
+        };
     // Copy the old command's properties to the new command when command properties has changed
     newCmd.enabled = oldCommand.enabled;
     newCmd.actions = oldCommand.actions;

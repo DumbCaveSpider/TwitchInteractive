@@ -13,7 +13,7 @@ matjson::Value TwitchCommandAction::toJson() const {
     v["type"] = as<int>(type);
     v["arg"] = arg;
     v["index"] = index;
-    
+
     return v;
 };
 
@@ -21,11 +21,11 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     CommandActionType type = CommandActionType::Notification;
     std::string arg = "";
     int index = 0;
-    
+
     if (v.contains("type") && v["type"].asInt().ok())type = as<CommandActionType>(v["type"].asInt().unwrap());
     if (v.contains("arg") && v["arg"].asString().ok()) arg = v["arg"].asString().unwrap();
     if (v.contains("index") && v["index"].asInt().ok()) index = as<int>(v["index"].asInt().unwrap());
-    
+
     return TwitchCommandAction(type, arg, index);
 };
 
@@ -35,7 +35,7 @@ using namespace geode::prelude;
 void TwitchCommandManager::saveCommands() {
     std::vector<matjson::Value> arrVec;
     for (const auto& cmd : m_commands) arrVec.push_back(cmd.toJson());
-    
+
     matjson::Value arr(arrVec);
     std::ofstream ofs(getSavePath());
     if (ofs) ofs << arr.dump(2);
@@ -46,13 +46,13 @@ void TwitchCommandManager::saveCommands() {
 void TwitchCommandManager::loadCommands() {
     std::ifstream ifs(getSavePath());
     if (!ifs) return;
-    
+
     auto result = matjson::parse(ifs);
     if (!result) return;
-    
+
     auto arr = result.unwrap();
     if (!arr.isArray()) return;
-    
+
     m_commands.clear();
     for (size_t i = 0; i < arr.size(); ++i) m_commands.push_back(TwitchCommand::fromJson(arr[i]));
 };
@@ -170,7 +170,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
     if (!TwitchDashboard::isListening()) {
         log::info("[TwitchCommandManager] CommandListen is OFF. Ignoring all Twitch chat commands.");
         return;
-    }
+    };
 
     std::string message = chatMessage.getMessage();
     std::string username = chatMessage.getUsername();
@@ -193,11 +193,11 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
     log::debug("Processing command: '{}' with args: '{}' from user: {}", commandName, commandArgs, username);
 
-// Find matching command
-auto it = std::find_if(m_commands.begin(), m_commands.end(),
-                       [&commandName](const TwitchCommand& cmd) {
-                           return cmd.name == commandName && cmd.enabled;
-                       });
+    // Find matching command
+    auto it = std::find_if(m_commands.begin(), m_commands.end(),
+                           [&commandName](const TwitchCommand& cmd) {
+                               return cmd.name == commandName && cmd.enabled;
+                           });
 
     if (it != m_commands.end()) {
         // Check cooldown
@@ -250,41 +250,49 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
             // Helper to replace identifiers in action arguments
             std::string replaceIdentifiers(const std::string& input) {
                 std::string result = input;
+
                 // Replace all ${arg} with commandArgs
                 size_t pos = 0;
                 while ((pos = result.find("${arg}", pos)) != std::string::npos) {
                     result.replace(pos, 6, commandArgs);
                     pos += commandArgs.length();
-                }
+                };
+
                 // Replace all ${username} with username
                 pos = 0;
                 while ((pos = result.find("${username}", pos)) != std::string::npos) {
                     result.replace(pos, 11, username);
                     pos += username.length();
-                }
+                };
+
                 // Replace all ${displayname} with displayName
                 pos = 0;
                 while ((pos = result.find("${displayname}", pos)) != std::string::npos) {
                     result.replace(pos, 13, displayName);
                     pos += displayName.length();
-                }
+                };
+
                 // Replace all ${userid} with userID
                 pos = 0;
                 while ((pos = result.find("${userid}", pos)) != std::string::npos) {
                     result.replace(pos, 9, userID);
                     pos += userID.length();
-                }
+                };
+
                 // Replace all ${streamer} with the configured Twitch channel (streamer's username)
                 pos = 0;
                 if (auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api")) {
                     streamerUsername = twitchMod->getSavedValue<std::string>("twitch-channel");
-                }
+                };
+
                 while ((pos = result.find("${streamer}", pos)) != std::string::npos) {
                     result.replace(pos, 11, streamerUsername);
                     pos += streamerUsername.length();
-                }
+                };
+
                 return result;
-            }
+            };
+
             void execute(CCObject* obj) {
                 auto* ctx = as<ActionContext*>(obj);
                 if (!ctx || ctx->index >= ctx->actions.size()) {
@@ -508,12 +516,12 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                     notifText.erase(notifText.find_last_not_of(" \t\n\r") + 1);
                     NotificationIcon icon = NotificationIcon::Info;
                     switch (iconTypeInt) {
-                        case 0: icon = NotificationIcon::None; break;
-                        case 1: icon = NotificationIcon::Info; break;
-                        case 2: icon = NotificationIcon::Success; break;
-                        case 3: icon = NotificationIcon::Warning; break;
-                        case 4: icon = NotificationIcon::Error; break;
-                        case 5: icon = NotificationIcon::Loading; break;
+                    case 0: icon = NotificationIcon::None; break;
+                    case 1: icon = NotificationIcon::Info; break;
+                    case 2: icon = NotificationIcon::Success; break;
+                    case 3: icon = NotificationIcon::Warning; break;
+                    case 4: icon = NotificationIcon::Error; break;
+                    case 5: icon = NotificationIcon::Loading; break;
                     }
                     log::info("[TwitchCommandManager] Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
                     Notification::create(notifText, icon)->show();

@@ -20,6 +20,7 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     m_input->setString(notificationText.c_str());
     m_input->setPosition(x, y);
     m_input->setScale(0.7f);
+
     m_mainLayer->addChild(m_input);
 
     // Icon selector UI
@@ -42,20 +43,21 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
         this,
         menu_selector(NotificationSettingsPopup::onRightIcon)
     );
-
     m_rightArrow->setPosition(x + arrowOffset, iconY);
 
     m_iconLabel = CCLabelBMFont::create("Info", "bigFont.fnt");
     m_iconLabel->setScale(0.6f);
-    m_iconLabel->setAnchorPoint({0.5f, 0.5f});
+    m_iconLabel->setAnchorPoint({ 0.5f, 0.5f });
     m_iconLabel->setPosition(x, iconY);
     m_iconLabel->setID("notification-icon-label");
+
     m_mainLayer->addChild(m_iconLabel);
 
     auto iconMenu = CCMenu::create();
     iconMenu->addChild(m_leftArrow);
     iconMenu->addChild(m_rightArrow);
     iconMenu->setPosition(0, 0);
+
     m_mainLayer->addChild(iconMenu);
 
     // Save button
@@ -97,7 +99,7 @@ void NotificationSettingsPopup::onRightIcon(cocos2d::CCObject* sender) {
 }
 
 void NotificationSettingsPopup::updateIconLabel() {
-    const char* names[] = {"None", "Info", "Success", "Warning", "Error", "Loading"};
+    const char* names[] = { "None", "Info", "Success", "Warning", "Error", "Loading" };
     int icon = static_cast<int>(m_iconType);
     if (m_iconLabel && icon >= 0 && icon < 6) m_iconLabel->setString(names[icon]);
 

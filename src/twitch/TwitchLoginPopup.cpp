@@ -26,7 +26,7 @@ bool TwitchLoginPopup::setup() {
         if (!savedChannel.empty()) channelName = savedChannel;
     } else {
         log::error("TwitchChatAPI mod not found while getting Twitch channel name");
-    }
+    };
 
     // Create login button with appropriate text
     std::string buttonText = channelName.empty() ? "Connect to Twitch" : "Open Dashboard";
@@ -160,7 +160,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject*) {
         } else {
             log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
         };
-    });
+                                     });
 
     // Prompt login without forcing (this should not prompt if already logged in)
     api->promptLogin(false);
@@ -222,8 +222,10 @@ void TwitchLoginPopup::checkExistingConnection() {
     auto api = TwitchChatAPI::get();
     if (!api) {
         log::error("TwitchChatAPI is not available during timeout retry");
+
         m_statusLabel->setString("API error!");
         resetToLogin();
+
         return;
     };
 
@@ -275,7 +277,7 @@ void TwitchLoginPopup::checkExistingConnection() {
         } else {
             log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
         };
-    });
+                                     });
 
     // Prompt login without forcing (this should not prompt if already logged in)
     api->promptLogin(false);
@@ -468,7 +470,7 @@ void TwitchLoginPopup::retryAuthenticationProcess() {
         } else {
             log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
         };
-    });
+                                     });
 
     // Prompt login without forcing (this should not prompt if already logged in)
     api->promptLogin(false);

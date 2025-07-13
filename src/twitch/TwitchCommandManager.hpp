@@ -12,6 +12,15 @@
 
 using namespace geode::prelude;
 
+// Command arguments
+enum class CommandIdentifiers {
+    Argument = 0,
+    Username = 1,
+    Displayname = 2,
+    UserID = 3,
+    Streamer = 4
+};
+
 // Enums for the type of callback
 enum class CommandActionType {
     Notification = 0,
