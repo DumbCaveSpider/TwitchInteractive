@@ -384,28 +384,76 @@ auto it = std::find_if(m_commands.begin(), m_commands.end(),
                 };
 
                 if (action.type == CommandActionType::Notification) {
-                    // Parse icon type and text: "<iconInt>:<text>"
-                    int iconTypeInt = 1; // Default to Info
-                    std::string notifText = processedArg;
-                    size_t colonPos = processedArg.find(":");
-                    if (colonPos != std::string::npos) {
-                        iconTypeInt = std::stoi(processedArg.substr(0, colonPos));
-                        notifText = processedArg.substr(colonPos + 1);
-                    }
-                    // Only show notification if text is not empty
-                    if (!notifText.empty()) {
-                        NotificationIcon icon = NotificationIcon::Info;
-                        switch (iconTypeInt) {
-                            case 0: icon = NotificationIcon::None; break;
-                            case 1: icon = NotificationIcon::Info; break;
-                            case 2: icon = NotificationIcon::Success; break;
-                            case 3: icon = NotificationIcon::Warning; break;
-                            case 4: icon = NotificationIcon::Error; break;
-                            case 5: icon = NotificationIcon::Loading; break;
+                    // Always parse notification action as "notification:<iconInt>:<text>" (force lowercase prefix)
+                    int iconTypeInt = 1;
+                    std::string notifText;
+                    std::string argStr = action.arg;
+                    // Always force prefix to lowercase for parsing
+                    if (argStr.size() >= 13) {
+                        std::string prefix = argStr.substr(0, 13);
+                        std::string prefixLower = prefix;
+                        std::transform(prefixLower.begin(), prefixLower.end(), prefixLower.begin(), ::tolower);
+                        if (prefixLower == "notification:") {
+                            // Remove prefix
+                            std::string rest = argStr.substr(13); // after 'notification:'
+                            size_t colonPos = rest.find(":");
+                            if (colonPos != std::string::npos) {
+                                std::string iconPart = rest.substr(0, colonPos);
+                                if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos) {
+                                    iconTypeInt = std::stoi(iconPart);
+                                    notifText = rest.substr(colonPos + 1);
+                                } else {
+                                    notifText = rest.substr(colonPos + 1);
+                                }
+                            } else {
+                                notifText = rest;
+                            }
+                        } else {
+                            // Fallback: try to parse as <iconInt>:<text>
+                            size_t colonPos = argStr.find(":");
+                            if (colonPos != std::string::npos) {
+                                std::string iconPart = argStr.substr(0, colonPos);
+                                if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos) {
+                                    iconTypeInt = std::stoi(iconPart);
+                                    notifText = argStr.substr(colonPos + 1);
+                                } else {
+                                    notifText = argStr.substr(colonPos + 1);
+                                }
+                            } else {
+                                notifText = argStr;
+                            }
                         }
-                        log::info("[TwitchCommandManager] Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
-                        Notification::create(notifText, icon)->show();
+                    } else {
+                        // Fallback: try to parse as <iconInt>:<text>
+                        size_t colonPos = argStr.find(":");
+                        if (colonPos != std::string::npos) {
+                            std::string iconPart = argStr.substr(0, colonPos);
+                            if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos) {
+                                iconTypeInt = std::stoi(iconPart);
+                                notifText = argStr.substr(colonPos + 1);
+                            } else {
+                                notifText = argStr.substr(colonPos + 1);
+                            }
+                        } else {
+                            notifText = argStr;
+                        }
                     }
+                    // Replace identifiers in notifText
+                    notifText = ctx->replaceIdentifiers(notifText);
+                    // Trim whitespace
+                    notifText.erase(0, notifText.find_first_not_of(" \t\n\r"));
+                    notifText.erase(notifText.find_last_not_of(" \t\n\r") + 1);
+                    NotificationIcon icon = NotificationIcon::Info;
+                    switch (iconTypeInt) {
+                        case 0: icon = NotificationIcon::None; break;
+                        case 1: icon = NotificationIcon::Info; break;
+                        case 2: icon = NotificationIcon::Success; break;
+                        case 3: icon = NotificationIcon::Warning; break;
+                        case 4: icon = NotificationIcon::Error; break;
+                        case 5: icon = NotificationIcon::Loading; break;
+                    }
+                    log::info("[TwitchCommandManager] Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
+                    Notification::create(notifText, icon)->show();
                 }
 
                 // Add more action types here as needed

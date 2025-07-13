@@ -61,7 +61,7 @@ void PlayLayerEvent::jumpPlayerTap(int playerIdx) {
                 log::debug("[PlayLayerEvent] Player{} not found", playerIdx);
                 return;
             }
-            log::info("[PlayLayerEvent] Player {} hold jump", playerIdx);
+            log::info("[PlayLayerEvent] Player {} jump", playerIdx);
             pressAndRelease(player);
         }
     });
@@ -101,7 +101,7 @@ void PlayLayerEvent::jumpPlayerHold(int playerIdx) {
             if (playLayer->m_player1) playLayer->m_player1->pushButton(PlayerButton::Jump);
             if (playLayer->m_player2) playLayer->m_player2->pushButton(PlayerButton::Jump);
 
-            log::info("[PlayLayerEvent] Both players jump");
+            log::info("[PlayLayerEvent] Both players hold jump");
         } else {
             auto player = (playerIdx == 2) ? playLayer->m_player2 : playLayer->m_player1;
 
@@ -110,7 +110,7 @@ void PlayLayerEvent::jumpPlayerHold(int playerIdx) {
                 return;
             };
 
-            log::info("[PlayLayerEvent] Player {} jump", playerIdx);
+            log::info("[PlayLayerEvent] Player {} hold jump", playerIdx);
             player->pushButton(PlayerButton::Jump);
         };
     });

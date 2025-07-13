@@ -75,7 +75,6 @@ void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     std::string actionStrLower = actionStr;
     std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
     if (actionStrLower.rfind("notification", 0) != 0) return;
-    // Parse icon type and text: Notification:<iconInt>:<text>
     int iconTypeInt = 1;
     std::string notifText;
     size_t firstColon = actionStr.find(":");
@@ -208,7 +207,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     // Initialize m_commandActions from command.actions
     for (const auto& action : command.actions) {
         if (action.type == CommandActionType::Notification) {
-            m_commandActions.push_back("Notification:" + action.arg);
+            m_commandActions.push_back("notification:" + action.arg);
         } else if (action.type == CommandActionType::Wait) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
         } else if (action.type == CommandActionType::Event) {
@@ -388,7 +387,6 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back("keycode:"); // Store as keycode:<key>
             refreshActionsList();
         } else if (eventId == "profile") {
-            // For testing: add an empty action node for 'profile' (no popup, no callback)
             m_commandActions.push_back("profile:");
             refreshActionsList();
         } else {
@@ -920,8 +918,8 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         } else if (actionIdRaw.rfind("keycode:", 0) == 0) {
             // Save as event with arg 'keycode:<key>'
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
-        } else if (actionIdRaw.rfind("Notification:", 0) == 0) {
-            // Parse icon type and text: Notification:<iconInt>:<text>
+        } else if (actionIdRaw.rfind("notification:", 0) == 0) {
+            // Parse icon type and text: notification:<iconInt>:<text>
             int iconTypeInt = 1;
             std::string notifText;
             size_t firstColon = actionIdRaw.find(":");
@@ -947,7 +945,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     m_commandActions.clear();
     for (const auto& action : m_command.actions) {
         if (action.type == CommandActionType::Notification) {
-            m_commandActions.push_back("Notification:" + action.arg);
+            m_commandActions.push_back("notification:" + action.arg);
         } else if (action.type == CommandActionType::Wait) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
         } else if (action.type == CommandActionType::Event) {
