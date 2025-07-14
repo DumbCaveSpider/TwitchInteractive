@@ -10,6 +10,7 @@ bool ColorPlayerSettingsPopup::setup() {
     m_mainLayer->setContentSize(popupSize);
     m_mainLayer->setAnchorPoint({0, 0});
     m_mainLayer->setPosition(0, 0);
+    this->m_noElasticity = true;
     this->addChild(m_mainLayer);
 
     // Add background effect for color picker area (like main popup)
@@ -111,6 +112,7 @@ bool ColorPlayerSettingsPopup::setup() {
     menu->setPosition(centerX, centerY);
     btnMenuLayer->addChild(menu, 1);
     m_mainLayer->addChild(btnMenuLayer, 2);
+    
     return true;
 }
 

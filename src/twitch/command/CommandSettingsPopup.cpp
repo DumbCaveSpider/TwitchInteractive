@@ -1,16 +1,18 @@
+#include "CommandSettingsPopup.hpp"
+#include "CommandActionEventNode.hpp"
+#include "../TwitchCommandManager.hpp"
+#include <cocos2d.h>
+#include <cocos-ext.h>
+#include <algorithm>
 #include "../handler/KeyCodesSettingsPopup.hpp"
 #include "../handler/ProfileSettingsPopup.hpp"
 #include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/ColorPlayerSettingsPopup.hpp"
+
 #include "CommandUserSettingsPopup.hpp"
-#include "CommandActionEventNode.hpp"
-
 #include "../handler/SettingsHandler.hpp"
-
-#include <cocos2d.h>
-#include <cocos-ext.h>
-#include <algorithm>
+#include "../handler/CameraSettingsPopup.hpp"
 
 using namespace cocos2d;
 using namespace geode::prelude;
@@ -370,6 +372,50 @@ void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleMoveSettings(this, sender);
 }
 
+// Edit Camera settings handler
+void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
+    // Find the action index from the sender's user object
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int actionIdx = 0;
+    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (actionIdx < 0 || actionIdx >= static_cast<int>(m_commandActions.size())) return;
+    // Parse current values from m_commandActions[actionIdx]
+    float zoom = 1.0f, x = 0.0f, y = 0.0f, duration = 0.0f;
+    const std::string& actionIdRaw = m_commandActions[actionIdx];
+    size_t firstColon = actionIdRaw.find(":");
+    size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+    size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
+    size_t fourthColon = actionIdRaw.find(":", thirdColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos && fourthColon != std::string::npos) {
+        std::string zoomStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+        std::string xStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+        std::string yStr = actionIdRaw.substr(thirdColon + 1, fourthColon - thirdColon - 1);
+        std::string durStr = actionIdRaw.substr(fourthColon + 1);
+        if (!zoomStr.empty()) zoom = std::stof(zoomStr);
+        if (!xStr.empty()) x = std::stof(xStr);
+        if (!yStr.empty()) y = std::stof(yStr);
+        if (!durStr.empty()) duration = std::stof(durStr);
+    }
+    // Show the CameraSettingsPopup and update the value and label on save
+    auto popup = CameraSettingsPopup::create(zoom, x, y, duration, [this, actionIdx](float newZoom, float newX, float newY, float newDuration) {
+        char buf[128];
+        snprintf(buf, sizeof(buf), "edit_camera:%.2f:%.2f:%.2f:%.2f", newZoom, newX, newY, newDuration);
+        m_commandActions[actionIdx] = buf;
+        // Update the label in the UI
+        auto children = m_actionContent->getChildren();
+        if (children && actionIdx >= 0 && actionIdx < children->count()) {
+            auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+            if (actionNode) {
+                std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
+                char labelBuf[128];
+                snprintf(labelBuf, sizeof(labelBuf), "Zoom: %.2f, Rot: %.2f, Sca: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
+                if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
+            }
+        }
+    });
+    if (popup) popup->show();
+}
+
 // Notification settings handler
 void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleNotificationSettings(this, sender);
@@ -380,6 +426,7 @@ void CommandSettingsPopup::onHandbookBtn(cocos2d::CCObject* sender) {
     auto popup = HandbookPopup::create();
     if (popup) popup->show();
 }
+
 
 void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
@@ -496,7 +543,7 @@ void CommandSettingsPopup::refreshActionsList() {
         };
 
 
-        // mainLabel is always based on the event name label.
+        // Set the action node main label based on the action node id
         std::string nodeLabel;
         std::string actionIdLower = actionId;
         std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
@@ -510,6 +557,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Move Player";
         } else if (actionIdLower.rfind("color_player", 0) == 0) {
             nodeLabel = "Color Player";
+        } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
+            nodeLabel = "Edit Camera";
         } else {
             nodeLabel = eventLabel;
         }
@@ -552,7 +601,8 @@ void CommandSettingsPopup::refreshActionsList() {
             actionIdLower.rfind("jump", 0) == 0 ||
             actionIdLower.rfind("profile", 0) == 0 ||
             actionIdLower.rfind("move", 0) == 0 ||
-            actionIdLower.rfind("color_player", 0) == 0
+            actionIdLower.rfind("color_player", 0) == 0 ||
+            actionIdLower.rfind("edit_camera", 0) == 0
         ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
         }
@@ -916,6 +966,70 @@ void CommandSettingsPopup::refreshActionsList() {
             settingsBtn->setPosition(btnX - 40.f, 16.f);
         }
 
+        // Edit Camera action node (show settings label and button)
+        if (actionIdLower.rfind("edit_camera", 0) == 0) {
+            // Format: edit_camera:<zoom>:<x>:<y>:<duration>
+            float zoom = 1.0f;
+            float x = 0.0f;
+            float y = 0.0f;
+            float duration = 0.0f;
+            std::string cameraLabel = "";
+            size_t firstColon = actionIdRaw.find(":");
+            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
+            size_t fourthColon = actionIdRaw.find(":", thirdColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos && fourthColon != std::string::npos) {
+                std::string zoomStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string xStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+                std::string yStr = actionIdRaw.substr(thirdColon + 1, fourthColon - thirdColon - 1);
+                std::string durStr = actionIdRaw.substr(fourthColon + 1);
+                if (!zoomStr.empty()) zoom = std::stof(zoomStr);
+                if (!xStr.empty()) x = std::stof(xStr);
+                if (!yStr.empty()) y = std::stof(yStr);
+                if (!durStr.empty()) duration = std::stof(durStr);
+                char buf[128];
+                snprintf(buf, sizeof(buf), "Zoom: %.2f, X: %.2f, Y: %.2f, Time: %.2fs", zoom, x, y, duration);
+                cameraLabel = buf;
+            } else {
+                cameraLabel = "Zoom: 1.00, X: 0.00, Y: 0.00, Time: 0.00s";
+            }
+            std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            float labelY = 6.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
+            if (!actionNode->getChildByID(camLabelId)) {
+                auto camLabel = CCLabelBMFont::create(cameraLabel.c_str(), "chatFont.fnt");
+                camLabel->setScale(0.5f);
+                camLabel->setAnchorPoint({ 0, 0.5f });
+                camLabel->setAlignment(kCCTextAlignmentLeft);
+                camLabel->setPosition(labelX, labelY);
+                camLabel->setID(camLabelId);
+                actionNode->addChild(camLabel);
+            } else {
+                if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(cameraLabel.c_str());
+            }
+            // Settings button for edit camera (same style as others)
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5f);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onEditCameraSettings)
+            );
+            settingsBtn->setID("edit-camera-settings-btn-" + std::to_string(actionIndex));
+            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            actionNode->addChild(settingsMenu);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+        }
+
         // Remove button
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
         removeSprite->setScale(0.5f);
@@ -969,7 +1083,7 @@ void CommandSettingsPopup::refreshActionsList() {
         actionNodeY -= (nodeHeight + actionNodeGap);
         actionIndex++;
     };
-};
+}
 
 void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);

@@ -399,6 +399,10 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                     if (processedArg == "kill_player") {
                         log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
                         PlayLayerEvent::killPlayer();
+                    } else if (processedArg.rfind("edit_camera:", 0) == 0) {
+                        // Format: edit_camera:<skew>:<rot>:<scale>:<time>
+                        log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);
+                        PlayLayerEvent::setCameraFromString(processedArg);
                     } else if (processedArg.rfind("jump:", 0) == 0) {
                         // Format: jump:<playerIdx>:hold|tap
                         int playerIdx = 1;

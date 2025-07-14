@@ -1,6 +1,7 @@
 #include <Geode/Geode.hpp>
 #include "CommandActionEventNode.hpp"
 #include "CommandSettingsPopup.hpp"
+#include "../handler/SettingsHandler.hpp"
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -350,25 +351,14 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
 
     addChild(m_label);
 
+
+    // Delegate Edit Camera action node UI to CommandSettingsPopup
+    // addEditCameraActionNodeUI was removed; edit camera action node UI is now handled in CommandSettingsPopup::refreshActionsList
+
     return true;
 }
-
-void CommandActionEventNode::onColorSettingsClicked(cocos2d::CCObject* sender) {
-    cocos2d::ccColor3B color = {255,255,255};
-    if (!m_action.arg.empty()) {
-        int r=255,g=255,b=255;
-        sscanf(m_action.arg.c_str(), "%d,%d,%d", &r, &g, &b);
-        color = {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
-    }
-    ColorPlayerSettingsPopup::create(color, [this](const cocos2d::ccColor3B& newColor) {
-        char buf[32];
-        snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
-        m_action.arg = buf;
-        // Update color box
-        if (auto box = dynamic_cast<cocos2d::extension::CCScale9Sprite*>(getChildByTag(9999))) {
-            box->setColor(newColor);
-        }
-    })->show();
+void CommandActionEventNode::onCameraSettingsClicked(cocos2d::CCObject* sender) {
+    // TODO: Implement camera settings click handler
 }
 
 CommandActionEventNode* CommandActionEventNode::createActionNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale,
@@ -440,6 +430,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
         {"color_player", "Color Player", "Set the player's color based on the RGB value."},
+        {"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},

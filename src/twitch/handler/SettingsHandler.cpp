@@ -1,5 +1,6 @@
 #include "SettingsHandler.hpp"
 #include "KeyCodesSettingsPopup.hpp"
+#include "CameraSettingsPopup.hpp"
 #include "ProfileSettingsPopup.hpp"
 #include "MoveSettingsPopup.hpp"
 #include "JumpSettingsPopup.hpp"
@@ -10,6 +11,29 @@
 using namespace cocos2d;
 
 namespace SettingsHandler {
+
+void handleCameraSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn && btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size())) return;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("edit_camera", 0) != 0 && actionStrLower.rfind("edit camera", 0) != 0) return;
+    float skew = 0.f, rot = 0.f, scale = 1.f, time = 0.f;
+    size_t colonPos = actionStr.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+        std::string values = actionStr.substr(colonPos + 1);
+        sscanf(values.c_str(), "%f,%f,%f,%f", &skew, &rot, &scale, &time);
+    }
+    CameraSettingsPopup::create(skew, rot, scale, time, [popup, idx](float newSkew, float newRot, float newScale, float newTime) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%.2f,%.2f,%.2f,%.2f", newSkew, newRot, newScale, newTime);
+        popup->m_commandActions[idx] = std::string("edit_camera:") + buf;
+        popup->refreshActionsList();
+    })->show();
+}
 
 void handleProfileSettings(CommandSettingsPopup* popup, CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
