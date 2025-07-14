@@ -14,6 +14,8 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     float y = 100.f;
     float x = m_mainLayer->getContentSize().width / 2;
 
+    this->m_noElasticity = true;
+
     // Text input for notification
     m_input = geode::TextInput::create(180, "Notification text", "chatFont.fnt");
     m_input->setID("notification-input");

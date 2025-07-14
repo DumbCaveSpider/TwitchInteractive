@@ -1299,6 +1299,14 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     };
 
     commandManager->saveCommands();
+
+    // Refresh the dashboard command list if the dashboard is open
+    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene()) {
+        if (auto dashboard = dynamic_cast<TwitchDashboard*>(scene->getChildByID("twitch-dashboard-popup"))) {
+            dashboard->refreshCommandsList();
+        }
+    }
+
     onClose(nullptr);
 };
 

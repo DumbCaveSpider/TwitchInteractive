@@ -19,6 +19,8 @@ bool KeyCodesSettingsPopup::setup(std::string keyCode) {
     setTitle("Edit Key Code");
     setID("keycodes-settings-popup");
 
+    this->m_noElasticity = true;
+
     float y = 100.f;
     float x = m_mainLayer->getContentSize().width / 2;
 

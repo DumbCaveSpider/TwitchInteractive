@@ -14,6 +14,8 @@ bool JumpSettingsPopup::setup(int actionIndex) {
     float x = m_mainLayer->getContentSize().width / 2;
     float spacing = 50.f;
 
+    this->m_noElasticity = true;
+
     // Player 1 button
     auto p1Btn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Player 1", "bigFont.fnt", "GJ_button_01.png", 0.7f),
