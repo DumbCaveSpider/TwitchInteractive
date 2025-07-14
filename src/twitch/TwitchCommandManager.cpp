@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+using namespace geode::prelude;
 
 matjson::Value TwitchCommandAction::toJson() const {
     matjson::Value v = matjson::Value::object();
@@ -29,7 +30,6 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     return TwitchCommandAction(type, arg, index);
 };
 
-using namespace geode::prelude;
 
 // Save commands to file
 void TwitchCommandManager::saveCommands() {
@@ -200,6 +200,44 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                            });
 
     if (it != m_commands.end()) {
+        // Role restriction checks
+        bool allowed = true;
+        // If any role restriction is set, user must match at least one
+        bool hasRoleRestriction = !it->allowedUser.empty() || it->allowMod || it->allowVip || it->allowStreamer || it->allowSubscriber;
+        if (hasRoleRestriction) {
+            allowed = false;
+            // Check username restriction
+            if (!it->allowedUser.empty() && chatMessage.getUsername() == it->allowedUser) {
+                allowed = true;
+            }
+            // Check mod
+            if (!allowed && it->allowMod && chatMessage.getIsMod()) {
+                allowed = true;
+            }
+            // Check VIP
+            if (!allowed && it->allowVip && chatMessage.getIsVIP()) {
+                allowed = true;
+            }
+            // Check subscriber
+            if (!allowed && it->allowSubscriber && chatMessage.getIsSubscriber()) {
+                allowed = true;
+            }
+            // Check streamer (compare username to configured streamer username)
+            if (!allowed && it->allowStreamer) {
+                std::string streamerUsername;
+                if (auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api")) {
+                    streamerUsername = twitchMod->getSavedValue<std::string>("twitch-username");
+                }
+                if (!streamerUsername.empty() && chatMessage.getUsername() == streamerUsername) {
+                    allowed = true;
+                }
+            }
+        }
+        if (!allowed) {
+            log::info("User '{}' is not allowed to execute command '{}' due to role restrictions.", username, commandName);
+            return;
+        }
+
         // Check cooldown
         time_t now = time(nullptr);
         auto cooldownIt = commandCooldowns.find(commandName);
