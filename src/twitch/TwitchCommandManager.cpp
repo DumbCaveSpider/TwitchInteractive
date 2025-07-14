@@ -222,13 +222,20 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             if (!allowed && it->allowSubscriber && chatMessage.getIsSubscriber()) {
                 allowed = true;
             }
-            // Check streamer (compare username to configured streamer username)
+            // Check streamer (require username matches the current channel/login name)
             if (!allowed && it->allowStreamer) {
-                std::string streamerUsername;
-                if (auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api")) {
-                    streamerUsername = twitchMod->getSavedValue<std::string>("twitch-username");
+                std::string channelName;
+                auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+                if (twitchMod) {
+                    // The channel name is usually stored as 'twitch-channel' or similar
+                    channelName = twitchMod->getSavedValue<std::string>("twitch-channel");
+                    // Fallback: try 'twitch-username' if 'twitch-channel' is empty
+                    if (channelName.empty()) {
+                        channelName = twitchMod->getSavedValue<std::string>("twitch-username");
+                    }
                 }
-                if (!streamerUsername.empty() && chatMessage.getUsername() == streamerUsername) {
+                // Only allow if the user executing the command is the channel owner
+                if (!channelName.empty() && chatMessage.getUsername() == channelName) {
                     allowed = true;
                 }
             }

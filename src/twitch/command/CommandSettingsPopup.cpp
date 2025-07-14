@@ -2,10 +2,9 @@
 #include "../handler/ProfileSettingsPopup.hpp"
 #include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
-
 #include "CommandUserSettingsPopup.hpp"
-#include "CommandSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
+#include "CommandSettingsPopup.hpp"
 
 #include <algorithm>
 #include <cocos2d.h>
@@ -56,15 +55,17 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     m_command = command;
 
     // Profile button (top right)
+    auto profileBtnSprite = CCSprite::createWithSpriteFrameName("GJ_profileButton_001.png");
+    profileBtnSprite->setScale(0.7f);
     auto profileBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Profile", "bigFont.fnt", "GJ_button_05.png", 0.5f),
+        profileBtnSprite,
         this,
         menu_selector(CommandSettingsPopup::onProfileUserSettings)
     );
     profileBtn->setID("command-profile-user-btn");
     auto profileMenu = CCMenu::create();
     profileMenu->addChild(profileBtn);
-    profileMenu->setPosition(m_mainLayer->getContentSize().width - 60.f, m_mainLayer->getContentSize().height - 30.f);
+    profileMenu->setPosition(m_mainLayer->getContentSize().width - 50.f, m_mainLayer->getContentSize().height - 30.f);
     m_mainLayer->addChild(profileMenu);
 
     setTitle(fmt::format("!{} settings", command.name));
@@ -311,6 +312,22 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
             m_command.allowMod = mod;
             m_command.allowStreamer = streamer;
             m_command.allowSubscriber = subscriber;
+
+            // Update all CommandActionEventNode role labels in the UI
+            if (m_actionContent) {
+                auto children = m_actionContent->getChildren();
+                if (children) {
+                    for (int i = 0; i < children->count(); ++i) {
+                        auto node = as<CCNode*>(children->objectAtIndex(i));
+                        if (node) {
+                            auto eventNode = dynamic_cast<CommandActionEventNode*>(node);
+                            if (eventNode) {
+                                eventNode->updateRoleLabel();
+                            }
+                        }
+                    }
+                }
+            }
         }
     );
     if (popup) popup->show();
@@ -1287,14 +1304,13 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
     if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
 };
 
+// Static create function for CommandSettingsPopup with only TwitchCommand argument
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
-
     if (ret && ret->initAnchored(620.f, 325.f, command)) {
         ret->autorelease();
         return ret;
-    };
-
+    }
     CC_SAFE_DELETE(ret);
     return nullptr;
 };

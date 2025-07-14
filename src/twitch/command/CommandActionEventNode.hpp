@@ -30,6 +30,9 @@ protected:
     cocos2d::extension::CCScale9Sprite* m_commandBg = nullptr;
     bool m_isOnCooldown = false;
 
+    // Store pointer to role label for live updates
+    cocos2d::CCLabelBMFont* m_roleLabel = nullptr;
+
     // Action node members
     CCMenuItemToggler* m_checkbox = nullptr;
     cocos2d::CCLabelBMFont* m_label = nullptr;
@@ -50,6 +53,9 @@ public:
     std::string getCommandName() const { return m_command.name; }
     void onToggleEnableCommand(cocos2d::CCObject* sender);
     void triggerCommand();
+
+    // Live update for role label
+    void updateRoleLabel();
     
     // Action node
     static CommandActionEventNode* createActionNode(const std::string& labelText, cocos2d::CCObject* target, SEL_MenuHandler selector, float checkboxScale = 0.7f, cocos2d::CCObject* moveTarget = nullptr, SEL_MenuHandler moveUpSelector = nullptr, SEL_MenuHandler moveDownSelector = nullptr, int actionIndex = 0, bool canMoveUp = false, bool canMoveDown = false);

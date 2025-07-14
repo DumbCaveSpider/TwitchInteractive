@@ -11,18 +11,23 @@
 
 namespace cocos2d { class CCObject; class CCNode; }
 
+// Forward declaration for CommandListPopup
+class CommandListPopup;
+
 class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
 protected:
     TextInput* m_notificationInput = nullptr;
     CCMenuItemToggler* m_killPlayerCheckbox = nullptr;
     TwitchCommand m_command = TwitchCommand("", "", "", 0, {});
+    CommandListPopup* m_parent = nullptr;
     
     bool setup(TwitchCommand command) override;
     void onSave(cocos2d::CCObject* sender);
     void onCloseBtn(cocos2d::CCObject* sender);
     void onHandbookBtn(cocos2d::CCObject* sender);
     
-public:
+    public:
+    static CommandSettingsPopup* create(TwitchCommand command, CommandListPopup* parent);
     float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;
 
