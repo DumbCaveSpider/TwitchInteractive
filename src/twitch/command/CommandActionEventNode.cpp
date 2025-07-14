@@ -119,13 +119,15 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
 
 CommandActionEventNode* CommandActionEventNode::createCommandNode(TwitchDashboard* parent, TwitchCommand command, float width) {
     auto ret = new CommandActionEventNode();
+
     if (ret && ret->initCommandNode(parent, command, width)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};
 
 void CommandActionEventNode::triggerCommand() {
     if (m_command.cooldown > 0) {
