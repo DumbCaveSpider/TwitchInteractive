@@ -13,6 +13,8 @@ bool ProfileSettingsPopup::setup() {
 
     m_mainLayer->addChild(m_accountIdInput);
 
+    this->m_noElasticity = true;
+
     // Add profile open button next to textbox
     auto openBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Open", "bigFont.fnt", "GJ_button_05.png", 0.3f),

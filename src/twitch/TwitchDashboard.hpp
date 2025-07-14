@@ -29,14 +29,15 @@ protected:
     void setupCommandsList();
     void setupCommandInput();
     void setupCommandListening();
-    void refreshCommandsList();
+    
+public:
     void delayedRefreshCommandsList(float dt);
     void onAddCustomCommand(CCObject* sender);
     void onToggleCommandListen(CCObject* sender);
     void onEditCommand(CCObject* sender);
     void handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc);
     void handleCommandDelete(const std::string& commandName);
-public:
+    void refreshCommandsList();
     static TwitchDashboard* create();
     void triggerCommandCooldown(const std::string& commandName);
     static bool isListening();

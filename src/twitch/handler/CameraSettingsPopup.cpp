@@ -15,6 +15,7 @@ bool CameraSettingsPopup::setup() {
     m_contentLayer->setContentSize(popupSize);
     m_contentLayer->setAnchorPoint({0, 0});
     m_contentLayer->setPosition({0, 0});
+    this->m_noElasticity = true;
     this->addChild(m_contentLayer);
 
     float fieldWidth = 70.f;
@@ -22,7 +23,7 @@ bool CameraSettingsPopup::setup() {
     float spacing = 10.f;
     float rowY = popupSize.height / 2 + 20.f;
     float rowStartX = popupSize.width / 2 - (2 * fieldWidth + 1.5f * spacing);
-    float labelY = rowY + fieldHeight / 2 - 24.f;
+    float labelY = rowY + fieldHeight / 2 - 15.f;
     float inputY = rowY - 20.f;
 
     // Labels and inputs in a row: Skew, Rotation, Scale, Time

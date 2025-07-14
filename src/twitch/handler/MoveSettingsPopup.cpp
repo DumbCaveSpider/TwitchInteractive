@@ -21,6 +21,8 @@ bool MoveSettingsPopup::setup() {
     float btnGapY = 36.f;
     float rowSpacing = 24.f; // Extra spacing between player and direction rows
 
+    this->m_noElasticity = true;
+
     // Player selection (top row, centered)
     playerLeftBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Player 1", "bigFont.fnt", m_player == 1 ? "GJ_button_01.png" : "GJ_button_04.png", 0.5f),
