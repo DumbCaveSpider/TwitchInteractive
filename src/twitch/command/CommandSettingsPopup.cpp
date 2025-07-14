@@ -496,7 +496,7 @@ void CommandSettingsPopup::refreshActionsList() {
         };
 
 
-        // mainLabel is always based on the event name label.
+        // Set the action node main label based on the action node id
         std::string nodeLabel;
         std::string actionIdLower = actionId;
         std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
