@@ -38,6 +38,7 @@ protected:
 
     void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
     void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType);
+    void updateColorPlayerLabel(int actionIdx);
 
     static CommandSettingsPopup* create(TwitchCommand command);
 
@@ -57,4 +58,5 @@ protected:
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey);
     void onMoveActionUp(cocos2d::CCObject* sender);
     void onMoveActionDown(cocos2d::CCObject* sender);
+    void onColorPlayerSettings(cocos2d::CCObject* sender);
 };

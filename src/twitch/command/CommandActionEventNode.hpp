@@ -1,3 +1,5 @@
+
+#include "../handler/ColorPlayerSettingsPopup.hpp"
 #pragma once
 
 #include "../TwitchCommandManager.hpp"
@@ -21,6 +23,7 @@ struct EventNodeInfo {
 };
 
 class CommandActionEventNode : public cocos2d::CCNode {
+    void onColorSettingsClicked(cocos2d::CCObject* sender);
 protected:
     // Command node members
     TwitchDashboard* m_parent = nullptr;

@@ -3,6 +3,41 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/Bindings.hpp>
 #include <Geode/Geode.hpp>
+#include <cocos2d.h>
+using namespace geode::prelude;
+
+// Helper to parse color from string (format: "R,G,B")
+cocos2d::ccColor3B parseColorString(const std::string& str) {
+    int r = 255, g = 255, b = 255;
+    sscanf(str.c_str(), "%d,%d,%d", &r, &g, &b);
+    return {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+}
+// Set player color (playerIdx: 1, 2, or 3 for both)
+void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B& color) {
+    Loader::get()->queueInMainThread([playerIdx, color] {
+        auto playLayer = PlayLayer::get();
+        if (!playLayer) {
+            log::debug("[PlayLayerEvent] setPlayerColor: PlayLayer not found");
+            return;
+        }
+        auto setColor = [&](auto* player) {
+            if (player) player->setColor(color);
+        };
+        if (playerIdx == 3) {
+            setColor(playLayer->m_player1);
+            setColor(playLayer->m_player2);
+            log::info("[PlayLayerEvent] Set color for both players: R{} G{} B{}", color.r, color.g, color.b);
+        } else {
+            auto player = (playerIdx == 2) ? playLayer->m_player2 : playLayer->m_player1;
+            if (!player) {
+                log::debug("[PlayLayerEvent] Player {} not found", playerIdx);
+                return;
+            }
+            setColor(player);
+            log::info("[PlayLayerEvent] Set color for player {}: R{} G{} B{}", playerIdx, color.r, color.g, color.b);
+        }
+    });
+}
 
 namespace {
     bool g_pendingKillPlayer = false;

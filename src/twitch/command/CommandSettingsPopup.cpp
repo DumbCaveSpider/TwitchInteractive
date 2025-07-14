@@ -2,12 +2,14 @@
 #include "../handler/ProfileSettingsPopup.hpp"
 #include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
+#include "../handler/ColorPlayerSettingsPopup.hpp"
 #include "CommandUserSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
 #include "CommandSettingsPopup.hpp"
 
-#include <algorithm>
 #include <cocos2d.h>
+#include <cocos-ext.h>
+#include <algorithm>
 
 using namespace cocos2d;
 using namespace geode::prelude;
@@ -334,6 +336,34 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
     return;
 }
 
+// Handler for color player settings button
+void CommandSettingsPopup::onColorPlayerSettings(CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn && btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(this->m_commandActions.size())) return;
+    std::string& actionStr = this->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    // Accept both 'color player' and 'color_player' at the start, with or without :
+    if (actionStrLower.rfind("color_player", 0) != 0 && actionStrLower.rfind("color player", 0) != 0) return;
+    // Parse color from actionStr (format: "color player" or "color_player:R,G,B")
+    ccColor3B color = {255, 255, 255};
+    size_t colonPos = actionStr.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+        std::string colorStr = actionStr.substr(colonPos + 1);
+        int r = 255, g = 255, b = 255;
+        sscanf(colorStr.c_str(), "%d,%d,%d", &r, &g, &b);
+        color = {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+    }
+    ColorPlayerSettingsPopup::create(color, [this, idx](const ccColor3B& newColor) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
+        this->m_commandActions[idx] = std::string("color_player:") + buf;
+        this->updateColorPlayerLabel(idx);
+    })->show();
+}
+
 void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
@@ -651,6 +681,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Profile";
         } else if (actionIdLower.rfind("move", 0) == 0) {
             nodeLabel = "Move Player";
+        } else if (actionIdLower.rfind("color_player", 0) == 0) {
+            nodeLabel = "Color Player";
         } else {
             nodeLabel = eventLabel;
         }
@@ -692,13 +724,15 @@ void CommandSettingsPopup::refreshActionsList() {
             actionIdLower.rfind("keycode", 0) == 0 ||
             actionIdLower.rfind("jump", 0) == 0 ||
             actionIdLower.rfind("profile", 0) == 0 ||
-            actionIdLower.rfind("move", 0) == 0
+            actionIdLower.rfind("move", 0) == 0 ||
+            actionIdLower.rfind("color_player", 0) == 0
         ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
         }
 
         // Notification action node (case-insensitive)
         if (actionIdLower.rfind("notification", 0) == 0) {
+            // Format: notification:<iconType>:<text>
             int iconTypeInt = 1;
             std::string notifText;
             size_t firstColon = actionIdRaw.find(":");
@@ -711,6 +745,15 @@ void CommandSettingsPopup::refreshActionsList() {
             } else {
                 notifText = "";
             }
+            // Place the notification label below the main label
+            std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            float labelY = 6.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
             std::string iconName = "Info";
             switch (iconTypeInt) {
                 case 0: iconName = "None"; break;
@@ -721,33 +764,25 @@ void CommandSettingsPopup::refreshActionsList() {
                 case 5: iconName = "Loading"; break;
                 default: iconName = "Info"; break;
             }
-            std::string notifLabelText = iconName;
+            std::string labelText = iconName;
             if (!notifText.empty()) {
-                notifLabelText += ": ";
-                notifLabelText += notifText;
+                labelText += ": ";
+                labelText += notifText;
             }
-            auto notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
             if (!actionNode->getChildByID(notifLabelId)) {
-                auto notifLabel = CCLabelBMFont::create(notifLabelText.c_str(), "chatFont.fnt");
+                auto notifLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
                 notifLabel->setScale(0.5f);
                 notifLabel->setAnchorPoint({ 0, 0.5f });
                 notifLabel->setAlignment(kCCTextAlignmentLeft);
-                float labelX = 0.f;
-                float labelY = 6.f;
-                if (auto label = actionNode->getLabel()) {
-                    labelX = label->getPositionX();
-                } else {
-                    labelX = 8.f;
-                }
                 notifLabel->setPosition(labelX, labelY);
                 notifLabel->setID(notifLabelId);
                 actionNode->addChild(notifLabel);
             } else {
-                if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(notifLabelText.c_str());
+                if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
             }
-            // Always create a new menu for the settings button to ensure it's clickable and not overlapped
+            // Settings button for notification (same style as others)
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5);
+            settingsSprite->setScale(0.5f);
             auto settingsBtn = CCMenuItemSpriteExtra::create(
                 settingsSprite,
                 this,
@@ -758,10 +793,70 @@ void CommandSettingsPopup::refreshActionsList() {
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);
             settingsMenu->setPosition(0, 0);
-            actionNode->addChild(settingsMenu);
             float btnX = m_actionContent->getContentSize().width - 24.f;
             settingsBtn->setPosition(btnX - 40.f, 16.f);
+            actionNode->addChild(settingsMenu);
         }
+
+        // Color Player action node (unified UI, same as notification/move)
+        if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
+            // Parse RGB value from m_commandActions[i] (format: color_player:R,G,B)
+            std::string rgbText = "255,255,255";
+            int r = 255, g = 255, b = 255;
+            size_t colonPos = m_commandActions[i].find(":");
+            if (colonPos != std::string::npos && colonPos + 1 < m_commandActions[i].size()) {
+                std::string colorStr = m_commandActions[i].substr(colonPos + 1);
+                if (sscanf(colorStr.c_str(), "%d,%d,%d", &r, &g, &b) == 3) {
+                    rgbText = std::to_string(r) + "," + std::to_string(g) + "," + std::to_string(b);
+                } else {
+                    rgbText = colorStr;
+                }
+            }
+            // Place the RGB label below the main label, like move/jump
+            std::string colorLabelId = "color-player-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            float labelY = 6.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
+            std::string labelText = "RGB: " + rgbText;
+            // Update or create the label (like jump/move)
+            if (!actionNode->getChildByID(colorLabelId)) {
+                auto colorLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
+                colorLabel->setScale(0.5f);
+                colorLabel->setAnchorPoint({ 0, 0.5f });
+                colorLabel->setAlignment(kCCTextAlignmentLeft);
+                colorLabel->setPosition(labelX, labelY);
+                colorLabel->setID(colorLabelId);
+                actionNode->addChild(colorLabel);
+            } else {
+                if (auto colorLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(colorLabelId))) colorLabel->setString(labelText.c_str());
+            }
+
+            // Always remove and recreate the settings button/menu to avoid disappearing
+            std::string settingsBtnId = "color-player-settings-btn-" + std::to_string(actionIndex);
+            if (auto oldMenu = actionNode->getChildByID(settingsBtnId)) {
+                oldMenu->removeFromParent();
+            }
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5f);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onColorPlayerSettings)
+            );
+            settingsBtn->setID(settingsBtnId);
+            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+            actionNode->addChild(settingsMenu);
+        }
+
 
         // Player Profile action node (unified UI)
         if (actionIdLower.rfind("profile", 0) == 0) {
@@ -1072,6 +1167,31 @@ std::string CommandSettingsPopup::getNotificationText() const {
         return text;
     }
     return "";
+}
+
+// Helper to update the color player RGB label for a given action index
+void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx) {
+    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
+        std::string& actionStr = m_commandActions[actionIdx];
+        std::string actionStrLower = actionStr;
+        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+        if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0) {
+            auto children = m_actionContent->getChildren();
+            if (children && actionIdx < children->count()) {
+                auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+                if (actionNode) {
+                    std::string colorLabelId = "color-player-action-text-label-" + std::to_string(actionIdx);
+                    std::string rgbText = "255,255,255";
+                    size_t colonPos = actionStr.find(":");
+                    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+                        rgbText = actionStr.substr(colonPos + 1);
+                    }
+                    std::string labelText = "RGB: " + rgbText;
+                    if (auto colorLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(colorLabelId))) colorLabel->setString(labelText.c_str());
+                }
+            }
+        }
+    }
 }
 
 // Info button handler for event list

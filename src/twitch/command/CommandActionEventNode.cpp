@@ -348,14 +348,28 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
     m_label->setAlignment(kCCTextAlignmentLeft);
     m_label->setPosition(50.f, 16.f);
 
-    auto eventMenu = CCMenu::create();
-    eventMenu->setPosition(0, 0);
-
-    addChild(eventMenu);
     addChild(m_label);
 
     return true;
-};
+}
+
+void CommandActionEventNode::onColorSettingsClicked(cocos2d::CCObject* sender) {
+    cocos2d::ccColor3B color = {255,255,255};
+    if (!m_action.arg.empty()) {
+        int r=255,g=255,b=255;
+        sscanf(m_action.arg.c_str(), "%d,%d,%d", &r, &g, &b);
+        color = {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+    }
+    ColorPlayerSettingsPopup::create(color, [this](const cocos2d::ccColor3B& newColor) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
+        m_action.arg = buf;
+        // Update color box
+        if (auto box = dynamic_cast<cocos2d::extension::CCScale9Sprite*>(getChildByTag(9999))) {
+            box->setColor(newColor);
+        }
+    })->show();
+}
 
 CommandActionEventNode* CommandActionEventNode::createActionNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale,
                                                                  CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {
@@ -425,6 +439,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. Don't use this while beating extremes!"},
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
+        {"color_player", "Color Player", "Set the player's color based on the RGB value."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
@@ -433,6 +448,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     };
 
     return nodes;
+// Add handling for Color Player event node in action/event node logic as needed
 };
 
 // Unified interface

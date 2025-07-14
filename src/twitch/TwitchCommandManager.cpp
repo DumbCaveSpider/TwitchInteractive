@@ -400,68 +400,44 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                         log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
                         PlayLayerEvent::killPlayer();
                     } else if (processedArg.rfind("jump:", 0) == 0) {
-                        // Parse player index and hold from arg (jump:1 or jump:1:hold)
+                        // Format: jump:<playerIdx>:hold|tap
                         int playerIdx = 1;
                         bool hold = false;
-                        std::string idxStr = processedArg.substr(5);
-                        size_t holdPos = idxStr.find(":hold");
-                        if (holdPos != std::string::npos) {
-                            hold = true;
-                            idxStr = idxStr.substr(0, holdPos);
+                        size_t firstColon = processedArg.find(":");
+                        size_t secondColon = processedArg.find(":", firstColon + 1);
+                        if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                            std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                            std::string typeStr = processedArg.substr(secondColon + 1);
+                            if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
+                                playerIdx = std::stoi(playerStr);
+                            }
+                            if (typeStr == "hold") hold = true;
                         }
-                        if (!idxStr.empty() && (idxStr.find_first_not_of("-0123456789") == std::string::npos)) {
-                            playerIdx = std::stoi(idxStr);
-                        }
-                        log::info("[TwitchCommandManager] Triggering jump event for player {} (hold: {}) (command: {})", playerIdx, hold, ctx->commandName);
                         if (hold) {
                             PlayLayerEvent::jumpPlayerHold(playerIdx);
                         } else {
                             PlayLayerEvent::jumpPlayerTap(playerIdx);
                         }
                     } else if (processedArg.rfind("move:", 0) == 0) {
-                        // Parse player, direction, and distance from arg (move:<player>:<direction>:<distance>)
+                        // Format: move:<playerIdx>:left|right:<distance>
                         int playerIdx = 1;
                         bool moveRight = true;
                         float distance = 0.f;
-                        bool validDistance = true;
+                        bool validDistance = false;
                         size_t firstColon = processedArg.find(":");
                         size_t secondColon = processedArg.find(":", firstColon + 1);
                         size_t thirdColon = processedArg.find(":", secondColon + 1);
-                        if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                        if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos) {
                             std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
-                            std::string dirStr;
-                            std::string distStr;
-                            if (thirdColon != std::string::npos) {
-                                dirStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
-                                distStr = processedArg.substr(thirdColon + 1);
-                            } else {
-                                dirStr = processedArg.substr(secondColon + 1);
-                            }
+                            std::string dirStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
+                            std::string distStr = processedArg.substr(thirdColon + 1);
                             if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
                                 playerIdx = std::stoi(playerStr);
                             }
-                            moveRight = (dirStr == "right");
-                            // Accept ${arg} for distance
-                            if (!distStr.empty()) {
-                                std::string distStrTrim = distStr;
-                                // Remove whitespace
-                                distStrTrim.erase(0, distStrTrim.find_first_not_of(" \t\n\r"));
-                                distStrTrim.erase(distStrTrim.find_last_not_of(" \t\n\r") + 1);
-                                if (distStrTrim == "${arg}") {
-                                    // Use commandArgs as distance
-                                    std::string argVal = ctx->commandArgs;
-                                    argVal.erase(0, argVal.find_first_not_of(" \t\n\r"));
-                                    argVal.erase(argVal.find_last_not_of(" \t\n\r") + 1);
-                                    if (!argVal.empty() && argVal.find_first_not_of("-0123456789.") == std::string::npos) {
-                                        distance = std::stof(argVal);
-                                    } else {
-                                        validDistance = false;
-                                    }
-                                } else if (distStrTrim.find_first_not_of("-0123456789.") == std::string::npos) {
-                                    distance = std::stof(distStrTrim);
-                                } else {
-                                    validDistance = false;
-                                }
+                            if (dirStr == "left") moveRight = false;
+                            if (!distStr.empty() && distStr.find_first_not_of("-.0123456789") == std::string::npos) {
+                                distance = std::stof(distStr);
+                                validDistance = true;
                             }
                         }
                         if (!validDistance) {
@@ -470,30 +446,49 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
                             log::info("[TwitchCommandManager] Triggering move event for player {} direction {} distance {} (command: {})", playerIdx, moveRight ? "right" : "left", distance, ctx->commandName);
                             PlayLayerEvent::movePlayer(playerIdx, moveRight, distance);
                         }
+                    } else if (processedArg.rfind("color_player:", 0) == 0) {
+                        // Format: color_player:<playerIdx>:R,G,B
+                        int playerIdx = 1;
+                        std::string colorStr;
+                        size_t firstColon = processedArg.find(":");
+                        size_t secondColon = processedArg.find(":", firstColon + 1);
+                        if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                            std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                            colorStr = processedArg.substr(secondColon + 1);
+                            if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
+                                playerIdx = std::stoi(playerStr);
+                            }
+                        } else if (firstColon != std::string::npos) {
+                            colorStr = processedArg.substr(firstColon + 1);
+                        }
+                        cocos2d::ccColor3B color = parseColorString(colorStr);
+                        log::info("[TwitchCommandManager] Setting color for player {} to {} (command: {})", playerIdx, colorStr, ctx->commandName);
+                        PlayLayerEvent::setPlayerColor(playerIdx, color);
                     } else if (processedArg.rfind("keycode:", 0) == 0) {
-                        // Parse key string and duration from arg (keycode:<key>|<duration>)
-                        std::string keyStr = processedArg.substr(8);
+                        // Format: keycode:<key>:<duration>
+                        std::string keyStr;
                         float duration = 0.f;
-                        size_t pipePos = keyStr.find("|");
-                        if (pipePos != std::string::npos) {
-                            std::string durStr = keyStr.substr(pipePos + 1);
-                            keyStr = keyStr.substr(0, pipePos);
-                            // No try/catch, just check if durStr is a valid float
+                        size_t firstColon = processedArg.find(":");
+                        size_t secondColon = processedArg.find(":", firstColon + 1);
+                        if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                            keyStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                            std::string durStr = processedArg.substr(secondColon + 1);
                             if (!durStr.empty() && durStr.find_first_not_of("-.0123456789") == std::string::npos) {
                                 duration = std::stof(durStr);
                             }
+                        } else if (firstColon != std::string::npos) {
+                            keyStr = processedArg.substr(firstColon + 1);
                         }
-                        log::info("[TwitchCommandManager] Triggering keycode event: '{}' (duration: {}, command: {})", keyStr, duration, ctx->commandName);
                         PlayLayerEvent::pressKey(keyStr, duration);
                     } else if (processedArg.rfind("profile:", 0) == 0) {
-                        // Parse account ID and open profile page
-                        std::string accountId = processedArg.substr(8);
-                        if (accountId.empty()) accountId = "7689052";
-                        log::info("[TwitchCommandManager] Opening profile page for account ID: {} (command: {})", accountId, ctx->commandName);
-                        // Convert accountId string to int and call ProfilePage::create(int, bool)
-                        int accountIdInt = 7689052;
-                        if (!accountId.empty() && accountId.find_first_not_of("0123456789") == std::string::npos) {
-                            accountIdInt = std::stoi(accountId);
+                        // Format: profile:<accountIdInt>
+                        int accountIdInt = 0;
+                        size_t firstColon = processedArg.find(":");
+                        if (firstColon != std::string::npos) {
+                            std::string idStr = processedArg.substr(firstColon + 1);
+                            if (!idStr.empty() && idStr.find_first_not_of("-0123456789") == std::string::npos) {
+                                accountIdInt = std::stoi(idStr);
+                            }
                         }
                         if (auto page = ProfilePage::create(accountIdInt, false)) page->show();
                     }
