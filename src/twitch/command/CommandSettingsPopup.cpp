@@ -408,7 +408,7 @@ void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
             if (actionNode) {
                 std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
                 char labelBuf[128];
-                snprintf(labelBuf, sizeof(labelBuf), "Zoom: %.2f, Rot: %.2f, Sca: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
+                snprintf(labelBuf, sizeof(labelBuf), "Zoom: %.2f, Rot: %.2f, Scl: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
                 if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
             }
         }
@@ -988,10 +988,10 @@ void CommandSettingsPopup::refreshActionsList() {
                 if (!yStr.empty()) y = std::stof(yStr);
                 if (!durStr.empty()) duration = std::stof(durStr);
                 char buf[128];
-                snprintf(buf, sizeof(buf), "Zoom: %.2f, X: %.2f, Y: %.2f, Time: %.2fs", zoom, x, y, duration);
+                snprintf(buf, sizeof(buf), "Zoom: %.2f, Rot: %.2f, Scl: %.2f, Time: %.2fs", zoom, x, y, duration);
                 cameraLabel = buf;
             } else {
-                cameraLabel = "Zoom: 1.00, X: 0.00, Y: 0.00, Time: 0.00s";
+                cameraLabel = "Zoom: 1.00, Rot: 0.00, Scl: 0.00, Time: 0.00s";
             }
             std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;

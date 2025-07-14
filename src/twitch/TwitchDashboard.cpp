@@ -7,6 +7,7 @@
 #include "command/CommandInputPopup.hpp"
 #include "command/events/PlayLayerEvent.hpp"
 
+#include "HandbookPopup.hpp"
 #include <unordered_set>
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
@@ -57,13 +58,13 @@ bool TwitchDashboard::setup() {
         log::error("TwitchChatAPI mod not found while getting Twitch channel name");
     };
 
+
     // Create welcome label
     std::string welcomeText = "Welcome, " + channelName + "!";
     m_welcomeLabel = CCLabelBMFont::create(welcomeText.c_str(), "bigFont.fnt");
     m_welcomeLabel->setPosition(layerSize.width / 5, layerSize.height - 22);
     m_welcomeLabel->setScale(0.3f);
     m_welcomeLabel->setID("welcome-label");
-
     m_mainLayer->addChild(m_welcomeLabel);
 
     // Create single scroll layer for commands
@@ -97,6 +98,30 @@ bool TwitchDashboard::setup() {
     m_commandLayer->setID("commands-layer");
     m_commandLayer->setLayout(columnLayout);
     m_commandLayer->setContentSize(CCSize(scrollWidth, scrollHeight));
+
+    // Create Handbook button at the top right
+    auto handbookSprite = ButtonSprite::create("Handbook", "bigFont.fnt", "GJ_button_05.png", 0.5f);
+    auto handbookBtn = CCMenuItemSpriteExtra::create(
+        handbookSprite,
+        this,
+        menu_selector(TwitchDashboard::onHandbook)
+    );
+    handbookBtn->setID("handbook-btn");
+    // Create a menu for the button
+    auto handbookMenu = CCMenu::create();
+    handbookMenu->setID("handbook-menu");
+    handbookMenu->setContentSize(m_mainLayer->getContentSize());
+    // Place at the very top right corner of the menu
+    float btnWidth = handbookSprite->getContentSize().width * handbookSprite->getScale();
+    float btnHeight = handbookSprite->getContentSize().height * handbookSprite->getScale();
+    float menuWidth = handbookMenu->getContentSize().width;
+    float menuHeight = handbookMenu->getContentSize().height;
+    handbookBtn->setPosition(menuWidth - btnWidth / 2.0f - 10.f, menuHeight - btnHeight / 2.0f - 10.f);
+    handbookMenu->addChild(handbookBtn);
+    handbookMenu->setPosition(0, 0); // Absolute positioning
+    handbookMenu->setAnchorPoint({1.0f, 1.0f});
+    handbookMenu->setScale(0.8f); // Scale down the menu
+    m_mainLayer->addChild(handbookMenu, 100); // High z-order
 
     // Add the scroll layer to the background
     scrollBg->addChild(m_commandScrollLayer);
@@ -538,3 +563,10 @@ void TwitchDashboard::triggerCommandCooldown(const std::string& commandName) {
         };
     };
 };
+
+// Handbook button callback
+void TwitchDashboard::onHandbook(CCObject* sender) {
+    // Show the Handbook popup
+    auto popup = HandbookPopup::create();
+    if (popup) popup->show();
+}

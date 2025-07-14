@@ -4,7 +4,7 @@ using namespace geode::prelude;
 using namespace cocos2d;
 
 bool CommandUserSettingsPopup::setup() {
-    setTitle("Command User Settings");
+    setTitle("Command User/Role Settings");
     setID("command-user-settings-popup");
 
     float y = 160.f;

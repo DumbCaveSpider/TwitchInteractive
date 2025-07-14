@@ -14,6 +14,7 @@ protected:
     void onDashboardBtn(cocos2d::CCObject* sender);
     void onCommandsBtn(cocos2d::CCObject* sender);
     void onUserRoleBtn(cocos2d::CCObject* sender);
+    void onDiscordBtn(cocos2d::CCObject* sender);
 public:
     static HandbookPopup* create();
 };

@@ -41,4 +41,5 @@ public:
     static TwitchDashboard* create();
     void triggerCommandCooldown(const std::string& commandName);
     static bool isListening();
+    void onHandbook(CCObject* sender);
 };

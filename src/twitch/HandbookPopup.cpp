@@ -75,7 +75,7 @@ bool HandbookPopup::setup() {
     auto dashMenu = CCMenu::create();
     dashMenu->setID("handbook-dashboard-menu");
     dashMenu->setContentSize({ width, 72.f });
-    dashMenu->setPosition({ 0.f, height / 2.f - 80.f }); // Centered lower
+    dashMenu->setPosition({ 0.f, height / 2.f - 70.f }); // Centered lower
     
     CCLabelBMFont* dashLabel = CCLabelBMFont::create("Dashboard Help", "bigFont.fnt");
     dashLabel->setScale(0.5f);
@@ -106,16 +106,51 @@ bool HandbookPopup::setup() {
     dashMenu->addChild(commandsBtn);
     
     m_mainLayer->addChild(dashMenu);
-    
+
+    // Support section
+    auto supportMenu = CCMenu::create();
+    supportMenu->setID("handbook-support-menu");
+    supportMenu->setContentSize({ width, 72.f });
+    supportMenu->setPosition({ 0.f, 0.f });
+
+    // Support label (centered)
+    CCLabelBMFont* supportLabel = CCLabelBMFont::create("Support", "bigFont.fnt");
+    supportLabel->setScale(0.5f);
+    supportLabel->setAnchorPoint({0.5f, 0.5f});
+    supportLabel->setPosition({ width / 2, 60.f });
+    supportMenu->addChild(supportLabel);
+
+    // Discord button
+    auto discordIcon = CCSprite::createWithSpriteFrameName("gj_discordIcon_001.png");
+    float iconScale = 0.9f;
+    if (discordIcon) {
+        discordIcon->setScale(iconScale);
+    }
+    auto discordBtn = CCMenuItemSpriteExtra::create(
+        discordIcon,
+        this,
+        menu_selector(HandbookPopup::onDiscordBtn)
+    );
+    discordBtn->setID("handbook-discord-btn");
+    discordBtn->setAnchorPoint({0.5f, 0.5f});
+    discordBtn->setPosition({ width / 2, 24.f });
+    supportMenu->addChild(discordBtn);
+
+    m_mainLayer->addChild(supportMenu);
+
     return true;
-};
+}
+// Support Discord button callback
+void HandbookPopup::onDiscordBtn(CCObject*) {
+    geode::utils::web::openLinkInBrowser("https://discord.gg/gXcppxTNxC");
+}
 
 // Handbook MD instructions
 
 void HandbookPopup::onUserRoleBtn(CCObject*) {
     std::string md =
-        "# User/Role Restrictions\n\n"
-        "User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
+        "# Command User/Role Restrictions\n\n"
+        "Command User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
         "## Available Restrictions\n"
         "- **User**: Only the specified username can use the command.\n"
         "- **Everyone**: No restrictions, anyone can use the command *(Have all checkbox unticked)*.\n"
@@ -137,11 +172,12 @@ void HandbookPopup::onCommandsBtn(CCObject*) {
     "## How to Use\n"
     "- Every command starts with an exclamation mark (e.g., `!jump`).\n"
     "- You can add, edit, or remove commands in the Dashboard.\n"
+    "- Apply cooldown on a specific command to prevent spamming by setting a cooldown in the settings.\n"
     "- You can disable commands by unchecking the 'Enabled' checkbox in the Dashboard.\n"
     "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
     
     "## Example\n"
-    "- If you create a command named `!jump`, viewers can type `!jump` in chat to trigger the associated action in-game.\n"
+    "- If you create a command named `!cmd`, viewers can type `!cmd` in chat to trigger the associated action added to that command.\n"
     "- You can use identifiers like `${arg}` to allow users to pass arguments (e.g., `!say Hello`).\n\n"
 
     "**Tip:** Use commands to make your stream interactive and fun!";
