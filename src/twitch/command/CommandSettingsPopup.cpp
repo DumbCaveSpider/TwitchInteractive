@@ -988,9 +988,7 @@ void CommandSettingsPopup::refreshActionsList() {
 
             settingsMenu->addChild(settingsBtn);
             actionNode->addChild(settingsMenu);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-        }
+        };
 
         // Edit Camera action node (show settings label and button)
         if (actionIdLower.rfind("edit_camera", 0) == 0) {
