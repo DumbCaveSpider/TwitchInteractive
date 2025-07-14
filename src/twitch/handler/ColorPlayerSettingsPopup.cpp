@@ -12,9 +12,15 @@ bool ColorPlayerSettingsPopup::setup() {
     m_mainLayer->setPosition(0, 0);
     this->addChild(m_mainLayer);
 
-    // Centered color picker
-    m_colorPicker = new cocos2d::extension::CCControlColourPicker();
+    // Add background effect for color picker area (like main popup)
+    auto pickerBg = CCMenu::create();
+    pickerBg->setContentSize({ popupSize.width - 40.f, 120.f });
     float pickerY = popupSize.height / 2 + 20.f;
+    pickerBg->setPosition(popupSize.width / 2, pickerY);
+    pickerBg->setOpacity(180);
+    m_mainLayer->addChild(pickerBg, 0);
+
+    m_colorPicker = new cocos2d::extension::CCControlColourPicker();
     if (m_colorPicker && m_colorPicker->init()) {
         m_colorPicker->autorelease();
         m_colorPicker->setColorValue(m_selectedColor);
@@ -77,23 +83,33 @@ bool ColorPlayerSettingsPopup::setup() {
     float buttonSpacingY = 32.f;
     float btnMenuY = rgbBoxY - buttonSpacingY;
 
-    // Create a container layer for the button menu
+    // Create a container layer for the button menu, with background effect
     auto btnMenuLayer = cocos2d::CCLayer::create();
     btnMenuLayer->setContentSize({ popupSize.width, 50.f });
     btnMenuLayer->setAnchorPoint({0, 0});
     btnMenuLayer->setPosition(0, btnMenuY - 25.f); // center the 50.f height on btnMenuY
 
-    // Center the buttons as a group, with even spacing, directly on btnMenuLayer
+    // Add background effect to button menu
+    auto btnMenuBg = CCMenu::create();
+    btnMenuBg->setContentSize({ popupSize.width - 40.f, 50.f });
+    btnMenuBg->setPosition(btnMenuLayer->getContentSize().width / 2, btnMenuLayer->getContentSize().height / 2);
+    btnMenuBg->setOpacity(180);
+    btnMenuLayer->addChild(btnMenuBg, 0);
+
+    // Use a CCMenu for button clickability
     float buttonGap = 24.f;
     float saveBtnWidth = saveBtn->getContentSize().width * saveBtn->getScaleX();
     float applyBtnWidth = applyBtn->getContentSize().width * applyBtn->getScaleX();
     float totalButtonWidth = saveBtnWidth + applyBtnWidth + buttonGap;
     float centerX = btnMenuLayer->getContentSize().width / 2;
     float centerY = btnMenuLayer->getContentSize().height / 2;
-    saveBtn->setPosition(centerX - totalButtonWidth/2 + saveBtnWidth/2, centerY);
-    applyBtn->setPosition(centerX + totalButtonWidth/2 - applyBtnWidth/2, centerY);
-    btnMenuLayer->addChild(saveBtn);
-    btnMenuLayer->addChild(applyBtn);
+    auto menu = CCMenu::create();
+    saveBtn->setPosition(-totalButtonWidth/2 + saveBtnWidth/2, 0.f);
+    applyBtn->setPosition(totalButtonWidth/2 - applyBtnWidth/2, 0.f);
+    menu->addChild(saveBtn);
+    menu->addChild(applyBtn);
+    menu->setPosition(centerX, centerY);
+    btnMenuLayer->addChild(menu, 1);
     m_mainLayer->addChild(btnMenuLayer, 2);
     return true;
 }

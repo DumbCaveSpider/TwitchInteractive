@@ -1,6 +1,5 @@
 # Twitch Interactive
 to do:
-- color player
 - player size
 - invert controls
 - camera control
