@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../TwitchCommandManager.hpp"
@@ -28,9 +27,9 @@ protected:
     void onCloseBtn(cocos2d::CCObject* sender);
     void onHandbookBtn(cocos2d::CCObject* sender);
 public:
+
     static CommandSettingsPopup* create(TwitchCommand command, CommandListPopup* parent);
-    static CommandSettingsPopup* create(TwitchCommand command); // Overload for single argument
-    static void addEditCameraActionNodeUI(cocos2d::CCNode* parent, const std::string& labelText, const TwitchCommandAction& action, int actionIndex);
+    static CommandSettingsPopup* create(TwitchCommand command);
     void onCameraSettingsClicked(cocos2d::CCObject* sender);
     void onMoveActionUp(cocos2d::CCObject* sender);
     void onMoveActionDown(cocos2d::CCObject* sender);
@@ -53,6 +52,7 @@ public:
     void onKeyCodeSettings(cocos2d::CCObject* sender);
     void onProfileSettings(cocos2d::CCObject* sender);
     void onMoveSettings(cocos2d::CCObject* sender);
+    void onEditCameraSettings(cocos2d::CCObject* sender);
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey);
 // ...existing code up to the end of the class CommandSettingsPopup...
 };

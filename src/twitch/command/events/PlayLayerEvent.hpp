@@ -24,4 +24,7 @@ public:
 
     // Set player color (playerIdx: 1, 2, or 3 for both)
     static void setPlayerColor(int playerIdx, const cocos2d::ccColor3B& color);
+
+    // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
+    static void setCameraFromString(const std::string& arg);
 };

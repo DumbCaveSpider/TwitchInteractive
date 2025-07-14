@@ -69,6 +69,82 @@ namespace {
     };
 };
 
+// Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
+void PlayLayerEvent::setCameraFromString(const std::string& arg) {
+    Loader::get()->queueInMainThread([arg] {
+        auto playLayer = PlayLayer::get();
+        if (!playLayer) {
+            log::debug("[PlayLayerEvent] setCameraFromString: PlayLayer not found");
+            return;
+        }
+        // Parse format: edit_camera:<skew>:<rot>:<scale>:<time>
+        float skew = 0.f, rot = 0.f, scale = 1.f, time = 0.f;
+        size_t first = arg.find(":");
+        size_t second = arg.find(":", first + 1);
+        size_t third = arg.find(":", second + 1);
+        size_t fourth = arg.find(":", third + 1);
+        if (first != std::string::npos && second != std::string::npos && third != std::string::npos && fourth != std::string::npos) {
+            std::string skewStr = arg.substr(first + 1, second - first - 1);
+            std::string rotStr = arg.substr(second + 1, third - second - 1);
+            std::string scaleStr = arg.substr(third + 1, fourth - third - 1);
+            std::string timeStr = arg.substr(fourth + 1);
+            if (!skewStr.empty()) skew = std::stof(skewStr);
+            if (!rotStr.empty()) rot = std::stof(rotStr);
+            if (!scaleStr.empty()) scale = std::stof(scaleStr);
+            if (!timeStr.empty()) time = std::stof(timeStr);
+        }
+        // Animate camera properties if time > 0, else set instantly
+        log::info("[PlayLayerEvent] Setting camera: Skew={} Rot={} Scale={} Time={}", skew, rot, scale, time);
+        float startSkew = playLayer->getSkewX();
+        float startRot = playLayer->getRotation();
+        float startScale = playLayer->getScale();
+        if (time > 0.0f) {
+            // Animate over 'time' seconds
+            class CameraAnimScheduler : public cocos2d::CCNode {
+            public:
+                float elapsed = 0.f;
+                float duration;
+                float fromSkew, toSkew;
+                float fromRot, toRot;
+                float fromScale, toScale;
+                cocos2d::CCNode* target;
+                CameraAnimScheduler(float d, float fs, float ts, float fr, float tr, float fsc, float tsc, cocos2d::CCNode* tgt)
+                    : duration(d), fromSkew(fs), toSkew(ts), fromRot(fr), toRot(tr), fromScale(fsc), toScale(tsc), target(tgt) {}
+                void update(float dt) override {
+                    elapsed += dt;
+                    float t = duration > 0.f ? std::min(elapsed / duration, 1.f) : 1.f;
+                    float newSkew = fromSkew + (toSkew - fromSkew) * t;
+                    float newRot = fromRot + (toRot - fromRot) * t;
+                    float newScale = fromScale + (toScale - fromScale) * t;
+                    if (target) {
+                        target->setSkewX(newSkew);
+                        target->setSkewY(newSkew);
+                        target->setRotation(newRot);
+                        target->setScale(newScale);
+                    }
+                    if (t >= 1.f) {
+                        this->unscheduleAllSelectors();
+                        this->removeFromParentAndCleanup(true);
+                    }
+                }
+                static CameraAnimScheduler* create(float d, float fs, float ts, float fr, float tr, float fsc, float tsc, cocos2d::CCNode* tgt) {
+                    auto node = new CameraAnimScheduler(d, fs, ts, fr, tr, fsc, tsc, tgt);
+                    node->autorelease();
+                    return node;
+                }
+            };
+            auto animNode = CameraAnimScheduler::create(time, startSkew, skew, startRot, rot, startScale, scale, playLayer);
+            cocos2d::CCDirector::sharedDirector()->getRunningScene()->addChild(animNode);
+            animNode->schedule(schedule_selector(CameraAnimScheduler::update), 0.f);
+        } else {
+            playLayer->setSkewX(skew);
+            playLayer->setSkewY(skew);
+            playLayer->setRotation(rot);
+            playLayer->setScale(scale);
+        }
+    });
+}
+
 // Simulate holding the jump button for a short duration
 void PlayLayerEvent::jumpPlayerTap(int playerIdx) {
     Loader::get()->queueInMainThread([playerIdx] {

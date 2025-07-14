@@ -353,7 +353,7 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
 
 
     // Delegate Edit Camera action node UI to CommandSettingsPopup
-    CommandSettingsPopup::addEditCameraActionNodeUI(this, labelText, m_action, actionIndex);
+    // addEditCameraActionNodeUI was removed; edit camera action node UI is now handled in CommandSettingsPopup::refreshActionsList
 
     return true;
 }

@@ -9,98 +9,72 @@ using namespace geode::prelude;
 bool CameraSettingsPopup::setup() {
     setTitle("Camera Settings");
     setID("camera-settings-popup");
-
+    // Create a content layer for all UI elements, parented to the popup for proper animation
     auto popupSize = this->getContentSize();
-    m_mainLayer = CCLayer::create();
-    m_mainLayer->setContentSize(popupSize);
-    m_mainLayer->setAnchorPoint({0, 0});
-    m_mainLayer->setPosition(0, 0);
-    this->addChild(m_mainLayer);
+    auto m_contentLayer = CCLayer::create();
+    m_contentLayer->setContentSize(popupSize);
+    m_contentLayer->setAnchorPoint({0, 0});
+    m_contentLayer->setPosition({0, 0});
+    this->addChild(m_contentLayer);
 
     float fieldWidth = 70.f;
     float fieldHeight = 32.f;
-    float spacing = 18.f;
-    float startY = popupSize.height / 2 + 40.f;
-    float labelX = popupSize.width / 2 - fieldWidth;
-    float inputX = popupSize.width / 2 + 10.f;
+    float spacing = 10.f;
+    float rowY = popupSize.height / 2 + 20.f;
+    float rowStartX = popupSize.width / 2 - (2 * fieldWidth + 1.5f * spacing);
+    float labelY = rowY + fieldHeight / 2 - 24.f;
+    float inputY = rowY - 20.f;
 
-    // Skew
-    auto skewLabel = CCLabelBMFont::create("Skew", "bigFont.fnt");
-    skewLabel->setScale(0.5f);
-    skewLabel->setAnchorPoint({1, 0.5f});
-    skewLabel->setPosition(labelX, startY);
-    m_mainLayer->addChild(skewLabel);
-    m_skewInput = geode::TextInput::create(fieldWidth, "Skew", "chatFont.fnt");
-    m_skewInput->setPosition(inputX, startY);
-    m_skewInput->setScale(0.6f);
-    m_skewInput->setMaxCharCount(6);
-    m_mainLayer->addChild(m_skewInput);
+    // Labels and inputs in a row: Skew, Rotation, Scale, Time
+    const char* names[] = {"Skew", "Rotation", "Scale", "Time"};
+    geode::TextInput** inputs[] = { &m_skewInput, &m_rotInput, &m_scaleInput, &m_timeInput };
+    for (int i = 0; i < 4; ++i) {
+        float x = rowStartX + i * (fieldWidth + spacing);
+        // Label above input
+        auto label = CCLabelBMFont::create(names[i], "bigFont.fnt");
+        label->setScale(0.5f);
+        label->setAnchorPoint({0.5f, 0.5f});
+        label->setPosition(x + fieldWidth / 2, labelY);
+        m_contentLayer->addChild(label);
+        // Input
+        *inputs[i] = geode::TextInput::create(fieldWidth, names[i], "chatFont.fnt");
+        (*inputs[i])->setPosition(x + fieldWidth / 2, inputY);
+        (*inputs[i])->setScale(0.6f);
+        (*inputs[i])->setMaxCharCount(6);
+        m_contentLayer->addChild(*inputs[i]);
+    }
 
-    // Rotation
-    auto rotLabel = CCLabelBMFont::create("Rotation", "bigFont.fnt");
-    rotLabel->setScale(0.5f);
-    rotLabel->setAnchorPoint({1, 0.5f});
-    rotLabel->setPosition(labelX, startY - (fieldHeight + spacing));
-    m_mainLayer->addChild(rotLabel);
-    m_rotInput = geode::TextInput::create(fieldWidth, "Rotation", "chatFont.fnt");
-    m_rotInput->setPosition(inputX, startY - (fieldHeight + spacing));
-    m_rotInput->setScale(0.6f);
-    m_rotInput->setMaxCharCount(6);
-    m_mainLayer->addChild(m_rotInput);
-
-    // Scale
-    auto scaleLabel = CCLabelBMFont::create("Scale", "bigFont.fnt");
-    scaleLabel->setScale(0.5f);
-    scaleLabel->setAnchorPoint({1, 0.5f});
-    scaleLabel->setPosition(labelX, startY - 2 * (fieldHeight + spacing));
-    m_mainLayer->addChild(scaleLabel);
-    m_scaleInput = geode::TextInput::create(fieldWidth, "Scale", "chatFont.fnt");
-    m_scaleInput->setPosition(inputX, startY - 2 * (fieldHeight + spacing));
-    m_scaleInput->setScale(0.6f);
-    m_scaleInput->setMaxCharCount(6);
-    m_mainLayer->addChild(m_scaleInput);
-
-    // Time
-    auto timeLabel = CCLabelBMFont::create("Time", "bigFont.fnt");
-    timeLabel->setScale(0.5f);
-    timeLabel->setAnchorPoint({1, 0.5f});
-    timeLabel->setPosition(labelX, startY - 3 * (fieldHeight + spacing));
-    m_mainLayer->addChild(timeLabel);
-    m_timeInput = geode::TextInput::create(fieldWidth, "Time", "chatFont.fnt");
-    m_timeInput->setPosition(inputX, startY - 3 * (fieldHeight + spacing));
-    m_timeInput->setScale(0.6f);
-    m_timeInput->setMaxCharCount(6);
-    m_mainLayer->addChild(m_timeInput);
-
-    // Save and Apply buttons
+    // Save button centered below the row
     auto saveBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
+        ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.7f),
         this,
         menu_selector(CameraSettingsPopup::onSave)
     );
     saveBtn->setID("camera-save-btn");
-    auto applyBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Apply", "bigFont.fnt", "GJ_button_02.png", 0.5f),
-        this,
-        menu_selector(CameraSettingsPopup::onApply)
-    );
-    applyBtn->setID("camera-apply-btn");
-    float btnY = startY - 4 * (fieldHeight + spacing) - 20.f;
+    float btnY = inputY - fieldHeight - 30.f;
     auto menu = CCMenu::create();
-    saveBtn->setPosition(-60.f, 0.f);
-    applyBtn->setPosition(60.f, 0.f);
+    saveBtn->setPosition(0.f, 0.f);
     menu->addChild(saveBtn);
-    menu->addChild(applyBtn);
     menu->setPosition(popupSize.width / 2, btnY);
-    m_mainLayer->addChild(menu);
+    m_contentLayer->addChild(menu);
     return true;
 }
 
 void CameraSettingsPopup::onSave(CCObject* sender) {
     if (m_callback) {
-        m_callback(getSkew(), getRotation(), getScale(), getTime());
+        float skew = getSkew();
+        float rot = getRotation();
+        float scale = getScale();
+        float time = getTime();
+        m_callback(skew, rot, scale, time);
     }
     this->onClose(sender);
+}
+
+std::string CameraSettingsPopup::formatCameraLabel(float skew, float rot, float scale, float time) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", skew, rot, scale, time);
+    return std::string(buf);
 }
 
 void CameraSettingsPopup::onApply(CCObject* sender) {
@@ -131,7 +105,7 @@ CameraSettingsPopup* CameraSettingsPopup::create(float skew, float rot, float sc
     auto ret = new CameraSettingsPopup();
     if (ret) {
         ret->m_callback = callback;
-        if (ret->initAnchored(320.f, 280.f)) {
+        if (ret->initAnchored(330.f, 180.f)) {
             ret->autorelease();
             ret->m_skewInput->setString(fmt::format("{:.2f}", skew).c_str());
             ret->m_rotInput->setString(fmt::format("{:.2f}", rot).c_str());

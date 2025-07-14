@@ -26,4 +26,6 @@ protected:
     float getTime() const;
 public:
     static CameraSettingsPopup* create(float skew, float rot, float scale, float time, std::function<void(float,float,float,float)> callback);
+    // Helper to format the edit camera action label string
+    static std::string formatCameraLabel(float skew, float rot, float scale, float time);
 };
