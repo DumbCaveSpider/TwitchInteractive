@@ -3,6 +3,7 @@
 #include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
 
+#include "CommandUserSettingsPopup.hpp"
 #include "CommandSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
 
@@ -53,6 +54,18 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     actionLabel->setID("actions-section-label");
     m_mainLayer->addChild(actionLabel);
     m_command = command;
+
+    // Profile button (top right)
+    auto profileBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Profile", "bigFont.fnt", "GJ_button_05.png", 0.5f),
+        this,
+        menu_selector(CommandSettingsPopup::onProfileUserSettings)
+    );
+    profileBtn->setID("command-profile-user-btn");
+    auto profileMenu = CCMenu::create();
+    profileMenu->addChild(profileBtn);
+    profileMenu->setPosition(m_mainLayer->getContentSize().width - 60.f, m_mainLayer->getContentSize().height - 30.f);
+    m_mainLayer->addChild(profileMenu);
 
     setTitle(fmt::format("!{} settings", command.name));
     setID("command-settings-popup");
@@ -278,6 +291,30 @@ eventScrollLayer->scrollToTop();
 
     m_mainLayer->addChild(commandBtnMenu);
     return true;
+}
+
+void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
+    std::string allowedUser = m_command.allowedUser;
+    bool allowVip = m_command.allowVip;
+    bool allowMod = m_command.allowMod;
+    bool allowStreamer = m_command.allowStreamer;
+    bool allowSubscriber = m_command.allowSubscriber;
+    auto popup = CommandUserSettingsPopup::create(
+        allowedUser,
+        allowVip,
+        allowMod,
+        allowStreamer,
+        allowSubscriber,
+        [this](const std::string& user, bool vip, bool mod, bool streamer, bool subscriber) {
+            m_command.allowedUser = user;
+            m_command.allowVip = vip;
+            m_command.allowMod = mod;
+            m_command.allowStreamer = streamer;
+            m_command.allowSubscriber = subscriber;
+        }
+    );
+    if (popup) popup->show();
+    return;
 }
 
 void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {

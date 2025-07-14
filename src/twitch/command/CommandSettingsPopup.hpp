@@ -41,6 +41,7 @@ public:
     void onEventInfoBtn(cocos2d::CCObject* sender);
     void onAddEventAction(cocos2d::CCObject* sender);
     void onRemoveAction(cocos2d::CCObject* sender);
+    void onProfileUserSettings(cocos2d::CCObject* sender);
 
     void onNotificationSettings(cocos2d::CCObject* sender);
     void onJumpSettings(cocos2d::CCObject* sender);
