@@ -74,20 +74,27 @@ bool ColorPlayerSettingsPopup::setup() {
     applyBtn->setID("color-player-apply-rgb-btn");
 
     // Add extra spacing between RGB fields and button menu
-    float buttonSpacingY = 32.f; // increase for more space
-    float btnY = rgbBoxY - buttonSpacingY;
-    auto menu = CCMenu::create();
-    menu->setScale(0.6f);
-    menu->addChild(saveBtn);
-    menu->addChild(applyBtn);
+    float buttonSpacingY = 32.f;
+    float btnMenuY = rgbBoxY - buttonSpacingY;
 
-    // Center the buttons as a group, with even spacing
+    // Create a container layer for the button menu
+    auto btnMenuLayer = cocos2d::CCLayer::create();
+    btnMenuLayer->setContentSize({ popupSize.width, 50.f });
+    btnMenuLayer->setAnchorPoint({0, 0});
+    btnMenuLayer->setPosition(0, btnMenuY - 25.f); // center the 50.f height on btnMenuY
+
+    // Center the buttons as a group, with even spacing, directly on btnMenuLayer
     float buttonGap = 24.f;
-    float totalButtonWidth = saveBtn->getContentSize().width * saveBtn->getScaleX() + applyBtn->getContentSize().width * applyBtn->getScaleX() + buttonGap;
-    saveBtn->setPosition(-totalButtonWidth/2 + saveBtn->getContentSize().width * saveBtn->getScaleX()/2, 0.f);
-    applyBtn->setPosition(totalButtonWidth/2 - applyBtn->getContentSize().width * applyBtn->getScaleX()/2, 0.f);
-    menu->setPosition(popupSize.width / 2, btnY);
-    m_mainLayer->addChild(menu, 2);
+    float saveBtnWidth = saveBtn->getContentSize().width * saveBtn->getScaleX();
+    float applyBtnWidth = applyBtn->getContentSize().width * applyBtn->getScaleX();
+    float totalButtonWidth = saveBtnWidth + applyBtnWidth + buttonGap;
+    float centerX = btnMenuLayer->getContentSize().width / 2;
+    float centerY = btnMenuLayer->getContentSize().height / 2;
+    saveBtn->setPosition(centerX - totalButtonWidth/2 + saveBtnWidth/2, centerY);
+    applyBtn->setPosition(centerX + totalButtonWidth/2 - applyBtnWidth/2, centerY);
+    btnMenuLayer->addChild(saveBtn);
+    btnMenuLayer->addChild(applyBtn);
+    m_mainLayer->addChild(btnMenuLayer, 2);
     return true;
 }
 
