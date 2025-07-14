@@ -408,7 +408,7 @@ void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
             if (actionNode) {
                 std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
                 char labelBuf[128];
-                snprintf(labelBuf, sizeof(labelBuf), "Zoom: %.2f, X: %.2f, Y: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
+                snprintf(labelBuf, sizeof(labelBuf), "Zoom: %.2f, Rot: %.2f, Sca: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
                 if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
             }
         }
