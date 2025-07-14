@@ -56,7 +56,7 @@ bool CommandUserSettingsPopup::setup() {
     auto menu = CCMenu::create();
     saveBtn->setPosition(0, 0);
     menu->addChild(saveBtn);
-    menu->setPosition(x, y - 40.f);
+    menu->setPosition(x, y - 80.f);
     m_mainLayer->addChild(menu);
 
     return true;
