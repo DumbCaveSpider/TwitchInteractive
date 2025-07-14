@@ -1,0 +1,205 @@
+#include "SettingsHandler.hpp"
+#include "KeyCodesSettingsPopup.hpp"
+#include "ProfileSettingsPopup.hpp"
+#include "MoveSettingsPopup.hpp"
+#include "JumpSettingsPopup.hpp"
+#include "ColorPlayerSettingsPopup.hpp"
+#include <algorithm>
+
+using namespace cocos2d;
+
+namespace SettingsHandler {
+
+void handleProfileSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size())) return;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("profile", 0) != 0) return;
+    std::string accountId = "7689052";
+    size_t colonPos = actionStr.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+        accountId = actionStr.substr(colonPos + 1);
+        if (accountId.empty()) accountId = "7689052";
+    }
+    ProfileSettingsPopup::create(
+        accountId,
+        [popup, idx](const std::string& newAccountId) {
+            if (idx >= 0 && idx < static_cast<int>(popup->m_commandActions.size())) {
+                popup->m_commandActions[idx] = "profile:" + newAccountId;
+                popup->refreshActionsList();
+            }
+        }
+    )->show();
+}
+
+void handleKeyCodeSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= as<int>(popup->m_commandActions.size())) return;
+    std::string& actionStr = popup->m_commandActions[idx];
+    if (actionStr.rfind("keycode", 0) != 0) return;
+    std::string keyValue;
+    size_t colonPos = actionStr.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+        keyValue = actionStr.substr(colonPos + 1);
+    } else {
+        keyValue = "";
+    }
+    KeyCodesSettingsPopup::create(
+        keyValue,
+        [popup, idx](const std::string& newKeyWithDuration) {
+            popup->updateKeyCodeNextTextLabel(idx, newKeyWithDuration);
+        }
+    )->show();
+}
+
+void handleColorPlayerSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn && btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size())) return;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("color_player", 0) != 0 && actionStrLower.rfind("color player", 0) != 0) return;
+    ccColor3B color = {255, 255, 255};
+    size_t colonPos = actionStr.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+        std::string colorStr = actionStr.substr(colonPos + 1);
+        int r = 255, g = 255, b = 255;
+        sscanf(colorStr.c_str(), "%d,%d,%d", &r, &g, &b);
+        color = {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+    }
+    ColorPlayerSettingsPopup::create(color, [popup, idx](const ccColor3B& newColor) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
+        popup->m_commandActions[idx] = std::string("color_player:") + buf;
+        popup->updateColorPlayerLabel(idx);
+    })->show();
+}
+
+void handleJumpSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size())) return;
+    std::string actionIdRaw = popup->m_commandActions[idx];
+    int jumpPlayerValue = 1;
+    bool isHold = false;
+    size_t colonPos = actionIdRaw.find(":");
+    if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+        std::string val = actionIdRaw.substr(colonPos + 1);
+        size_t holdPos = val.find(":hold");
+        if (holdPos != std::string::npos) {
+            isHold = true;
+            val = val.substr(0, holdPos);
+        }
+        if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
+            jumpPlayerValue = std::stoi(val);
+        }
+    }
+    JumpSettingsPopup::create(
+        jumpPlayerValue,
+        isHold,
+        [popup, idx](int newPlayer, bool hold) {
+            if (idx >= 0 && idx < static_cast<int>(popup->m_commandActions.size())) {
+                std::string action = "jump:" + std::to_string(newPlayer);
+                if (hold) action += ":hold";
+                popup->m_commandActions[idx] = action;
+                popup->refreshActionsList();
+            }
+        }
+    )->show();
+}
+
+void handleMoveSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size())) return;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("move", 0) != 0) return;
+    int player = 1;
+    bool moveRight = true;
+    float distance = 0.f;
+    size_t firstColon = actionStr.find(":");
+    size_t secondColon = actionStr.find(":", firstColon + 1);
+    size_t thirdColon = actionStr.find(":", secondColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        std::string playerStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+        std::string dirStr;
+        std::string distStr;
+        if (thirdColon != std::string::npos) {
+            dirStr = actionStr.substr(secondColon + 1, thirdColon - secondColon - 1);
+            distStr = actionStr.substr(thirdColon + 1);
+        } else {
+            dirStr = actionStr.substr(secondColon + 1);
+        }
+        if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
+            player = std::stoi(playerStr);
+        }
+        moveRight = (dirStr == "right");
+        if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) {
+            distance = std::stof(distStr);
+        }
+    }
+    auto popupMove = MoveSettingsPopup::create(
+        player,
+        moveRight,
+        [popup, idx](int newPlayer, bool newMoveRight, float newDistance) {
+            if (idx >= 0 && idx < static_cast<int>(popup->m_commandActions.size())) {
+                std::string dirStr = newMoveRight ? "right" : "left";
+                popup->m_commandActions[idx] = "move:" + std::to_string(newPlayer) + ":" + dirStr + ":" + std::to_string(newDistance);
+                popup->refreshActionsList();
+            }
+        }
+    );
+    if (popupMove) {
+        popupMove->setDistance(distance);
+        if (auto input = popupMove->getDistanceInput()) {
+            char distBuf[32];
+            snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
+            input->setString(distBuf);
+        }
+        popupMove->show();
+    }
+}
+
+void handleNotificationSettings(CommandSettingsPopup* popup, CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int idx = 0;
+    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (idx < 0 || idx >= as<int>(popup->m_commandActions.size())) return;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("notification", 0) != 0) return;
+    int iconTypeInt = 1;
+    std::string notifText;
+    size_t firstColon = actionStr.find(":");
+    size_t secondColon = actionStr.find(":", firstColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        iconTypeInt = std::stoi(actionStr.substr(firstColon + 1, secondColon - firstColon - 1));
+        notifText = actionStr.substr(secondColon + 1);
+    } else if (actionStr.length() > 13) {
+        notifText = actionStr.substr(13);
+    } else {
+        notifText = "";
+    }
+    NotificationSettingsPopup::create(
+        notifText,
+        [popup, idx](const std::string& newText, NotificationIconType newIconType) {
+            popup->updateNotificationNextTextLabel(idx, newText, newIconType);
+        },
+        static_cast<NotificationIconType>(iconTypeInt)
+    )->show();
+}
+
+} // namespace SettingsHandler

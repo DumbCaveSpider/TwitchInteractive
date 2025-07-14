@@ -5,7 +5,8 @@
 #include "../handler/ColorPlayerSettingsPopup.hpp"
 #include "CommandUserSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
-#include "CommandSettingsPopup.hpp"
+
+#include "../handler/SettingsHandler.hpp"
 
 #include <cocos2d.h>
 #include <cocos-ext.h>
@@ -338,66 +339,11 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
 
 // Handler for color player settings button
 void CommandSettingsPopup::onColorPlayerSettings(CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn && btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= static_cast<int>(this->m_commandActions.size())) return;
-    std::string& actionStr = this->m_commandActions[idx];
-    std::string actionStrLower = actionStr;
-    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-    // Accept both 'color player' and 'color_player' at the start, with or without :
-    if (actionStrLower.rfind("color_player", 0) != 0 && actionStrLower.rfind("color player", 0) != 0) return;
-    // Parse color from actionStr (format: "color player" or "color_player:R,G,B")
-    ccColor3B color = {255, 255, 255};
-    size_t colonPos = actionStr.find(":");
-    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
-        std::string colorStr = actionStr.substr(colonPos + 1);
-        int r = 255, g = 255, b = 255;
-        sscanf(colorStr.c_str(), "%d,%d,%d", &r, &g, &b);
-        color = {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
-    }
-    ColorPlayerSettingsPopup::create(color, [this, idx](const ccColor3B& newColor) {
-        char buf[32];
-        snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
-        this->m_commandActions[idx] = std::string("color_player:") + buf;
-        this->updateColorPlayerLabel(idx);
-    })->show();
+    SettingsHandler::handleColorPlayerSettings(this, sender);
 }
 
 void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
-    std::string actionIdRaw = m_commandActions[idx];
-    // Extract current player value as int and hold state
-    int jumpPlayerValue = 1;
-    bool isHold = false;
-    size_t colonPos = actionIdRaw.find(":");
-    if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-        std::string val = actionIdRaw.substr(colonPos + 1);
-        size_t holdPos = val.find(":hold");
-        if (holdPos != std::string::npos) {
-            isHold = true;
-            val = val.substr(0, holdPos);
-        }
-        if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos) {
-            jumpPlayerValue = std::stoi(val);
-        }
-    }
-
-    JumpSettingsPopup::create(
-        jumpPlayerValue,
-        isHold,
-        [this, idx](int newPlayer, bool hold) {
-            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
-                std::string action = "jump:" + std::to_string(newPlayer);
-                if (hold) action += ":hold";
-                m_commandActions[idx] = action;
-                refreshActionsList();
-            }
-        }
-    )->show();
+    SettingsHandler::handleJumpSettings(this, sender);
 }
 
 
@@ -421,90 +367,12 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
 
 // Move Player settings handler
 void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
-    std::string& actionStr = m_commandActions[idx];
-    std::string actionStrLower = actionStr;
-    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-    if (actionStrLower.rfind("move", 0) != 0) return;
-    // Parse player and direction
-    int player = 1;
-    bool moveRight = true;
-    float distance = 0.f;
-    size_t firstColon = actionStr.find(":");
-    size_t secondColon = actionStr.find(":", firstColon + 1);
-    size_t thirdColon = actionStr.find(":", secondColon + 1);
-    if (firstColon != std::string::npos && secondColon != std::string::npos) {
-        std::string playerStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
-        std::string dirStr;
-        std::string distStr;
-        if (thirdColon != std::string::npos) {
-            dirStr = actionStr.substr(secondColon + 1, thirdColon - secondColon - 1);
-            distStr = actionStr.substr(thirdColon + 1);
-        } else {
-            dirStr = actionStr.substr(secondColon + 1);
-        }
-        if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) {
-            player = std::stoi(playerStr);
-        }
-        moveRight = (dirStr == "right");
-        if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) {
-            distance = std::stof(distStr);
-        }
-    }
-    auto popup = MoveSettingsPopup::create(
-        player,
-        moveRight,
-        [this, idx](int newPlayer, bool newMoveRight, float newDistance) {
-            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
-                std::string dirStr = newMoveRight ? "right" : "left";
-                m_commandActions[idx] = "move:" + std::to_string(newPlayer) + ":" + dirStr + ":" + std::to_string(newDistance);
-                refreshActionsList();
-            }
-        }
-    );
-    if (popup) {
-        popup->setDistance(distance);
-        if (auto input = popup->getDistanceInput()) {
-            char distBuf[32];
-            snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
-            input->setString(distBuf);
-        }
-        popup->show();
-    }
+    SettingsHandler::handleMoveSettings(this, sender);
 }
 
 // Notification settings handler
 void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
-    std::string& actionStr = m_commandActions[idx];
-    std::string actionStrLower = actionStr;
-    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-    if (actionStrLower.rfind("notification", 0) != 0) return;
-    int iconTypeInt = 1;
-    std::string notifText;
-    size_t firstColon = actionStr.find(":");
-    size_t secondColon = actionStr.find(":", firstColon + 1);
-    if (firstColon != std::string::npos && secondColon != std::string::npos) {
-        iconTypeInt = std::stoi(actionStr.substr(firstColon + 1, secondColon - firstColon - 1));
-        notifText = actionStr.substr(secondColon + 1);
-    } else if (actionStr.length() > 13) {
-        notifText = actionStr.substr(13);
-    } else {
-        notifText = "";
-    }
-    NotificationSettingsPopup::create(
-        notifText,
-        [this, idx](const std::string& newText, NotificationIconType newIconType) {
-            updateNotificationNextTextLabel(idx, newText, newIconType);
-        },
-        static_cast<NotificationIconType>(iconTypeInt)
-    )->show();
+    SettingsHandler::handleNotificationSettings(this, sender);
 }
 
 // Handbook button handler
@@ -557,52 +425,11 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
 
 // Player Profile settings handler
 void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= static_cast<int>(m_commandActions.size())) return;
-    std::string& actionStr = m_commandActions[idx];
-    std::string actionStrLower = actionStr;
-    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-    if (actionStrLower.rfind("profile", 0) != 0) return;
-    // Extract current accountId
-    std::string accountId = "7689052";
-    size_t colonPos = actionStr.find(":");
-    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
-        accountId = actionStr.substr(colonPos + 1);
-        if (accountId.empty()) accountId = "7689052";
-    }
-    ProfileSettingsPopup::create(
-        accountId,
-        [this, idx](const std::string& newAccountId) {
-            if (idx >= 0 && idx < static_cast<int>(m_commandActions.size())) {
-                m_commandActions[idx] = "profile:" + newAccountId;
-                refreshActionsList();
-            }
-        }
-    )->show();
+    SettingsHandler::handleProfileSettings(this, sender);
 }
 // KeyCode settings handler
 void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject* sender) {
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int idx = 0;
-    if (btn->getUserObject()) idx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (idx < 0 || idx >= as<int>(m_commandActions.size())) return;
-    std::string& actionStr = m_commandActions[idx];
-    if (actionStr.rfind("keycode", 0) != 0) return;
-    std::string keyValue;
-    size_t colonPos = actionStr.find(":");
-    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
-        keyValue = actionStr.substr(colonPos + 1);
-    } else {
-        keyValue = "";
-    }
-    KeyCodesSettingsPopup::create(
-        keyValue,
-        [this, idx](const std::string& newKeyWithDuration) {
-            updateKeyCodeNextTextLabel(idx, newKeyWithDuration);
-        }
-    )->show();
+    SettingsHandler::handleKeyCodeSettings(this, sender);
 }
 
 void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey) {
