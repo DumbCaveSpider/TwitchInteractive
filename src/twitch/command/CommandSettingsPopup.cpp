@@ -311,7 +311,7 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
         allowMod,
         allowSubscriber,
         allowStreamer,
-        [this](const std::string& user, bool vip, bool mod, bool streamer, bool subscriber) {
+        [this](const std::string& user, bool vip, bool mod, bool subscriber, bool streamer) {
             m_command.allowedUser = user;
             m_command.allowVip = vip;
             m_command.allowMod = mod;

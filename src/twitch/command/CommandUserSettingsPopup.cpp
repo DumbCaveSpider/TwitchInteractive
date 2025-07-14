@@ -76,13 +76,13 @@ void CommandUserSettingsPopup::onSave(CCObject* sender) {
     onClose(sender);
 }
 
-CommandUserSettingsPopup* CommandUserSettingsPopup::create(const std::string& allowedUser, bool allowVip, bool allowMod, bool allowStreamer, bool allowSubscriber, std::function<void(const std::string&, bool, bool, bool, bool)> callback) {
+CommandUserSettingsPopup* CommandUserSettingsPopup::create(const std::string& allowedUser, bool allowVip, bool allowMod, bool allowSubscriber, bool allowStreamer, std::function<void(const std::string&, bool, bool, bool, bool)> callback) {
     auto ret = new CommandUserSettingsPopup();
     ret->m_allowedUser = allowedUser;
     ret->m_allowVip = allowVip;
     ret->m_allowMod = allowMod;
-    ret->m_allowStreamer = allowStreamer;
     ret->m_allowSubscriber = allowSubscriber;
+    ret->m_allowStreamer = allowStreamer;
     ret->m_callback = callback;
     if (ret && ret->initAnchored(320.f, 220.f)) {
         ret->autorelease();

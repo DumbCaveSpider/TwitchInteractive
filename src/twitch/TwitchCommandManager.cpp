@@ -203,7 +203,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         // Role restriction checks
         bool allowed = true;
         // If any role restriction is set, user must match at least one
-        bool hasRoleRestriction = !it->allowedUser.empty() || it->allowMod || it->allowVip || it->allowStreamer || it->allowSubscriber;
+        bool hasRoleRestriction = !it->allowedUser.empty() || it->allowMod || it->allowVip || it->allowSubscriber || it->allowStreamer;
         if (hasRoleRestriction) {
             allowed = false;
             // Check username restriction
