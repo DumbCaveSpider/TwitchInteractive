@@ -18,23 +18,25 @@ bool HandbookPopup::setup() {
 
     // Commands Settings menu
     auto topMenu = CCMenu::create();
-    topMenu->setContentSize({ width, 72.f });
-    topMenu->setPosition(0, height / 2 + 10.f); // Centered higher
+    topMenu->setContentSize({ width, 100.f });
+    // Move menu up a bit to avoid overlap with dashboard section
+    topMenu->setPosition(0, height / 2 + 10.f);
     topMenu->setID("handbook-top-menu");
 
     CCLabelBMFont* commandsLabel = CCLabelBMFont::create("Commands Settings Help", "bigFont.fnt");
     commandsLabel->setScale(0.5f);
-    commandsLabel->setPosition(width / 2, 60.f); // Near top of menu
-
+    commandsLabel->setPosition(width / 2, 88.f); // Near top of menu
     topMenu->addChild(commandsLabel);
 
+    // Top row: Events, Actions, Identifiers
+    float topRowY = 56.f;
     auto eventsBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Events", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
         this,
         menu_selector(HandbookPopup::onEventsBtn)
     );
     eventsBtn->setID("handbook-events-btn");
-    eventsBtn->setPosition({ width / 2 - tripleSpacing, 24.f });
+    eventsBtn->setPosition({ width / 2 - tripleSpacing, topRowY });
 
     auto actionBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Actions", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
@@ -42,7 +44,7 @@ bool HandbookPopup::setup() {
         menu_selector(HandbookPopup::onActionBtn)
     );
     actionBtn->setID("handbook-action-btn");
-    actionBtn->setPosition({ width / 2, 24.f });
+    actionBtn->setPosition({ width / 2, topRowY });
 
     auto identifiersBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Identifiers", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
@@ -50,26 +52,37 @@ bool HandbookPopup::setup() {
         menu_selector(HandbookPopup::onIdentifiersBtn)
     );
     identifiersBtn->setID("handbook-identifiers-btn");
-    identifiersBtn->setPosition({ width / 2 + tripleSpacing, 24.f });
+    identifiersBtn->setPosition({ width / 2 + tripleSpacing, topRowY });
+
+    // Bottom row: User/Role button centered below the top row, with spacing
+    float bottomRowY = 16.f;
+    auto userRoleBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("User/Role", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onUserRoleBtn)
+    );
+    userRoleBtn->setID("handbook-userrole-btn");
+    userRoleBtn->setPosition({ width / 2, bottomRowY });
 
     topMenu->addChild(eventsBtn);
     topMenu->addChild(actionBtn);
     topMenu->addChild(identifiersBtn);
+    topMenu->addChild(userRoleBtn);
 
     m_mainLayer->addChild(topMenu);
-
+    
     // Dashboard section
     auto dashMenu = CCMenu::create();
     dashMenu->setID("handbook-dashboard-menu");
     dashMenu->setContentSize({ width, 72.f });
-    dashMenu->setPosition({ 0.f, height / 2.f - 80.f }); // Centered lower
-
+    dashMenu->setPosition({ 0.f, height / 2.f - 70.f }); // Centered lower
+    
     CCLabelBMFont* dashLabel = CCLabelBMFont::create("Dashboard Help", "bigFont.fnt");
     dashLabel->setScale(0.5f);
     dashLabel->setPosition({ width / 2, 60.f });
-
+    
     dashMenu->addChild(dashLabel);
-
+    
     // Dashboard button
     auto dashBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Dashboard", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
@@ -78,9 +91,9 @@ bool HandbookPopup::setup() {
     );
     dashBtn->setID("handbook-dashboard-btn");
     dashBtn->setPosition({ width / 2 - 80.f, 24.f });
-
+    
     dashMenu->addChild(dashBtn);
-
+    
     // Commands button
     auto commandsBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Commands", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
@@ -89,30 +102,85 @@ bool HandbookPopup::setup() {
     );
     commandsBtn->setID("handbook-commands-btn");
     commandsBtn->setPosition({ width / 2 + 80.f, 24.f });
-
+    
     dashMenu->addChild(commandsBtn);
-
+    
     m_mainLayer->addChild(dashMenu);
 
+    // Support section
+    auto supportMenu = CCMenu::create();
+    supportMenu->setID("handbook-support-menu");
+    supportMenu->setContentSize({ width, 72.f });
+    supportMenu->setPosition({ 0.f, 0.f });
+
+    // Support label (centered)
+    CCLabelBMFont* supportLabel = CCLabelBMFont::create("Support", "bigFont.fnt");
+    supportLabel->setScale(0.5f);
+    supportLabel->setAnchorPoint({0.5f, 0.5f});
+    supportLabel->setPosition({ width / 2, 60.f });
+    supportMenu->addChild(supportLabel);
+
+    // Discord button
+    auto discordIcon = CCSprite::createWithSpriteFrameName("gj_discordIcon_001.png");
+    float iconScale = 0.9f;
+    if (discordIcon) {
+        discordIcon->setScale(iconScale);
+    }
+    auto discordBtn = CCMenuItemSpriteExtra::create(
+        discordIcon,
+        this,
+        menu_selector(HandbookPopup::onDiscordBtn)
+    );
+    discordBtn->setID("handbook-discord-btn");
+    discordBtn->setAnchorPoint({0.5f, 0.5f});
+    discordBtn->setPosition({ width / 2, 24.f });
+    supportMenu->addChild(discordBtn);
+
+    m_mainLayer->addChild(supportMenu);
+
     return true;
-};
+}
+// Support Discord button callback
+void HandbookPopup::onDiscordBtn(CCObject*) {
+    geode::utils::web::openLinkInBrowser("https://discord.gg/gXcppxTNxC");
+}
 
 // Handbook MD instructions
+
+void HandbookPopup::onUserRoleBtn(CCObject*) {
+    std::string md =
+        "# Command User/Role Restrictions\n\n"
+        "Command User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
+        "## Available Restrictions\n"
+        "- **User**: Only the specified username can use the command.\n"
+        "- **Everyone**: No restrictions, anyone can use the command *(Have all checkbox unticked)*.\n"
+        "- **VIP**: Users with Twitch VIP role can use the command.\n"
+        "- **Mod**: Users with Twitch Mod role can use the command.\n"
+        "- **Subscriber**: Users with Twitch Subscriber role can use the command.\n"
+        "- **Streamer**: User logged in on this dashboard can use the command.\n\n"
+        "You can combine multiple restrictions. If any are set, the user must match at least one to use the command.\n\n"
+        "**Tip:** Use role restrictions to protect important or powerful commands!";
+
+    MDPopup::create("User/Role Help", md, "OK", nullptr, [](bool) {})->show();
+}
+
 void HandbookPopup::onCommandsBtn(CCObject*) {
     std::string md =
-        "# Commands\n\n"
-        "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
+    "# Commands\n\n"
+    "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
+    
+    "## How to Use\n"
+    "- Every command starts with an exclamation mark (e.g., `!jump`).\n"
+    "- You can add, edit, or remove commands in the Dashboard.\n"
+    "- Apply cooldown on a specific command to prevent spamming by setting a cooldown in the settings.\n"
+    "- You can disable commands by unchecking the 'Enabled' checkbox in the Dashboard.\n"
+    "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
+    
+    "## Example\n"
+    "- If you create a command named `!cmd`, viewers can type `!cmd` in chat to trigger the associated action added to that command.\n"
+    "- You can use identifiers like `${arg}` to allow users to pass arguments (e.g., `!say Hello`).\n\n"
 
-        "## How to Use\n"
-        "- Each command starts with an exclamation mark (e.g., `!jump`).\n"
-        "- You can create, edit, or remove commands in the Dashboard.\n"
-        "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
-
-        "## Example\n"
-        "- If you create a command named `!jump`, viewers can type `!jump` in chat to trigger the associated action in-game.\n"
-        "- You can use identifiers like `${arg}` to allow users to pass arguments (e.g., `!say Hello`).\n\n"
-
-        "**Tip:** Use commands to make your stream interactive and fun!";
+    "**Tip:** Use commands to make your stream interactive and fun!";
 
     MDPopup::create("Commands Help", md, "OK", nullptr, [](bool) {})->show();
 };

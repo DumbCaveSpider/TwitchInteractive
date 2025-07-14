@@ -1,6 +1,7 @@
 #include <Geode/Geode.hpp>
 #include "CommandActionEventNode.hpp"
 #include "CommandSettingsPopup.hpp"
+#include "../handler/SettingsHandler.hpp"
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -21,7 +22,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     m_commandBg = CCScale9Sprite::create("square02_small.png");
     m_commandBg->setContentSize(CCSize(itemWidth, itemHeight - 1));
     m_commandBg->setPosition(width / 2, itemHeight / 2);
-    m_commandBg->setOpacity(100);
+    m_commandBg->setOpacity(60);
     addChild(m_commandBg);
 
     float leftPadding = 15.f;
@@ -37,11 +38,11 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     );
     nameBtn->setID("command-name-btn");
     nameBtn->setAnchorPoint({ 0.0f, 0.5f });
-    nameBtn->setPosition(leftPadding, (itemHeight / 2.f) + 5.f);
+    nameBtn->setPosition(leftPadding, (itemHeight / 2.f));
 
     // Create a menu just so it can be clicked
     auto nameMenu = CCMenu::create();
-    nameMenu->setPosition(0, 0);
+    nameMenu->setPosition(0, 9);
     nameMenu->setContentSize(nameLabel->getContentSize());
     nameMenu->addChild(nameBtn);
     addChild(nameMenu);
@@ -54,7 +55,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
     m_cooldownLabel->setScale(0.4f);
     m_cooldownLabel->setAnchorPoint({ 0.0f, 0.5f });
-    m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2.f + 5.f);
+    m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2.f + 8.5f);
     addChild(m_cooldownLabel);
 
     // Set initial cooldown label
@@ -68,8 +69,27 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     auto descLabel = CCLabelBMFont::create(m_command.description.c_str(), "chatFont.fnt");
     descLabel->setScale(0.375f);
     descLabel->setAnchorPoint({ 0.0f, 0.5f });
-    descLabel->setPosition(leftPadding, itemHeight / 2 - 8);
+    descLabel->setPosition(leftPadding, itemHeight / 2 - 2.f);
     addChild(descLabel);
+
+    // Role restriction label & Create and store role label for live updates
+    std::string roleText;
+    bool anyRole = false;
+    if (!m_command.allowedUser.empty()) { roleText += "User: " + m_command.allowedUser; anyRole = true; }
+    if (m_command.allowVip) { if (anyRole) roleText += " | "; roleText += "VIP"; anyRole = true; }
+    if (m_command.allowMod) { if (anyRole) roleText += " | "; roleText += "Mod"; anyRole = true; }
+    if (m_command.allowSubscriber) { if (anyRole) roleText += " | "; roleText += "Subscriber"; anyRole = true; }
+    if (m_command.allowStreamer) { if (anyRole) roleText += " | "; roleText += "Streamer"; anyRole = true; }
+    if (!anyRole) roleText = "Everyone";
+    m_roleLabel = CCLabelBMFont::create(roleText.c_str(), "goldFont.fnt");
+    m_roleLabel->setScale(0.32f);
+    m_roleLabel->setAnchorPoint({ 0.0f, 1.0f });
+    // Place directly under the description label
+
+    float descBottom = itemHeight / 2 - 3 - (descLabel->getContentSize().height * descLabel->getScale()) / 2;
+    m_roleLabel->setPosition(leftPadding, descBottom + 1.f);
+    m_roleLabel->setScale(0.35f);
+    addChild(m_roleLabel);
 
     // Create menu with sufficient padding for better touch detection
     auto commandEditMenu = CCMenu::create();
@@ -331,14 +351,17 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
     m_label->setAlignment(kCCTextAlignmentLeft);
     m_label->setPosition(50.f, 16.f);
 
-    auto eventMenu = CCMenu::create();
-    eventMenu->setPosition(0, 0);
-
-    addChild(eventMenu);
     addChild(m_label);
 
+
+    // Delegate Edit Camera action node UI to CommandSettingsPopup
+    // addEditCameraActionNodeUI was removed; edit camera action node UI is now handled in CommandSettingsPopup::refreshActionsList
+
     return true;
-};
+}
+void CommandActionEventNode::onCameraSettingsClicked(cocos2d::CCObject* sender) {
+    // TODO: Implement camera settings click handler
+}
 
 CommandActionEventNode* CommandActionEventNode::createActionNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale,
                                                                  CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {
@@ -408,6 +431,8 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. Don't use this while beating extremes!"},
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
+        {"color_player", "Color Player", "Set the player's color based on the RGB value."},
+        {"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
         {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
@@ -416,6 +441,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     };
 
     return nodes;
+// Add handling for Color Player event node in action/event node logic as needed
 };
 
 // Unified interface
@@ -428,14 +454,28 @@ bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize)
     return true;
 };
 
+
+
+// Update the role label text to reflect current m_command
+void CommandActionEventNode::updateRoleLabel() {
+    if (!m_roleLabel) return;
+    std::string roleText;
+    bool anyRole = false;
+    if (!m_command.allowedUser.empty()) { roleText += "User: " + m_command.allowedUser; anyRole = true; }
+    if (m_command.allowVip) { if (anyRole) roleText += " | "; roleText += "VIP"; anyRole = true; }
+    if (m_command.allowMod) { if (anyRole) roleText += " | "; roleText += "Mod"; anyRole = true; }
+    if (m_command.allowSubscriber) { if (anyRole) roleText += " | "; roleText += "Subscriber"; anyRole = true; }
+    if (m_command.allowStreamer) { if (anyRole) roleText += " | "; roleText += "Streamer"; anyRole = true; }
+    if (!anyRole) roleText = "Everyone";
+    m_roleLabel->setString(roleText.c_str());
+}
+
 CommandActionEventNode* CommandActionEventNode::create(TwitchCommandAction action, CCSize scrollSize) {
     auto ret = new CommandActionEventNode();
-
     if (ret && ret->init(action, scrollSize)) {
         ret->autorelease();
         return ret;
-    };
-
+    }
     CC_SAFE_DELETE(ret);
     return nullptr;
-};
+}

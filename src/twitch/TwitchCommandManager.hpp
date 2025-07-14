@@ -52,7 +52,15 @@ struct TwitchCommand {
     std::string name; // All lowercase name of the command
     std::string description; // Brief description of the command
 
+
     std::vector<TwitchCommandAction> actions; // List of actions in order
+
+    // User/role restrictions
+    std::string allowedUser;
+    bool allowVip = false;
+    bool allowMod = false;
+    bool allowStreamer = false;
+    bool allowSubscriber = false;
 
     bool enabled = true; // If the command is enabled
     int cooldown = 0; // Cooldown in seconds
@@ -65,8 +73,14 @@ struct TwitchCommand {
         const std::string& cmdDesc = "",
         const std::string& cmdResponse = "",
         int cmdCooldown = 0,
-        std::vector<TwitchCommandAction> cmdActions = {}
-    ) : name(cmdName), description(cmdDesc), response(cmdResponse), cooldown(cmdCooldown), actions(cmdActions) {};
+        std::vector<TwitchCommandAction> cmdActions = {},
+        const std::string& allowedUser_ = "",
+        bool allowVip_ = false,
+        bool allowMod_ = false,
+        bool allowStreamer_ = false,
+        bool allowSubscriber_ = false
+    ) : name(cmdName), description(cmdDesc), response(cmdResponse), cooldown(cmdCooldown), actions(cmdActions),
+        allowedUser(allowedUser_), allowVip(allowVip_), allowMod(allowMod_), allowStreamer(allowStreamer_), allowSubscriber(allowSubscriber_) {};
 };
 
 class TwitchCommandManager {

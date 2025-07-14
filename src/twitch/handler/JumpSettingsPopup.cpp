@@ -1,6 +1,4 @@
 #include "JumpSettingsPopup.hpp"
-
-#include <fmt/core.h>
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
@@ -15,6 +13,8 @@ bool JumpSettingsPopup::setup(int actionIndex) {
     float y = 190.f;
     float x = m_mainLayer->getContentSize().width / 2;
     float spacing = 50.f;
+
+    this->m_noElasticity = true;
 
     // Player 1 button
     auto p1Btn = CCMenuItemSpriteExtra::create(
