@@ -21,7 +21,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     m_commandBg = CCScale9Sprite::create("square02_small.png");
     m_commandBg->setContentSize(CCSize(itemWidth, itemHeight - 1));
     m_commandBg->setPosition(width / 2, itemHeight / 2);
-    m_commandBg->setOpacity(100);
+    m_commandBg->setOpacity(60);
     addChild(m_commandBg);
 
     float leftPadding = 15.f;
@@ -77,8 +77,8 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     if (!m_command.allowedUser.empty()) { roleText += "User: " + m_command.allowedUser; anyRole = true; }
     if (m_command.allowVip) { if (anyRole) roleText += " | "; roleText += "VIP"; anyRole = true; }
     if (m_command.allowMod) { if (anyRole) roleText += " | "; roleText += "Mod"; anyRole = true; }
-    if (m_command.allowStreamer) { if (anyRole) roleText += " | "; roleText += "Streamer"; anyRole = true; }
     if (m_command.allowSubscriber) { if (anyRole) roleText += " | "; roleText += "Subscriber"; anyRole = true; }
+    if (m_command.allowStreamer) { if (anyRole) roleText += " | "; roleText += "Streamer"; anyRole = true; }
     if (!anyRole) roleText = "Everyone";
     m_roleLabel = CCLabelBMFont::create(roleText.c_str(), "goldFont.fnt");
     m_roleLabel->setScale(0.32f);
@@ -455,8 +455,8 @@ void CommandActionEventNode::updateRoleLabel() {
     if (!m_command.allowedUser.empty()) { roleText += "User: " + m_command.allowedUser; anyRole = true; }
     if (m_command.allowVip) { if (anyRole) roleText += " | "; roleText += "VIP"; anyRole = true; }
     if (m_command.allowMod) { if (anyRole) roleText += " | "; roleText += "Mod"; anyRole = true; }
-    if (m_command.allowStreamer) { if (anyRole) roleText += " | "; roleText += "Streamer"; anyRole = true; }
     if (m_command.allowSubscriber) { if (anyRole) roleText += " | "; roleText += "Subscriber"; anyRole = true; }
+    if (m_command.allowStreamer) { if (anyRole) roleText += " | "; roleText += "Streamer"; anyRole = true; }
     if (!anyRole) roleText = "Everyone";
     m_roleLabel->setString(roleText.c_str());
 }

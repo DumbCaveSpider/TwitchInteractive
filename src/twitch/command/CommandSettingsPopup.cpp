@@ -75,7 +75,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
     eventScrollBg->setID("events-scroll-background");
     eventScrollBg->setContentSize(scrollSize);
-    eventScrollBg->setOpacity(80);
+    eventScrollBg->setOpacity(50);
     eventScrollBg->setAnchorPoint({0.5f, 0.5f});
     eventScrollBg->setScale(1.05f);
     eventScrollBg->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height / 2);
@@ -90,7 +90,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
     actionScrollBg->setID("actions-scroll-background");
     actionScrollBg->setContentSize(scrollSize);
-    actionScrollBg->setOpacity(80);
+    actionScrollBg->setOpacity(50);
     actionScrollBg->setAnchorPoint({0.5f, 0.5f});
     actionScrollBg->setScale(1.05f);
     actionScrollBg->setPosition(actionSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height / 2);
@@ -298,20 +298,20 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
     std::string allowedUser = m_command.allowedUser;
     bool allowVip = m_command.allowVip;
     bool allowMod = m_command.allowMod;
-    bool allowStreamer = m_command.allowStreamer;
     bool allowSubscriber = m_command.allowSubscriber;
+    bool allowStreamer = m_command.allowStreamer;
     auto popup = CommandUserSettingsPopup::create(
         allowedUser,
         allowVip,
         allowMod,
-        allowStreamer,
         allowSubscriber,
+        allowStreamer,
         [this](const std::string& user, bool vip, bool mod, bool streamer, bool subscriber) {
             m_command.allowedUser = user;
             m_command.allowVip = vip;
             m_command.allowMod = mod;
-            m_command.allowStreamer = streamer;
             m_command.allowSubscriber = subscriber;
+            m_command.allowStreamer = streamer;
 
             // Update all CommandActionEventNode role labels in the UI
             if (m_actionContent) {

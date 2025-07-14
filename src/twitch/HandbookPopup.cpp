@@ -18,24 +18,25 @@ bool HandbookPopup::setup() {
 
     // Commands Settings menu
     auto topMenu = CCMenu::create();
-    topMenu->setContentSize({ width, 72.f });
-    topMenu->setPosition(0, height / 2 + 10.f); // Centered higher
+    topMenu->setContentSize({ width, 100.f });
+    // Move menu up a bit to avoid overlap with dashboard section
+    topMenu->setPosition(0, height / 2 + 10.f);
     topMenu->setID("handbook-top-menu");
 
     CCLabelBMFont* commandsLabel = CCLabelBMFont::create("Commands Settings Help", "bigFont.fnt");
     commandsLabel->setScale(0.5f);
-    commandsLabel->setPosition(width / 2, 60.f); // Near top of menu
-
+    commandsLabel->setPosition(width / 2, 88.f); // Near top of menu
     topMenu->addChild(commandsLabel);
 
-    // Add User/Role button
+    // Top row: Events, Actions, Identifiers
+    float topRowY = 56.f;
     auto eventsBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Events", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
         this,
         menu_selector(HandbookPopup::onEventsBtn)
     );
     eventsBtn->setID("handbook-events-btn");
-    eventsBtn->setPosition({ width / 2 - tripleSpacing - 70.f, 24.f });
+    eventsBtn->setPosition({ width / 2 - tripleSpacing, topRowY });
 
     auto actionBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Actions", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
@@ -43,15 +44,7 @@ bool HandbookPopup::setup() {
         menu_selector(HandbookPopup::onActionBtn)
     );
     actionBtn->setID("handbook-action-btn");
-    actionBtn->setPosition({ width / 2 - 70.f, 24.f });
-
-    auto userRoleBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("User/Role", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
-        this,
-        menu_selector(HandbookPopup::onUserRoleBtn)
-    );
-    userRoleBtn->setID("handbook-userrole-btn");
-    userRoleBtn->setPosition({ width / 2 + 0.f, 24.f });
+    actionBtn->setPosition({ width / 2, topRowY });
 
     auto identifiersBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Identifiers", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
@@ -59,13 +52,23 @@ bool HandbookPopup::setup() {
         menu_selector(HandbookPopup::onIdentifiersBtn)
     );
     identifiersBtn->setID("handbook-identifiers-btn");
-    identifiersBtn->setPosition({ width / 2 + tripleSpacing, 24.f });
+    identifiersBtn->setPosition({ width / 2 + tripleSpacing, topRowY });
+
+    // Bottom row: User/Role button centered below the top row, with spacing
+    float bottomRowY = 16.f;
+    auto userRoleBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("User/Role", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onUserRoleBtn)
+    );
+    userRoleBtn->setID("handbook-userrole-btn");
+    userRoleBtn->setPosition({ width / 2, bottomRowY });
 
     topMenu->addChild(eventsBtn);
     topMenu->addChild(actionBtn);
-    topMenu->addChild(userRoleBtn);
     topMenu->addChild(identifiersBtn);
-    
+    topMenu->addChild(userRoleBtn);
+
     m_mainLayer->addChild(topMenu);
     
     // Dashboard section
@@ -112,13 +115,13 @@ bool HandbookPopup::setup() {
 void HandbookPopup::onUserRoleBtn(CCObject*) {
     std::string md =
         "# User/Role Restrictions\n\n"
-        "User/Role restrictions let you control who can use a command in your Twitch chat.\n\n"
+        "User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
         "## Available Restrictions\n"
         "- **User**: Only the specified username can use the command.\n"
         "- **Everyone**: No restrictions, anyone can use the command *(Have all checkbox unticked)*.\n"
-        "- **VIP**: Users with Twitch VIPs can use the command.\n"
-        "- **Mod**: Users with Twitch moderators can use the command.\n"
-        "- **Subscriber**: Users with Twitch subscribers can use the command.\n"
+        "- **VIP**: Users with Twitch VIP role can use the command.\n"
+        "- **Mod**: Users with Twitch Mod role can use the command.\n"
+        "- **Subscriber**: Users with Twitch Subscriber role can use the command.\n"
         "- **Streamer**: User logged in on this dashboard can use the command.\n\n"
         "You can combine multiple restrictions. If any are set, the user must match at least one to use the command.\n\n"
         "**Tip:** Use role restrictions to protect important or powerful commands!";
@@ -132,8 +135,9 @@ void HandbookPopup::onCommandsBtn(CCObject*) {
     "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
     
     "## How to Use\n"
-    "- Each command starts with an exclamation mark (e.g., `!jump`).\n"
-    "- You can create, edit, or remove commands in the Dashboard.\n"
+    "- Every command starts with an exclamation mark (e.g., `!jump`).\n"
+    "- You can add, edit, or remove commands in the Dashboard.\n"
+    "- You can disable commands by unchecking the 'Enabled' checkbox in the Dashboard.\n"
     "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
     
     "## Example\n"

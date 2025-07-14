@@ -29,8 +29,8 @@ bool CommandUserSettingsPopup::setup() {
     RoleTogglerInfo togglers[] = {
         {"VIP",      x - 90, &m_vipToggler, m_allowVip},
         {"Mod",      x - 30, &m_modToggler, m_allowMod},
-        {"Subscriber", x + 90, &m_subscriberToggler, m_allowSubscriber},
-        {"Streamer", x + 30, &m_streamerToggler, m_allowStreamer},
+        {"Subscriber", x + 30, &m_subscriberToggler, m_allowSubscriber},
+        {"Streamer", x + 90, &m_streamerToggler, m_allowStreamer},
     };
     // Add togglers to a CCMenu for proper touch handling
     auto togglerMenu = CCMenu::create();
