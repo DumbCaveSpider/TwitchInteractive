@@ -12,4 +12,5 @@ namespace SettingsHandler {
     void handleJumpSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
     void handleMoveSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
     void handleNotificationSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
+    void handleCameraSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
 }

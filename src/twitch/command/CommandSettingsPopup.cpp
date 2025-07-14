@@ -1,18 +1,60 @@
+#include "CommandSettingsPopup.hpp"
+#include "CommandActionEventNode.hpp"
+#include "../TwitchCommandManager.hpp"
+#include <cocos2d.h>
+#include <cocos-ext.h>
+#include <algorithm>
 #include "../handler/KeyCodesSettingsPopup.hpp"
 #include "../handler/ProfileSettingsPopup.hpp"
 #include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/ColorPlayerSettingsPopup.hpp"
 #include "CommandUserSettingsPopup.hpp"
-#include "CommandActionEventNode.hpp"
-
 #include "../handler/SettingsHandler.hpp"
 
-#include <cocos2d.h>
-#include <cocos-ext.h>
-#include <algorithm>
-
 using namespace cocos2d;
+
+void CommandSettingsPopup::addEditCameraActionNodeUI(CCNode* parent, const std::string& labelText, const TwitchCommandAction& action, int actionIndex) {
+    std::string labelLower = labelText;
+    std::transform(labelLower.begin(), labelLower.end(), labelLower.begin(), ::tolower);
+    if (labelLower == "edit camera") {
+        // Parse values from action.arg (format: skew,rot,scale,time)
+        float skew = 0.f, rot = 0.f, scale = 1.f, time = 0.f;
+        if (!action.arg.empty()) {
+            sscanf(action.arg.c_str(), "%f,%f,%f,%f", &skew, &rot, &scale, &time);
+        }
+        // Show values below main label
+        std::string cameraLabelId = "camera-action-text-label-" + std::to_string(actionIndex);
+        float labelX = 50.f; // Match m_label->getPositionX() in node
+        float labelY = 6.f;
+        char buf[64];
+        snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2f", skew, rot, scale, time);
+        auto cameraLabel = CCLabelBMFont::create(buf, "chatFont.fnt");
+        cameraLabel->setScale(0.5f);
+        cameraLabel->setAnchorPoint({ 0, 0.5f });
+        cameraLabel->setAlignment(kCCTextAlignmentLeft);
+        cameraLabel->setPosition(labelX, labelY);
+        cameraLabel->setID(cameraLabelId);
+        parent->addChild(cameraLabel);
+
+        // Settings button for camera (same style as others)
+        auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+        settingsSprite->setScale(0.5f);
+        auto settingsBtn = CCMenuItemSpriteExtra::create(
+            settingsSprite,
+            parent,
+            menu_selector(CommandActionEventNode::onCameraSettingsClicked)
+        );
+        settingsBtn->setID("camera-settings-btn-" + std::to_string(actionIndex));
+        settingsBtn->setUserObject(CCInteger::create(actionIndex));
+        auto settingsMenu = CCMenu::create();
+        settingsMenu->addChild(settingsBtn);
+        settingsMenu->setPosition(0, 0);
+        float btnX = parent->getContentSize().width - 24.f;
+        settingsBtn->setPosition(btnX - 40.f, 16.f);
+        parent->addChild(settingsMenu);
+    }
+}
 using namespace geode::prelude;
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
@@ -552,7 +594,8 @@ void CommandSettingsPopup::refreshActionsList() {
             actionIdLower.rfind("jump", 0) == 0 ||
             actionIdLower.rfind("profile", 0) == 0 ||
             actionIdLower.rfind("move", 0) == 0 ||
-            actionIdLower.rfind("color_player", 0) == 0
+            actionIdLower.rfind("color_player", 0) == 0 ||
+            actionIdLower.rfind("edit_camera", 0) == 0
         ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
         }
