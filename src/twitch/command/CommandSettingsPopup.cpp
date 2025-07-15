@@ -22,6 +22,53 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
+// Enum for action label types that use a labelId
+enum class ActionLabelType {
+    Notification,
+    ColorPlayer,
+    Profile,
+    KeyCode,
+    Jump,
+    Move,
+    EditCamera,
+    Unknown
+};
+
+// Helper to get ActionLabelType from actionId string
+ActionLabelType getActionLabelType(const std::string& actionIdLower) {
+    if (actionIdLower.rfind("notification", 0) == 0) return ActionLabelType::Notification;
+    if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) return ActionLabelType::ColorPlayer;
+    if (actionIdLower.rfind("profile", 0) == 0) return ActionLabelType::Profile;
+    if (actionIdLower.rfind("keycode", 0) == 0) return ActionLabelType::KeyCode;
+    if (actionIdLower.rfind("jump", 0) == 0) return ActionLabelType::Jump;
+    if (actionIdLower.rfind("move", 0) == 0) return ActionLabelType::Move;
+    if (actionIdLower.rfind("edit_camera", 0) == 0) return ActionLabelType::EditCamera;
+    return ActionLabelType::Unknown;
+}
+
+// Centralized label position for each action label type
+struct ActionLabelPosition {
+    float xOffset;
+    float yOffset;
+};
+
+ActionLabelPosition getActionLabelPosition(ActionLabelType type) {
+    switch (type) {
+        case ActionLabelType::Notification:
+            return {0.f, 5.f};
+        case ActionLabelType::ColorPlayer:
+        case ActionLabelType::Profile:
+        case ActionLabelType::KeyCode:
+        case ActionLabelType::Jump:
+        case ActionLabelType::Move:
+            return {0.f, 5.f};
+        case ActionLabelType::EditCamera:
+            return {0.f, 5.f};
+        default:
+            return {0.f, 5.f};
+    }
+}
+
 // Free function to add or update a label for an action node with uniform style
 void addOrUpdateActionLabel(CCNode* actionNode, const std::string& labelId, const std::string& text, float x, float y) {
     if (!actionNode) return;
@@ -633,8 +680,12 @@ void CommandSettingsPopup::refreshActionsList() {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 5.f);
         }
 
+        // Unified label position logic for all action nodes with labelId
+        ActionLabelType labelType = getActionLabelType(actionIdLower);
+        ActionLabelPosition labelPos = getActionLabelPosition(labelType);
+
         // Notification action node (case-insensitive)
-        if (actionIdLower.rfind("notification", 0) == 0) {
+        if (labelType == ActionLabelType::Notification) {
             int iconTypeInt = 1;
             std::string notifText;
             size_t firstColon = actionIdRaw.find(":");
@@ -649,7 +700,7 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 5.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
@@ -689,8 +740,8 @@ void CommandSettingsPopup::refreshActionsList() {
             actionNode->addChild(settingsMenu);
         }
 
-        // Color Player action node (unified UI, same as notification/move)
-        if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
+        // Color Player action node (unified UI)
+        if (labelType == ActionLabelType::ColorPlayer) {
             std::string rgbText = "255,255,255";
             int r = 255, g = 255, b = 255;
             size_t colonPos = m_commandActions[i].find(":");
@@ -704,7 +755,7 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             std::string colorLabelId = "color-player-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
@@ -737,7 +788,7 @@ void CommandSettingsPopup::refreshActionsList() {
 
 
         // Player Profile action node (unified UI)
-        if (actionIdLower.rfind("profile", 0) == 0) {
+        if (labelType == ActionLabelType::Profile) {
             std::string accountId = "7689052";
             size_t colonPos = actionIdRaw.find(":");
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
@@ -746,7 +797,7 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             std::string profileLabelId = "profile-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
@@ -772,8 +823,8 @@ void CommandSettingsPopup::refreshActionsList() {
             settingsBtn->setPosition(btnX - 40.f, 16.f);
         }
 
-        // KeyCode action node (unified UI with notification)
-        if (actionId.rfind("keycode", 0) == 0) {
+        // KeyCode action node (unified UI)
+        if (labelType == ActionLabelType::KeyCode) {
             std::string keyValue = "";
             size_t colonPos = actionIdRaw.find(":");
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
@@ -795,7 +846,7 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             auto keyLabelId = "keycode-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
@@ -818,32 +869,32 @@ void CommandSettingsPopup::refreshActionsList() {
             actionNode->addChild(settingsMenu);
             float btnX = m_actionContent->getContentSize().width - 24.f;
             settingsBtn->setPosition(btnX - 40.f, 16.f);
-        };
+        }
 
-        // Jump action node (unified UI with notification)
-        if (actionId == "jump" && !jumpPlayerValue.empty()) {
+        // Jump action node (unified UI)
+        if (labelType == ActionLabelType::Jump && !jumpPlayerValue.empty()) {
             std::string playerValueClean = jumpPlayerValue;
             size_t holdPos = playerValueClean.find(":hold");
             if (holdPos != std::string::npos) {
                 playerValueClean = playerValueClean.substr(0, holdPos);
-            };
+            }
             std::string playerInfo;
             if (playerValueClean == "3") {
                 playerInfo = "Both Players";
             } else {
                 playerInfo = "Player " + playerValueClean;
-            };
+            }
             bool isHold = false;
             if (m_commandActions[i].find(":hold") != std::string::npos) isHold = true;
             if (isHold) playerInfo += " (Hold)";
             auto playerLabelId = "jump-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
                 labelX = 8.f;
-            };
+            }
             addOrUpdateActionLabel(actionNode, playerLabelId, playerInfo, labelX, labelY);
 
             auto settingsMenu = CCMenu::create();
@@ -866,10 +917,10 @@ void CommandSettingsPopup::refreshActionsList() {
 
             settingsMenu->addChild(settingsBtn);
             actionNode->addChild(settingsMenu);
-        };
+        }
 
         // Move Player action node (unified UI)
-        if (actionIdLower.rfind("move", 0) == 0) {
+        if (labelType == ActionLabelType::Move) {
             int player = 1;
             std::string direction = "right";
             float distance = 0.f;
@@ -885,19 +936,19 @@ void CommandSettingsPopup::refreshActionsList() {
                     distStr = actionIdRaw.substr(thirdColon + 1);
                 } else {
                     dirStr = actionIdRaw.substr(secondColon + 1);
-                };
+                }
                 if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) player = std::stoi(playerStr);
                 direction = dirStr;
                 if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) distance = std::stof(distStr);
             }
             std::string moveLabelId = "move-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
                 labelX = 8.f;
-            };
+            }
             char distBuf[32];
             snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
             std::string labelText = "Player " + std::to_string(player) + ": " + (direction == "right" ? "Right" : "Left") + " (" + distBuf + ")";
@@ -923,10 +974,10 @@ void CommandSettingsPopup::refreshActionsList() {
 
             settingsMenu->addChild(settingsBtn);
             actionNode->addChild(settingsMenu);
-        };
+        }
 
         // Edit Camera action node (show settings label and button)
-        if (actionIdLower.rfind("edit_camera", 0) == 0) {
+        if (labelType == ActionLabelType::EditCamera) {
             float zoom = 1.0f;
             float x = 0.0f;
             float y = 0.0f;
@@ -953,7 +1004,7 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 5.f;
+            float labelY = labelPos.yOffset;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
