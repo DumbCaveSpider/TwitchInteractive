@@ -86,6 +86,7 @@ bool TwitchDashboard::setup() {
     m_commandScrollLayer = ScrollLayer::create(CCSize(scrollWidth, scrollHeight - 10.f));
     m_commandScrollLayer->setID("commands-scroll");
     m_commandScrollLayer->setPositionY(5.f);
+    m_commandScrollLayer->setTouchPriority(-100);
 
     // Create a column layout for organizing commands vertically
     auto columnLayout = ColumnLayout::create()
