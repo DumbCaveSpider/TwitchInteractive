@@ -294,6 +294,8 @@ void TwitchDashboard::onToggleCommandListen(CCObject* sender) {
     saveListenState();
 
     log::info("CommandListen toggled: {}", s_listening ? "Listening" : "Not Listening");
+    // Update all PauseLayer Twitch status labels immediately
+    updateAllPauseLayerTwitchStatus();
 };
 
 bool TwitchDashboard::isListening() {
@@ -338,17 +340,7 @@ void TwitchDashboard::onClose(CCObject* sender) {
     Popup::onClose(sender);
 
     // Update Twitch status label in all PauseLayers when dashboard closes
-    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene()) {
-        auto& children = *scene->getChildren();
-        for (int i = 0; i < children.count(); ++i) {
-            auto node = static_cast<cocos2d::CCNode*>(children.objectAtIndex(i));
-            if (auto pause = dynamic_cast<PauseLayer*>(node)) {
-                if (auto myPause = dynamic_cast<MyPauseLayer*>(pause)) {
-                    myPause->updateTwitchStatusLabel();
-                }
-            }
-        }
-    }
+    updateAllPauseLayerTwitchStatus();
 };
 
 void TwitchDashboard::onAddCustomCommand(CCObject* sender) {

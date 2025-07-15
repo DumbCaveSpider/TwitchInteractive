@@ -88,7 +88,7 @@ class $modify(MyPauseLayer, PauseLayer) {
     void customSetup() {
         PauseLayer::customSetup();
 
-        // Add Twitch listening status label
+        // Add Twitch listening status label (hidden by default)
         if (!m_fields->m_twitchStatusLabel) {
             m_fields->m_twitchStatusLabel = CCLabelBMFont::create("Twitch Chat: Listening", "bigFont.fnt");
             m_fields->m_twitchStatusLabel->setAnchorPoint({0.0f, 0.0f});
@@ -98,9 +98,10 @@ class $modify(MyPauseLayer, PauseLayer) {
             m_fields->m_twitchStatusLabel->setScale(0.3f);
             m_fields->m_twitchStatusLabel->setZOrder(100);
             m_fields->m_twitchStatusLabel->setColor({163, 92, 255}); // Twitch purple
-            m_fields->m_twitchStatusLabel->setOpacity(50);
+            m_fields->m_twitchStatusLabel->setVisible(false); // always hidden by default
             addChild(m_fields->m_twitchStatusLabel);
         }
+        // Always update the label after creation
         updateTwitchStatusLabel();
 
         // login circle button in right side menu
@@ -129,6 +130,7 @@ class $modify(MyPauseLayer, PauseLayer) {
 
     void updateTwitchStatusLabel() {
         if (!m_fields->m_twitchStatusLabel) return;
+        // Show label only if command listen is enabled
         if (TwitchDashboard::isListening()) {
             m_fields->m_twitchStatusLabel->setString("Twitch: Listening");
             m_fields->m_twitchStatusLabel->setVisible(true);
