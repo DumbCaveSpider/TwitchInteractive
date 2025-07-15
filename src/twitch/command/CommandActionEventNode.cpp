@@ -353,15 +353,9 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
 
     addChild(m_label);
 
-
-    // Delegate Edit Camera action node UI to CommandSettingsPopup
-    // addEditCameraActionNodeUI was removed; edit camera action node UI is now handled in CommandSettingsPopup::refreshActionsList
-
     return true;
 }
-void CommandActionEventNode::onCameraSettingsClicked(cocos2d::CCObject* sender) {
-    // TODO: Implement camera settings click handler
-}
+
 
 CommandActionEventNode* CommandActionEventNode::createActionNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale,
                                                                  CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {

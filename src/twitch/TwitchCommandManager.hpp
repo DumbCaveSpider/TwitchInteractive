@@ -8,7 +8,10 @@
 #include <functional>
 #include <unordered_map>
 
+
 #include <Geode/Geode.hpp>
+#include <Geode/loader/dirs.hpp>
+#include <Geode/utils/file.hpp>
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 

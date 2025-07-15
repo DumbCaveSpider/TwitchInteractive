@@ -22,7 +22,7 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
-// Enum for action label types that use a labelId
+// action label types that use a labelId
 enum class ActionLabelType {
     Notification,
     ColorPlayer,
@@ -905,7 +905,7 @@ void CommandSettingsPopup::refreshActionsList() {
 
             float btnX = m_actionContent->getContentSize().width - 24.f;
 
-            // Always create a new menu for the settings button to ensure it's clickable and not overlapped
+            // settings button
             auto settingsBtn = CCMenuItemSpriteExtra::create(
                 settingsSprite,
                 this,

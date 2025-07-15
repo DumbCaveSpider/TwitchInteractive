@@ -79,10 +79,14 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
 };
 
 // Get the path to the commands save file
+#include <Geode/utils/file.hpp>
+#include <Geode/loader/dirs.hpp>
 std::string TwitchCommandManager::getSavePath() const {
-    // Save in the mod's directory as commands.json
-    return "commands.json";
-};
+    // Use Geode's mod save directory for cross-platform compatibility
+    std::string saveDir = geode::dirs::getModsSaveDir().string();
+    geode::utils::file::createDirectoryAll(saveDir); // Ensure directory exists
+    return saveDir + "/commands.json";
+}
 
 matjson::Value TwitchCommand::toJson() const {
     matjson::Value v = matjson::Value::object();
