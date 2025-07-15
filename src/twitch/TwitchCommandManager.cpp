@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include <Geode/utils/file.hpp>
+#include <Geode/loader/Dirs.hpp>
+
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 using namespace geode::prelude;
 
@@ -78,9 +81,6 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     return cmd;
 };
 
-// Get the path to the commands save file
-#include <Geode/utils/file.hpp>
-#include <Geode/loader/dirs.hpp>
 std::string TwitchCommandManager::getSavePath() const {
     // Use Geode's mod save directory for cross-platform compatibility
     std::string saveDir = geode::dirs::getModsSaveDir().string();
