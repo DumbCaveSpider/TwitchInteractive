@@ -30,7 +30,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     float sectionY = (popupHeight - sectionHeight) / 2.0f;
     float scrollY = sectionY;
-    // Align scroll backgrounds and scroll layers at the same Y position
+
     float scrollBgY = scrollY;
     float scrollLayerY = scrollY;
 
@@ -383,7 +383,8 @@ void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
     if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (actionIdx < 0 || actionIdx >= static_cast<int>(m_commandActions.size())) return;
     // Parse current values from m_commandActions[actionIdx]
-    float zoom = 1.0f, x = 0.0f, y = 0.0f, duration = 0.0f;
+    // For context: zoom is skew, x is rotation, y is scale, duration is time (dont ask me why this is called ;-;)
+    float zoom = 0.0f, x = 0.0f, y = 1.0f, duration = 0.0f;
     const std::string& actionIdRaw = m_commandActions[actionIdx];
     size_t firstColon = actionIdRaw.find(":");
     size_t secondColon = actionIdRaw.find(":", firstColon + 1);
@@ -411,7 +412,7 @@ void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
             if (actionNode) {
                 std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
                 char labelBuf[128];
-                snprintf(labelBuf, sizeof(labelBuf), "Zoom: %.2f, Rot: %.2f, Scl: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
+                snprintf(labelBuf, sizeof(labelBuf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
                 if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
             }
         }
@@ -1015,10 +1016,10 @@ void CommandSettingsPopup::refreshActionsList() {
                 if (!yStr.empty()) y = std::stof(yStr);
                 if (!durStr.empty()) duration = std::stof(durStr);
                 char buf[128];
-                snprintf(buf, sizeof(buf), "Zoom: %.2f, Rot: %.2f, Scl: %.2f, Time: %.2fs", zoom, x, y, duration);
+                snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", zoom, x, y, duration);
                 cameraLabel = buf;
             } else {
-                cameraLabel = "Zoom: 1.00, Rot: 0.00, Scl: 0.00, Time: 0.00s";
+                cameraLabel = "Skew: 0.00, Rot: 0.00, Scale: 1.00, Time: 0.00s";
             }
             std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
@@ -1355,7 +1356,6 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
 };
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
-    // Overload: default to Info if not provided
     updateNotificationNextTextLabel(actionIdx, nextText, NotificationIconType::Info);
 };
 
