@@ -1,5 +1,6 @@
 #include <Geode/Geode.hpp>
 #include "TwitchDashboard.hpp"
+#include "../main.cpp"
 
 #include "TwitchCommandManager.hpp"
 
@@ -12,6 +13,7 @@
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
 using namespace geode::prelude;
+class MyPauseLayer;
 
 extern void resetCommandCooldown(const std::string& commandName);
 
@@ -156,6 +158,21 @@ void TwitchDashboard::setupCommandsList() {
 
     refreshCommandsList();
 };
+
+// Helper to update all PauseLayer Twitch status labels
+static void updateAllPauseLayerTwitchStatus() {
+    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene()) {
+        auto& children = *scene->getChildren();
+        for (int i = 0; i < children.count(); ++i) {
+            auto node = static_cast<cocos2d::CCNode*>(children.objectAtIndex(i));
+            if (auto pause = dynamic_cast<PauseLayer*>(node)) {
+                if (auto myPause = dynamic_cast<MyPauseLayer*>(pause)) {
+                    myPause->updateTwitchStatusLabel();
+                }
+            }
+        }
+    }
+}
 
 void TwitchDashboard::refreshCommandsList() {
     // Remove all existing command items
@@ -319,6 +336,19 @@ void TwitchDashboard::onClose(CCObject* sender) {
     stopAllActions();
 
     Popup::onClose(sender);
+
+    // Update Twitch status label in all PauseLayers when dashboard closes
+    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene()) {
+        auto& children = *scene->getChildren();
+        for (int i = 0; i < children.count(); ++i) {
+            auto node = static_cast<cocos2d::CCNode*>(children.objectAtIndex(i));
+            if (auto pause = dynamic_cast<PauseLayer*>(node)) {
+                if (auto myPause = dynamic_cast<MyPauseLayer*>(pause)) {
+                    myPause->updateTwitchStatusLabel();
+                }
+            }
+        }
+    }
 };
 
 void TwitchDashboard::onAddCustomCommand(CCObject* sender) {

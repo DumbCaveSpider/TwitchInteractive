@@ -133,7 +133,7 @@ bool HandbookPopup::setup() {
     );
     discordBtn->setID("handbook-discord-btn");
     discordBtn->setAnchorPoint({0.5f, 0.5f});
-    discordBtn->setPosition({ width / 2, 24.f });
+    discordBtn->setPosition({ width / 2, 30.f });
     supportMenu->addChild(discordBtn);
 
     m_mainLayer->addChild(supportMenu);

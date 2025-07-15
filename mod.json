@@ -18,8 +18,14 @@
 	],
 	"links": {
 		"source": "https://github.com/DumbCaveSpider/TwitchInteractive",
-		"community": "https://discord.gg/gXcppxTNxC"
+		"community": "https://discord.gg/gXcppxTNxC",
+		"homepage": "https://arcticwoof.com.au"
 	},
+    "resources": {
+        "sprites": [
+            "resources/AW_creatortwitchBtn_001.png"
+        ]
+    },
 	"dependencies": {
 		"geode.node-ids": {
 			"importance": "required",

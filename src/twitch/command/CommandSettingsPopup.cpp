@@ -70,7 +70,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     profileBtn->setID("command-profile-user-btn");
     auto profileMenu = CCMenu::create();
     profileMenu->addChild(profileBtn);
-    profileMenu->setPosition(m_mainLayer->getContentSize().width - 50.f, m_mainLayer->getContentSize().height - 30.f);
+    profileMenu->setPosition(m_mainLayer->getContentSize().width - 150.f, m_mainLayer->getContentSize().height - 30.f);
     m_mainLayer->addChild(profileMenu);
 
     setTitle(fmt::format("!{} settings", command.name));
@@ -293,7 +293,10 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     saveBtn->setPosition(menuWidth / 2 - spacing, centerY);
     handbookBtn->setPosition(menuWidth / 2, centerY);
     closeBtn->setPosition(menuWidth / 2 + spacing, centerY);
-    commandBtnMenu->setPosition(25.f, 15.f);
+    // Center the button menu in the popup/main layer
+    float mainW = m_mainLayer->getContentSize().width;
+    float mainH = m_mainLayer->getContentSize().height;
+    commandBtnMenu->setPosition(mainW / 2 - menuWidth / 2, 15.f);
 
     m_mainLayer->addChild(commandBtnMenu);
     return true;
@@ -1420,7 +1423,7 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
 // Static create function for CommandSettingsPopup with only TwitchCommand argument
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
-    if (ret && ret->initAnchored(620.f, 325.f, command)) {
+    if (ret && ret->initAnchored(800.f, 325.f, command)) { // 620
         ret->autorelease();
         return ret;
     }
