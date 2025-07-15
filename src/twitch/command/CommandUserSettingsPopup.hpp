@@ -5,8 +5,15 @@
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <functional>
 
-class CommandUserSettingsPopup : public geode::Popup<> {
+// Role toggles and labels
+struct RoleTogglerInfo {
+    const char* label;
+    float posX;
+    CCMenuItemToggler** togglerPtr;
+    bool initial;
+};
 
+class CommandUserSettingsPopup : public geode::Popup<> {
 protected:
     geode::TextInput* m_userInput = nullptr;
     CCMenuItemToggler* m_vipToggler = nullptr;
@@ -22,6 +29,7 @@ protected:
 
     bool setup() override;
     void onSave(CCObject* sender);
+
 public:
     static CommandUserSettingsPopup* create(const std::string& allowedUser, bool allowVip, bool allowMod, bool allowStreamer, bool allowSubscriber, std::function<void(const std::string&, bool, bool, bool, bool)> callback);
 };

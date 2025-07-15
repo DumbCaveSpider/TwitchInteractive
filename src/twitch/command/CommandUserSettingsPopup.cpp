@@ -18,37 +18,36 @@ bool CommandUserSettingsPopup::setup() {
 
     y -= 40.f;
 
-
-    // Role toggles and labels
-    struct RoleTogglerInfo {
-        const char* label;
-        float posX;
-        CCMenuItemToggler** togglerPtr;
-        bool initial;
-    };
     RoleTogglerInfo togglers[] = {
         {"VIP",      x - 90, &m_vipToggler, m_allowVip},
         {"Mod",      x - 30, &m_modToggler, m_allowMod},
         {"Subscriber", x + 30, &m_subscriberToggler, m_allowSubscriber},
         {"Streamer", x + 90, &m_streamerToggler, m_allowStreamer},
     };
+
     // Add togglers to a CCMenu for proper touch handling
     auto togglerMenu = CCMenu::create();
     togglerMenu->setPosition(0, 0);
+
     for (const auto& info : togglers) {
         auto on = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
         auto off = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
+
         *info.togglerPtr = CCMenuItemToggler::create(off, on, nullptr, nullptr);
         (*info.togglerPtr)->setPosition(info.posX, y - 10.f);
         (*info.togglerPtr)->toggle(info.initial);
+
         togglerMenu->addChild(*info.togglerPtr);
+
         // Add label under toggler
         auto label = CCLabelBMFont::create(info.label, "bigFont.fnt");
         label->setScale(0.3f);
-        label->setAnchorPoint({0.5f, 1.0f});
+        label->setAnchorPoint({ 0.5f, 1.0f });
         label->setPosition(info.posX, y - 28.f);
+
         m_mainLayer->addChild(label);
-    }
+    };
+
     m_mainLayer->addChild(togglerMenu);
 
     // Save button
