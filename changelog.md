@@ -1,6 +1,6 @@
 # v0.1.2-beta.1
-- Fix the **Edit Camera** event having a misleading label and fixed the default value
-- 
+- Fixed the **Edit Camera** event having a misleading label and fixed the default value
+- Fixed the issues with Commands not saving correctly after quitting the game on Android + iOS
 # v0.1.1-beta.1
 - Added Twitch Status Label on the PauseLayer
 - Fixed Touch Priorities on the Scroll Layers
