@@ -10,7 +10,7 @@
 
 
 #include <Geode/Geode.hpp>
-#include <Geode/loader/dirs.hpp>
+#include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
