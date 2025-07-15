@@ -1,3 +1,8 @@
+#include <string>
+
+#include <cocos2d.h>
+#include <cocos-ext.h>
+
 #include "CommandSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
 #include "../TwitchCommandManager.hpp"
@@ -16,6 +21,23 @@
 
 using namespace cocos2d;
 using namespace geode::prelude;
+
+// Free function to add or update a label for an action node with uniform style
+void addOrUpdateActionLabel(CCNode* actionNode, const std::string& labelId, const std::string& text, float x, float y) {
+    if (!actionNode) return;
+    auto label = actionNode->getChildByID(labelId);
+    if (!label) {
+        auto newLabel = CCLabelBMFont::create(text.c_str(), "chatFont.fnt");
+        newLabel->setScale(0.5f);
+        newLabel->setAnchorPoint({ 0, 0.5f });
+        newLabel->setAlignment(kCCTextAlignmentLeft);
+        newLabel->setPosition(x, y);
+        newLabel->setID(labelId);
+        actionNode->addChild(newLabel);
+    } else {
+        if (auto bmLabel = dynamic_cast<CCLabelBMFont*>(label)) bmLabel->setString(text.c_str());
+    }
+}
 
 bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto layerSize = m_mainLayer->getContentSize();
@@ -598,7 +620,7 @@ void CommandSettingsPopup::refreshActionsList() {
         actionNode->addChild(indexLabel);
         m_actionContent->addChild(actionNode);
 
-        // Always move the main action node text label up by 4.f for notification, keycode, jump, profile, and move actions
+        // Always move the main action node text label with those that has settings up by 4.f (do not like how i do this but it works)
         if (
             actionIdLower.rfind("notification", 0) == 0 ||
             actionIdLower.rfind("keycode", 0) == 0 ||
@@ -608,12 +630,11 @@ void CommandSettingsPopup::refreshActionsList() {
             actionIdLower.rfind("color_player", 0) == 0 ||
             actionIdLower.rfind("edit_camera", 0) == 0
             ) {
-            if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 4.f);
+            if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 5.f);
         }
 
         // Notification action node (case-insensitive)
         if (actionIdLower.rfind("notification", 0) == 0) {
-            // Format: notification:<iconType>:<text>
             int iconTypeInt = 1;
             std::string notifText;
             size_t firstColon = actionIdRaw.find(":");
@@ -626,10 +647,9 @@ void CommandSettingsPopup::refreshActionsList() {
             } else {
                 notifText = "";
             }
-            // Place the notification label below the main label
             std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = 5.f;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
@@ -650,17 +670,7 @@ void CommandSettingsPopup::refreshActionsList() {
                 labelText += ": ";
                 labelText += notifText;
             }
-            if (!actionNode->getChildByID(notifLabelId)) {
-                auto notifLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
-                notifLabel->setScale(0.5f);
-                notifLabel->setAnchorPoint({ 0, 0.5f });
-                notifLabel->setAlignment(kCCTextAlignmentLeft);
-                notifLabel->setPosition(labelX, labelY);
-                notifLabel->setID(notifLabelId);
-                actionNode->addChild(notifLabel);
-            } else {
-                if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
-            }
+            addOrUpdateActionLabel(actionNode, notifLabelId, labelText, labelX, labelY);
             // Settings button for notification (same style as others)
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
@@ -681,7 +691,6 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Color Player action node (unified UI, same as notification/move)
         if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
-            // Parse RGB value from m_commandActions[i] (format: color_player:R,G,B)
             std::string rgbText = "255,255,255";
             int r = 255, g = 255, b = 255;
             size_t colonPos = m_commandActions[i].find(":");
@@ -693,7 +702,6 @@ void CommandSettingsPopup::refreshActionsList() {
                     rgbText = colorStr;
                 }
             }
-            // Place the RGB label below the main label, like move/jump
             std::string colorLabelId = "color-player-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
             float labelY = 6.f;
@@ -703,18 +711,7 @@ void CommandSettingsPopup::refreshActionsList() {
                 labelX = 8.f;
             }
             std::string labelText = "RGB: " + rgbText;
-            // Update or create the label (like jump/move)
-            if (!actionNode->getChildByID(colorLabelId)) {
-                auto colorLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
-                colorLabel->setScale(0.5f);
-                colorLabel->setAnchorPoint({ 0, 0.5f });
-                colorLabel->setAlignment(kCCTextAlignmentLeft);
-                colorLabel->setPosition(labelX, labelY);
-                colorLabel->setID(colorLabelId);
-                actionNode->addChild(colorLabel);
-            } else {
-                if (auto colorLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(colorLabelId))) colorLabel->setString(labelText.c_str());
-            }
+            addOrUpdateActionLabel(actionNode, colorLabelId, labelText, labelX, labelY);
 
             // Always remove and recreate the settings button/menu to avoid disappearing
             std::string settingsBtnId = "color-player-settings-btn-" + std::to_string(actionIndex);
@@ -741,15 +738,12 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Player Profile action node (unified UI)
         if (actionIdLower.rfind("profile", 0) == 0) {
-            // Format: profile:<accountId>
-            std::string accountId = "7689052"; // Default account ID (aka me)
+            std::string accountId = "7689052";
             size_t colonPos = actionIdRaw.find(":");
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
                 accountId = actionIdRaw.substr(colonPos + 1);
                 if (accountId.empty()) accountId = "0";
             }
-            // The main label is already set to eventLabel ("Player Profile") above, matching other nodes
-            // Place the accountId label below the main label, using chatFont
             std::string profileLabelId = "profile-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
             float labelY = 6.f;
@@ -759,17 +753,7 @@ void CommandSettingsPopup::refreshActionsList() {
                 labelX = 8.f;
             }
             std::string labelText = "Account ID: " + accountId;
-            if (!actionNode->getChildByID(profileLabelId)) {
-                auto profileLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
-                profileLabel->setScale(0.5f);
-                profileLabel->setAnchorPoint({ 0, 0.5f });
-                profileLabel->setAlignment(kCCTextAlignmentLeft);
-                profileLabel->setPosition(labelX, labelY);
-                profileLabel->setID(profileLabelId);
-                actionNode->addChild(profileLabel);
-            } else {
-                if (auto profileLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(profileLabelId))) profileLabel->setString(labelText.c_str());
-            }
+            addOrUpdateActionLabel(actionNode, profileLabelId, labelText, labelX, labelY);
             // Settings button for profile (same style as others)
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5);
@@ -795,7 +779,6 @@ void CommandSettingsPopup::refreshActionsList() {
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
                 keyValue = actionIdRaw.substr(colonPos + 1);
             }
-            // Parse key and hold duration (format: key|duration)
             std::string keyLabelText = "-";
             if (!keyValue.empty()) {
                 size_t pipePos = keyValue.find("|");
@@ -811,7 +794,6 @@ void CommandSettingsPopup::refreshActionsList() {
                 }
             }
             auto keyLabelId = "keycode-action-text-label-" + std::to_string(actionIndex);
-            // Place the keycode label below the main label, like notification
             float labelX = 0.f;
             float labelY = 6.f;
             if (auto mainLabel = actionNode->getLabel()) {
@@ -819,17 +801,7 @@ void CommandSettingsPopup::refreshActionsList() {
             } else {
                 labelX = 8.f;
             }
-            if (!actionNode->getChildByID(keyLabelId)) {
-                auto keyLabel = CCLabelBMFont::create(keyLabelText.c_str(), "chatFont.fnt");
-                keyLabel->setScale(0.5f);
-                keyLabel->setAnchorPoint({ 0, 0.5f });
-                keyLabel->setAlignment(kCCTextAlignmentLeft);
-                keyLabel->setPosition(labelX, labelY);
-                keyLabel->setID(keyLabelId);
-                actionNode->addChild(keyLabel);
-            } else {
-                if (auto keyLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(keyLabelId))) keyLabel->setString(keyLabelText.c_str());
-            }
+            addOrUpdateActionLabel(actionNode, keyLabelId, keyLabelText, labelX, labelY);
             // Always create a new menu for the settings button to ensure it's clickable and not overlapped
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5);
@@ -850,48 +822,29 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Jump action node (unified UI with notification)
         if (actionId == "jump" && !jumpPlayerValue.empty()) {
-            // Remove any ":hold" from jumpPlayerValue for display
             std::string playerValueClean = jumpPlayerValue;
-
             size_t holdPos = playerValueClean.find(":hold");
             if (holdPos != std::string::npos) {
                 playerValueClean = playerValueClean.substr(0, holdPos);
             };
-
             std::string playerInfo;
             if (playerValueClean == "3") {
                 playerInfo = "Both Players";
             } else {
                 playerInfo = "Player " + playerValueClean;
             };
-
-            // Check if this jump action is a hold
             bool isHold = false;
             if (m_commandActions[i].find(":hold") != std::string::npos) isHold = true;
             if (isHold) playerInfo += " (Hold)";
-
             auto playerLabelId = "jump-action-text-label-" + std::to_string(actionIndex);
-
             float labelX = 0.f;
             float labelY = 6.f;
-
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
                 labelX = 8.f;
             };
-
-            if (!actionNode->getChildByID(playerLabelId)) {
-                auto playerLabel = CCLabelBMFont::create(playerInfo.c_str(), "chatFont.fnt");
-                playerLabel->setScale(0.5f);
-                playerLabel->setAnchorPoint({ 0, 0.5f });
-                playerLabel->setAlignment(kCCTextAlignmentLeft);
-                playerLabel->setPosition(labelX, labelY);
-                playerLabel->setID(playerLabelId);
-                actionNode->addChild(playerLabel);
-            } else {
-                if (auto playerLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(playerLabelId))) playerLabel->setString(playerInfo.c_str());
-            };
+            addOrUpdateActionLabel(actionNode, playerLabelId, playerInfo, labelX, labelY);
 
             auto settingsMenu = CCMenu::create();
             settingsMenu->setPosition(0, 0);
@@ -917,60 +870,38 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Move Player action node (unified UI)
         if (actionIdLower.rfind("move", 0) == 0) {
-            // Format: move:<player>:<direction>:<distance>
             int player = 1;
             std::string direction = "right";
             float distance = 0.f;
-
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
             size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
-
             if (firstColon != std::string::npos && secondColon != std::string::npos) {
                 std::string playerStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                 std::string dirStr;
                 std::string distStr;
-
                 if (thirdColon != std::string::npos) {
                     dirStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
                     distStr = actionIdRaw.substr(thirdColon + 1);
                 } else {
                     dirStr = actionIdRaw.substr(secondColon + 1);
                 };
-
                 if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) player = std::stoi(playerStr);
-
                 direction = dirStr;
                 if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) distance = std::stof(distStr);
             }
             std::string moveLabelId = "move-action-text-label-" + std::to_string(actionIndex);
-
             float labelX = 0.f;
             float labelY = 6.f;
-
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
                 labelX = 8.f;
             };
-
             char distBuf[32];
             snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
-
             std::string labelText = "Player " + std::to_string(player) + ": " + (direction == "right" ? "Right" : "Left") + " (" + distBuf + ")";
-
-            if (!actionNode->getChildByID(moveLabelId)) {
-                auto moveLabel = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
-                moveLabel->setScale(0.5f);
-                moveLabel->setAnchorPoint({ 0, 0.5f });
-                moveLabel->setAlignment(kCCTextAlignmentLeft);
-                moveLabel->setPosition(labelX, labelY);
-                moveLabel->setID(moveLabelId);
-
-                actionNode->addChild(moveLabel);
-            } else {
-                if (auto moveLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(moveLabelId))) moveLabel->setString(labelText.c_str());
-            };
+            addOrUpdateActionLabel(actionNode, moveLabelId, labelText, labelX, labelY);
 
             auto settingsMenu = CCMenu::create();
             settingsMenu->setPosition(0, 0);
@@ -996,7 +927,6 @@ void CommandSettingsPopup::refreshActionsList() {
 
         // Edit Camera action node (show settings label and button)
         if (actionIdLower.rfind("edit_camera", 0) == 0) {
-            // Format: edit_camera:<zoom>:<x>:<y>:<duration>
             float zoom = 1.0f;
             float x = 0.0f;
             float y = 0.0f;
@@ -1023,23 +953,13 @@ void CommandSettingsPopup::refreshActionsList() {
             }
             std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
-            float labelY = 6.f;
+            float labelY = 5.f;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
             } else {
                 labelX = 8.f;
             }
-            if (!actionNode->getChildByID(camLabelId)) {
-                auto camLabel = CCLabelBMFont::create(cameraLabel.c_str(), "chatFont.fnt");
-                camLabel->setScale(0.5f);
-                camLabel->setAnchorPoint({ 0, 0.5f });
-                camLabel->setAlignment(kCCTextAlignmentLeft);
-                camLabel->setPosition(labelX, labelY);
-                camLabel->setID(camLabelId);
-                actionNode->addChild(camLabel);
-            } else {
-                if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(cameraLabel.c_str());
-            }
+            addOrUpdateActionLabel(actionNode, camLabelId, cameraLabel, labelX, labelY);
             // Settings button for edit camera (same style as others)
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
