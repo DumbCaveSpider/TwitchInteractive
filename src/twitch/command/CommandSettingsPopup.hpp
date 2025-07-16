@@ -25,6 +25,7 @@ protected:
     void onSave(cocos2d::CCObject* sender);
     void onCloseBtn(cocos2d::CCObject* sender);
     void onHandbookBtn(cocos2d::CCObject* sender);
+    void onSettingsButtonUnified(cocos2d::CCObject* sender);
 public:
     static CommandSettingsPopup* create(TwitchCommand command, CommandListPopup* parent);
     static CommandSettingsPopup* create(TwitchCommand command);

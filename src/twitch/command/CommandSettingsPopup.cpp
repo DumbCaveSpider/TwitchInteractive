@@ -433,7 +433,6 @@ void CommandSettingsPopup::onHandbookBtn(cocos2d::CCObject* sender) {
     if (popup) popup->show();
 }
 
-
 void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
 
@@ -513,524 +512,205 @@ void CommandSettingsPopup::refreshActionsList() {
     float minContentHeight = m_actionSectionHeight;
     float neededHeight = actionCount * (nodeHeight + actionNodeGap);
     float contentHeight = std::max(minContentHeight, neededHeight);
-
     m_actionContent->setContentSize(CCSize(m_actionContent->getContentSize().width, contentHeight));
 
-    float actionNodeY = contentHeight - 16.f;
-
+    float actionNodeY = contentHeight - nodeHeight / 2;
     int actionIndex = 0;
-    for (size_t i = 0; i < m_commandActions.size(); ++i) {
-        const auto& actionIdRaw = m_commandActions[i];
-
-        std::string actionId = actionIdRaw;
-        std::string waitValue;
-        std::string jumpPlayerValue;
-
-        if (actionIdRaw.rfind("wait:", 0) == 0) {
-            actionId = "wait";
-            waitValue = actionIdRaw.substr(5);
-        } else if (actionIdRaw.rfind("jump:", 0) == 0) {
-            actionId = "jump";
-            jumpPlayerValue = actionIdRaw.substr(5); // "1" or "2"
-        };
-
-        // Find the event label/title for this actionId
-        std::string eventLabel = actionId;
-        for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
-            if (info.id == actionId) {
-                eventLabel = info.label;
-                break;
-            };
-        };
-
-        // Set the action node main label based on the action node id
-        std::string nodeLabel;
-        std::string actionIdLower = actionId;
+    for (int i = 0; i < actionCount; ++i) {
+        std::string& actionIdRaw = m_commandActions[i];
+        std::string actionIdLower = actionIdRaw;
         std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
-        if (actionIdLower.rfind("notification", 0) == 0) {
-            nodeLabel = "Notification";
-        } else if (actionIdLower.rfind("keycode", 0) == 0) {
-            nodeLabel = "Key Code";
-        } else if (actionIdLower.rfind("profile", 0) == 0) {
-            nodeLabel = "Profile";
-        } else if (actionIdLower.rfind("move", 0) == 0) {
-            nodeLabel = "Move Player";
-        } else if (actionIdLower.rfind("color_player", 0) == 0) {
-            nodeLabel = "Color Player";
-        } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
-            nodeLabel = "Edit Camera";
-        } else if (actionIdLower.rfind("alert_popup", 0) == 0) {
-            nodeLabel = "Alert Popup";
-        } else if (actionIdLower.rfind("level_info", 0) == 0) {
-            nodeLabel = "Level Info";
-        } else {
-            nodeLabel = eventLabel;
-        }
 
-        // Add action index label (1-based)
-        auto indexLabel = CCLabelBMFont::create(std::to_string(actionIndex + 1).c_str(), "goldFont.fnt");
-        indexLabel->setScale(0.5f);
-        indexLabel->setAnchorPoint({ 0, 0.5f });
-        indexLabel->setAlignment(kCCTextAlignmentLeft);
-        indexLabel->setPosition(8.f, 16.f);
-        indexLabel->setID("action-index-label-" + std::to_string(actionIndex));
-
-        // Only show up arrow if not the first action, down arrow if not the last
-        bool showUp = (i > 0);
-        bool showDown = (i < m_commandActions.size() - 1);
-
-        // Create ActionNode with move up/down
-        auto actionNode = CommandActionEventNode::createActionNode(
-            nodeLabel,
-            nullptr, nullptr, 0.0f, // no checkbox for now
-            this,
-            menu_selector(CommandSettingsPopup::onMoveActionUp),
-            menu_selector(CommandSettingsPopup::onMoveActionDown),
-            as<int>(i),
-            showUp,
-            showDown
-        );
-        actionNode->setPosition(0, actionNodeY - 16.f);
-        // Set a unique ID for the main action node text label
-        if (auto mainLabel = actionNode->getLabel()) {
-            mainLabel->setID("action-main-label-" + std::to_string(actionIndex));
-        }
-        actionNode->addChild(indexLabel);
+        // Create the action node and align to left edge of scroll content
+        TwitchCommandAction actionObj(CommandActionType::Event, actionIdRaw, 0);
+        auto actionNode = CommandActionEventNode::create(actionObj, CCSize(m_actionContent->getContentSize().width, nodeHeight));
+        actionNode->setAnchorPoint({0, 0.5f});
+        actionNode->setPosition(0, actionNodeY); // align left, vertical stack
         m_actionContent->addChild(actionNode);
 
-        // Always move the main action node text label with those that has settings up by 5.f (do not like how i do this but it works)
-        if (
-            actionIdLower.rfind("notification", 0) == 0 ||
-            actionIdLower.rfind("keycode", 0) == 0 ||
-            actionIdLower.rfind("jump", 0) == 0 ||
-            actionIdLower.rfind("profile", 0) == 0 ||
-            actionIdLower.rfind("move", 0) == 0 ||
-            actionIdLower.rfind("color_player", 0) == 0 ||
-            actionIdLower.rfind("edit_camera", 0) == 0 ||
-            actionIdLower.rfind("alert_popup", 0) == 0
-            ) {
-            if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 5.f);
-        }
+        // Main label for the action node (ensure always present)
+        std::string mainLabelId = "action-main-label-" + std::to_string(i);
+        std::string mainLabelText = actionIdRaw;
+        // Optionally, parse and prettify label text for known types
+        if (actionIdLower.rfind("wait", 0) == 0) mainLabelText = "Wait";
+        else if (actionIdLower.rfind("jump", 0) == 0) mainLabelText = "Jump";
+        else if (actionIdLower.rfind("alert_popup", 0) == 0) mainLabelText = "Alert Popup";
+        else if (actionIdLower.rfind("notification", 0) == 0) mainLabelText = "Notification";
+        else if (actionIdLower.rfind("keycode", 0) == 0) mainLabelText = "Keycode";
+        else if (actionIdLower.rfind("profile", 0) == 0) mainLabelText = "Profile";
+        else if (actionIdLower.rfind("move", 0) == 0) mainLabelText = "Move";
+        else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) mainLabelText = "Color Player";
+        else if (actionIdLower.rfind("edit_camera", 0) == 0) mainLabelText = "Edit Camera";
+        else if (actionIdLower.rfind("level_info", 0) == 0) mainLabelText = "Level Info";
 
-        // Unified label position logic for all action nodes with labelId
-        float labelY = 8.f;
+        auto mainLabel = CCLabelBMFont::create(mainLabelText.c_str(), "bigFont.fnt");
+        mainLabel->setScale(0.5f);
+        mainLabel->setAnchorPoint({0, 0.5f});
+        mainLabel->setAlignment(kCCTextAlignmentLeft);
+        mainLabel->setPosition(20.f, 16.f);
+        mainLabel->setID(mainLabelId);
+        actionNode->addChild(mainLabel);
 
-        // Alert Popup action node (unified UI)
-        if (actionIdLower.rfind("alert_popup", 0) == 0) {
-            std::string alertTitle = "", alertDesc = "";
-            size_t firstColon = actionIdRaw.find(":");
-            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                alertTitle = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                alertDesc = actionIdRaw.substr(secondColon + 1);
-            }
-            std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            std::string labelText = "Title: " + alertTitle + (alertDesc.empty() ? "" : (", Content: " + alertDesc));
-            addOrUpdateActionLabel(actionNode, alertLabelId, labelText, labelX, labelY);
-            // Settings button for alert popup (same style as others)
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
-            CCMenuItemSpriteExtra* settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onAlertSettings)
-            );
-            settingsBtn->setID("alert-popup-settings-btn-" + std::to_string(actionIndex));
-            settingsBtn->setUserObject(cocos2d::CCInteger::create(static_cast<int>(i)));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-            actionNode->addChild(settingsMenu);
-        }
-
-        // Open Level Info action node (unified UI)
-        if (actionIdLower.rfind("level_info", 0) == 0) {
-            std::string levelId = "";
-            size_t colonPos = actionIdRaw.find(":");
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-                levelId = actionIdRaw.substr(colonPos + 1);
-            }
-            std::string levelInfoLabelId = "level_info-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            std::string labelText = "Level ID: " + (levelId.empty() ? "-" : levelId);
-            addOrUpdateActionLabel(actionNode, levelInfoLabelId, labelText, labelX, labelY);
-
-            // Settings button for open level info (same style as others)
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onOpenLevelInfoSettings)
-            );
-            settingsBtn->setID("level_info-settings-btn-" + std::to_string(actionIndex));
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-            actionNode->addChild(settingsMenu);
-        }
-
-        // Notification action node (case-insensitive)
+        // Add a secondary text label for extra info (if needed)
+        std::string textLabelId = "action-text-label-" + std::to_string(i);
+        std::string textLabelText = "";
         if (actionIdLower.rfind("notification", 0) == 0) {
-            int iconTypeInt = 1;
-            std::string notifText;
+            // Show notification text if present
+            size_t secondColon = actionIdRaw.find(":", 13);
+            if (secondColon != std::string::npos && secondColon + 1 < actionIdRaw.size())
+                textLabelText = actionIdRaw.substr(secondColon + 1);
+        } else if (actionIdLower.rfind("wait", 0) == 0) {
+            // Show wait seconds if present
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
+                textLabelText = actionIdRaw.substr(colon + 1) + " sec";
+        } else if (actionIdLower.rfind("keycode", 0) == 0) {
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
+                textLabelText = actionIdRaw.substr(colon + 1);
+        }
+        // Add a settings text label for the current settings values (if any)
+        std::string settingsLabelId = "action-settings-label-" + std::to_string(i);
+        std::string settingsLabelText = "";
+        if (actionIdLower.rfind("alert_popup", 0) == 0) {
+            // Format: alert_popup:title:desc
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
             if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                iconTypeInt = std::stoi(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1));
-                notifText = actionIdRaw.substr(secondColon + 1);
-            } else if (actionIdRaw.length() > 13) {
-                notifText = actionIdRaw.substr(13);
-            } else {
-                notifText = "";
+                std::string title = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string desc = actionIdRaw.substr(secondColon + 1);
+                settingsLabelText = "Title: " + title + " | Desc: " + desc;
             }
-            std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            std::string iconName = "Info";
-            switch (iconTypeInt) {
-            case 0: iconName = "None"; break;
-            case 1: iconName = "Info"; break;
-            case 2: iconName = "Success"; break;
-            case 3: iconName = "Warning"; break;
-            case 4: iconName = "Error"; break;
-            case 5: iconName = "Loading"; break;
-            default: iconName = "Info"; break;
-            }
-            std::string labelText = iconName;
-            if (!notifText.empty()) {
-                labelText += ": ";
-                labelText += notifText;
-            }
-            addOrUpdateActionLabel(actionNode, notifLabelId, labelText, labelX, labelY);
-            // Settings button for notification (same style as others)
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onNotificationSettings)
-            );
-            settingsBtn->setID("notification-settings-btn-" + std::to_string(actionIndex));
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-            actionNode->addChild(settingsMenu);
-        }
-
-        // Color Player action node (unified UI)
-        if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
-            std::string rgbText = "255,255,255";
-            int r = 255, g = 255, b = 255;
-            size_t colonPos = m_commandActions[i].find(":");
-            if (colonPos != std::string::npos && colonPos + 1 < m_commandActions[i].size()) {
-                std::string colorStr = m_commandActions[i].substr(colonPos + 1);
-                if (sscanf(colorStr.c_str(), "%d,%d,%d", &r, &g, &b) == 3) {
-                    rgbText = std::to_string(r) + "," + std::to_string(g) + "," + std::to_string(b);
-                } else {
-                    rgbText = colorStr;
-                }
-            }
-            std::string colorLabelId = "color-player-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            std::string labelText = "RGB: " + rgbText;
-            addOrUpdateActionLabel(actionNode, colorLabelId, labelText, labelX, labelY);
-
-            // Always remove and recreate the settings button/menu to avoid disappearing
-            std::string settingsBtnId = "color-player-settings-btn-" + std::to_string(actionIndex);
-            if (auto oldMenu = actionNode->getChildByID(settingsBtnId)) {
-                oldMenu->removeFromParent();
-            }
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onColorPlayerSettings)
-            );
-            settingsBtn->setID(settingsBtnId);
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-            actionNode->addChild(settingsMenu);
-        }
-
-
-        // Player Profile action node (unified UI)
-        if (actionIdLower.rfind("profile", 0) == 0) {
-            std::string accountId = "7689052";
-            size_t colonPos = actionIdRaw.find(":");
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-                accountId = actionIdRaw.substr(colonPos + 1);
-                if (accountId.empty()) accountId = "0";
-            }
-            std::string profileLabelId = "profile-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            std::string labelText = "Account ID: " + accountId;
-            addOrUpdateActionLabel(actionNode, profileLabelId, labelText, labelX, labelY);
-            // Settings button for profile (same style as others)
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onProfileSettings)
-            );
-            settingsBtn->setID("profile-settings-btn-" + std::to_string(actionIndex));
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            actionNode->addChild(settingsMenu);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-        }
-
-        // KeyCode action node (unified UI)
-        if (actionIdLower.rfind("keycode", 0) == 0) {
-            std::string keyValue = "";
-            size_t colonPos = actionIdRaw.find(":");
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
-                keyValue = actionIdRaw.substr(colonPos + 1);
-            }
-            std::string keyLabelText = "-";
-            if (!keyValue.empty()) {
-                size_t pipePos = keyValue.find("|");
-                std::string keyPart = keyValue;
-                std::string durPart;
-                if (pipePos != std::string::npos) {
-                    keyPart = keyValue.substr(0, pipePos);
-                    durPart = keyValue.substr(pipePos + 1);
-                }
-                keyLabelText = keyPart.empty() ? "-" : keyPart;
-                if (!durPart.empty()) {
-                    keyLabelText += " (" + durPart + "s)";
-                }
-            }
-            auto keyLabelId = "keycode-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            addOrUpdateActionLabel(actionNode, keyLabelId, keyLabelText, labelX, labelY);
-            // Always create a new menu for the settings button to ensure it's clickable and not overlapped
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onKeyCodeSettings)
-            );
-            settingsBtn->setID("keycode-settings-btn-" + std::to_string(actionIndex));
-            settingsBtn->setUserObject(CCInteger::create(as<int>(i)));
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->addChild(settingsBtn);
-            settingsMenu->setPosition(0, 0);
-            actionNode->addChild(settingsMenu);
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-        }
-
-        // Jump action node (unified UI)
-        if (actionIdLower.rfind("jump", 0) == 0 && !jumpPlayerValue.empty()) {
-            std::string playerValueClean = jumpPlayerValue;
-            size_t holdPos = playerValueClean.find(":hold");
-            if (holdPos != std::string::npos) {
-                playerValueClean = playerValueClean.substr(0, holdPos);
-            }
-            std::string playerInfo;
-            if (playerValueClean == "3") {
-                playerInfo = "Both Players";
-            } else {
-                playerInfo = "Player " + playerValueClean;
-            }
-            bool isHold = false;
-            if (m_commandActions[i].find(":hold") != std::string::npos) isHold = true;
-            if (isHold) playerInfo += " (Hold)";
-            auto playerLabelId = "jump-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
-            }
-            addOrUpdateActionLabel(actionNode, playerLabelId, playerInfo, labelX, labelY);
-
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->setPosition(0, 0);
-
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5f);
-
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-
-            // settings button
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onJumpSettings)
-            );
-            settingsBtn->setID("jump-settings-btn-" + std::to_string(i));
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-
-            settingsMenu->addChild(settingsBtn);
-            actionNode->addChild(settingsMenu);
-        }
-
-        // Move Player action node (unified UI)
-        if (actionIdLower.rfind("move", 0) == 0) {
-            int player = 1;
-            std::string direction = "right";
-            float distance = 0.f;
+        } else if (actionIdLower.rfind("notification", 0) == 0) {
+            // Format: notification:iconType:text
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
             if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                std::string playerStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string dirStr;
-                std::string distStr;
-                if (thirdColon != std::string::npos) {
-                    dirStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
-                    distStr = actionIdRaw.substr(thirdColon + 1);
-                } else {
-                    dirStr = actionIdRaw.substr(secondColon + 1);
-                }
-                if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos) player = std::stoi(playerStr);
-                direction = dirStr;
-                if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) distance = std::stof(distStr);
+                std::string iconType = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string notifText = actionIdRaw.substr(secondColon + 1);
+                settingsLabelText = "Icon: " + iconType + " | Text: " + notifText;
             }
-            std::string moveLabelId = "move-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
+        } else if (actionIdLower.rfind("keycode", 0) == 0) {
+            // Format: keycode:key
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                std::string key = actionIdRaw.substr(colon + 1);
+                settingsLabelText = "Key: " + key;
             }
-            char distBuf[32];
-            snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
-            std::string labelText = "Player " + std::to_string(player) + ": " + (direction == "right" ? "Right" : "Left") + " (" + distBuf + ")";
-            addOrUpdateActionLabel(actionNode, moveLabelId, labelText, labelX, labelY);
-
-            auto settingsMenu = CCMenu::create();
-            settingsMenu->setPosition(0, 0);
-
-            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-            settingsSprite->setScale(0.5);
-
-            float btnX = m_actionContent->getContentSize().width - 24.f;
-
-            // Settings button for move (same style as others)
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onMoveSettings)
-            );
-            settingsBtn->setID("move-settings-btn-" + std::to_string(actionIndex));
-            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
-
-            settingsMenu->addChild(settingsBtn);
-            actionNode->addChild(settingsMenu);
-        }
-
-        // Edit Camera action node (show settings label and button)
-        if (actionIdLower.rfind("edit_camera", 0) == 0) {
-            float zoom = 1.0f;
-            float x = 0.0f;
-            float y = 0.0f;
-            float duration = 0.0f;
-            std::string cameraLabel = "";
+        } else if (actionIdLower.rfind("profile", 0) == 0) {
+            // Format: profile:username
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                std::string user = actionIdRaw.substr(colon + 1);
+                settingsLabelText = "User: " + user;
+            }
+        } else if (actionIdLower.rfind("move", 0) == 0) {
+            // Format: move:player:direction
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
-            size_t fourthColon = actionIdRaw.find(":", thirdColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos && fourthColon != std::string::npos) {
-                std::string zoomStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string xStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
-                std::string yStr = actionIdRaw.substr(thirdColon + 1, fourthColon - thirdColon - 1);
-                std::string durStr = actionIdRaw.substr(fourthColon + 1);
-                if (!zoomStr.empty()) zoom = std::stof(zoomStr);
-                if (!xStr.empty()) x = std::stof(xStr);
-                if (!yStr.empty()) y = std::stof(yStr);
-                if (!durStr.empty()) duration = std::stof(durStr);
-                char buf[128];
-                snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", zoom, x, y, duration);
-                cameraLabel = buf;
-            } else {
-                cameraLabel = "Skew: 0.00, Rot: 0.00, Scale: 1.00, Time: 0.00s";
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                std::string player = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string dir = actionIdRaw.substr(secondColon + 1);
+                settingsLabelText = "Player: " + player + " | Dir: " + dir;
             }
-            std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIndex);
-            float labelX = 0.f;
-            if (auto mainLabel = actionNode->getLabel()) {
-                labelX = mainLabel->getPositionX();
-            } else {
-                labelX = 8.f;
+        } else if (actionIdLower.rfind("jump", 0) == 0) {
+            // Format: jump:player[:hold]
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                std::string rest = actionIdRaw.substr(colon + 1);
+                settingsLabelText = "Player: " + rest;
             }
-            addOrUpdateActionLabel(actionNode, camLabelId, cameraLabel, labelX, labelY);
-            // Settings button for edit camera (same style as others)
+        } else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
+            // Format: color_player:r,g,b
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                std::string rgb = actionIdRaw.substr(colon + 1);
+                settingsLabelText = "RGB: " + rgb;
+            }
+        } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
+            // Format: edit_camera:params
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                std::string params = actionIdRaw.substr(colon + 1);
+                settingsLabelText = params;
+            }
+        } else if (actionIdLower.rfind("level_info", 0) == 0) {
+            // Format: level_info:params
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                std::string params = actionIdRaw.substr(colon + 1);
+                settingsLabelText = params;
+            }
+        }
+        if (!textLabelText.empty()) {
+            auto textLabel = CCLabelBMFont::create(textLabelText.c_str(), "chatFont.fnt");
+            textLabel->setScale(0.5f);
+            textLabel->setAnchorPoint({0, 0.5f});
+            textLabel->setAlignment(kCCTextAlignmentLeft);
+            textLabel->setPosition(140.f, 16.f);
+            textLabel->setID(textLabelId);
+            actionNode->addChild(textLabel);
+        }
+        if (!settingsLabelText.empty()) {
+            auto settingsLabel = CCLabelBMFont::create(settingsLabelText.c_str(), "chatFont.fnt");
+            settingsLabel->setScale(0.5f);
+            settingsLabel->setAnchorPoint({0, 0.5f});
+            settingsLabel->setAlignment(kCCTextAlignmentLeft);
+            settingsLabel->setPosition(140.f, 2.f);
+            settingsLabel->setID(settingsLabelId);
+            actionNode->addChild(settingsLabel);
+        }
+
+        // Unified settings button logic for nodes with a SettingsHandler
+        std::string btnId;
+        bool hasSettingsHandler = false;
+        if (actionIdLower.rfind("alert_popup", 0) == 0) {
+            btnId = "alert-popup-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("notification", 0) == 0) {
+            btnId = "notification-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("keycode", 0) == 0) {
+            btnId = "keycode-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("profile", 0) == 0) {
+            btnId = "profile-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("move", 0) == 0) {
+            btnId = "move-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("jump", 0) == 0) {
+            btnId = "jump-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
+            btnId = "color-player-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
+            btnId = "edit-camera-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("level_info", 0) == 0) {
+            btnId = "level_info-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
+
+        if (hasSettingsHandler) {
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
-            auto settingsBtn = CCMenuItemSpriteExtra::create(
-                settingsSprite,
-                this,
-                menu_selector(CommandSettingsPopup::onEditCameraSettings)
-            );
-            settingsBtn->setID("edit-camera-settings-btn-" + std::to_string(actionIndex));
+            auto settingsBtn = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(CommandSettingsPopup::onSettingsButtonUnified));
+            settingsBtn->setID(btnId);
             settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);
             settingsMenu->setPosition(0, 0);
-            actionNode->addChild(settingsMenu);
             float btnX = m_actionContent->getContentSize().width - 24.f;
             settingsBtn->setPosition(btnX - 40.f, 16.f);
+            actionNode->addChild(settingsMenu);
         }
 
         // Remove button
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
         removeSprite->setScale(0.5f);
-
-        // x pos for remove btn
         float btnX = m_actionContent->getContentSize().width - 24.f;
-
         auto removeBtn = CCMenuItemSpriteExtra::create(
             removeSprite,
             this,
@@ -1042,42 +722,35 @@ void CommandSettingsPopup::refreshActionsList() {
         removeBtn->setScale(1.2f);
 
         // If this is a wait action, add a TextInput to the left of the button
-        if (actionId == "wait") {
-            // Use a unique ID for each wait input based on the index
+        if (actionIdLower == "wait") {
             std::string waitInputId = "wait-delay-input-" + std::to_string(actionIndex);
-
             auto waitInput = TextInput::create(50, "Sec", "chatFont.fnt");
             waitInput->setPosition(btnX - 40.f, 16.f);
             waitInput->setScale(0.5f);
             waitInput->setID(waitInputId);
-
-            if (!waitValue.empty()) waitInput->setString(waitValue.c_str());
-
+            // Optionally set value if available (not shown in original code)
             actionNode->addChild(waitInput);
-        };
+        }
 
-        // Menu for button
         auto menu = CCMenu::create();
         menu->setPosition(0, 0);
-
         menu->addChild(removeBtn);
         actionNode->addChild(menu);
 
-        // Add a background to the action node with width matching the actionScrollLayer
         float nodeBgWidth = m_actionContent ? m_actionContent->getContentSize().width : actionNode->getContentSize().width;
-
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(CCSize(nodeBgWidth, actionNode->getContentSize().height));
         nodeBg->setOpacity(60);
         nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
-
         actionNode->addChild(nodeBg, -1);
 
         actionNodeY -= (nodeHeight + actionNodeGap);
         actionIndex++;
-    };
+    }
 }
+
+
 
 void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
@@ -1394,6 +1067,36 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
 
     if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId))) notifLabel->setString(labelText.c_str());
 };
+
+// Unified settings button handler
+void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int actionIdx = 0;
+    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (actionIdx < 0 || actionIdx >= static_cast<int>(m_commandActions.size())) return;
+    std::string& actionStr = m_commandActions[actionIdx];
+    std::string actionStrLower = actionStr;
+    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    if (actionStrLower.rfind("alert_popup", 0) == 0) {
+        SettingsHandler::handleAlertSettings(this, sender);
+    } else if (actionStrLower.rfind("notification", 0) == 0) {
+        SettingsHandler::handleNotificationSettings(this, sender);
+    } else if (actionStrLower.rfind("keycode", 0) == 0) {
+        SettingsHandler::handleKeyCodeSettings(this, sender);
+    } else if (actionStrLower.rfind("profile", 0) == 0) {
+        SettingsHandler::handleProfileSettings(this, sender);
+    } else if (actionStrLower.rfind("move", 0) == 0) {
+        SettingsHandler::handleMoveSettings(this, sender);
+    } else if (actionStrLower.rfind("jump", 0) == 0) {
+        SettingsHandler::handleJumpSettings(this, sender);
+    } else if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0) {
+        SettingsHandler::handleColorPlayerSettings(this, sender);
+    } else if (actionStrLower.rfind("edit_camera", 0) == 0) {
+        SettingsHandler::handleEditCameraSettings(this, sender);
+    } else if (actionStrLower.rfind("level_info", 0) == 0) {
+        SettingsHandler::handleLevelInfoSettings(this, sender);
+    }
+}
 
 // Static create function for CommandSettingsPopup with only TwitchCommand argument
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
