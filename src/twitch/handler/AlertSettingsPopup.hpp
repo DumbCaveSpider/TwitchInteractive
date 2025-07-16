@@ -18,7 +18,7 @@ protected:
     std::string m_initTitle;
     std::string m_initDesc;
 
-    bool setup() override;
+    bool setup();
     void onSave(cocos2d::CCObject* sender);
     void onClose(cocos2d::CCObject* sender = nullptr);
 public:

@@ -11,28 +11,43 @@ bool AlertSettingsPopup::setup() {
     float width = 320.f;
     float height = 180.f;
     setTitle("Alert Popup Settings");
-    setContentSize({width, height});
+    setID("alert-settings-popup");
 
-    m_titleInput = geode::TextInput::create(width - 60, "Title", "chatFont.fnt");
+    auto popupSize = m_mainLayer->getContentSize();
+    float margin = 30.f;
+    float inputWidth = popupSize.width - margin * 2;
+    float inputHeight = 32.f;
+    float spacing = 14.f;
+
+    // Centered Y positions
+    float centerY = popupSize.height / 2;
+    float titleY = centerY + inputHeight / 2 + spacing / 2;
+    float descY = centerY - inputHeight / 2 - spacing / 2;
+    float btnY = margin;
+
+    // Title input
+    m_titleInput = geode::TextInput::create(inputWidth, "Title", "chatFont.fnt");
     m_titleInput->setString(m_initTitle.c_str());
-    m_titleInput->setPosition(width / 2, height - 60);
-    addChild(m_titleInput);
+    m_titleInput->setPosition(popupSize.width / 2, titleY);
+    m_mainLayer->addChild(m_titleInput);
 
-    m_descInput = geode::TextInput::create(width - 60, "Description", "chatFont.fnt");
+    // Description input
+    m_descInput = geode::TextInput::create(inputWidth, "Description", "chatFont.fnt");
     m_descInput->setString(m_initDesc.c_str());
-    m_descInput->setPosition(width / 2, height - 110);
-    addChild(m_descInput);
+    m_descInput->setPosition(popupSize.width / 2, descY);
+    m_mainLayer->addChild(m_descInput);
 
+    // Save button
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
         menu_selector(AlertSettingsPopup::onSave)
     );
-    saveBtn->setPosition(width / 2, 35.f);
+    saveBtn->setPosition(popupSize.width / 2, btnY);
     auto menu = CCMenu::create();
     menu->addChild(saveBtn);
     menu->setPosition(0, 0);
-    addChild(menu);
+    m_mainLayer->addChild(menu);
     return true;
 }
 
@@ -55,7 +70,6 @@ AlertSettingsPopup* AlertSettingsPopup::create(const std::string& title, const s
         ret->m_callback = callback;
         ret->m_initTitle = title;
         ret->m_initDesc = desc;
-        ret->setup();
         ret->autorelease();
         return ret;
     }

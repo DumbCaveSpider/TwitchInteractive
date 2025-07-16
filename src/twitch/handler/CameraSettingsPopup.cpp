@@ -9,7 +9,7 @@ using namespace geode::prelude;
 bool CameraSettingsPopup::setup() {
     setTitle("Camera Settings");
     setID("camera-settings-popup");
-    // Create a content layer for all UI elements, parented to the popup for proper animation
+
     auto popupSize = this->getContentSize();
     auto m_contentLayer = CCLayer::create();
     m_contentLayer->setContentSize(popupSize);

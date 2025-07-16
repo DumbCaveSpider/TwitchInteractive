@@ -634,7 +634,7 @@ void CommandSettingsPopup::refreshActionsList() {
             actionIdLower.rfind("move", 0) == 0 ||
             actionIdLower.rfind("color_player", 0) == 0 ||
             actionIdLower.rfind("edit_camera", 0) == 0 ||
-            actionIdLower.rfind("alert_popup", 0) == 0 ||
+            actionIdLower.rfind("alert_popup", 0) == 0
             ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 5.f);
         }
