@@ -658,7 +658,7 @@ void CommandSettingsPopup::refreshActionsList() {
             } else {
                 labelX = 8.f;
             }
-            std::string labelText = "Title: " + alertTitle + (alertDesc.empty() ? "" : (", Desc: " + alertDesc));
+            std::string labelText = "Title: " + alertTitle + (alertDesc.empty() ? "" : (", Content: " + alertDesc));
             addOrUpdateActionLabel(actionNode, alertLabelId, labelText, labelX, labelY);
             // Settings button for alert popup (same style as others)
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
