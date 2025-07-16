@@ -17,7 +17,7 @@ struct TwitchCommandAction;
 class CommandListPopup;
 
 class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
-protected:
+    protected:
     TextInput* m_notificationInput = nullptr;
     CCMenuItemToggler* m_killPlayerCheckbox = nullptr;
     TwitchCommand m_command = TwitchCommand("", "", "", 0, {});
@@ -27,9 +27,9 @@ protected:
     void onCloseBtn(cocos2d::CCObject* sender);
     void onHandbookBtn(cocos2d::CCObject* sender);
 public:
-
     static CommandSettingsPopup* create(TwitchCommand command, CommandListPopup* parent);
     static CommandSettingsPopup* create(TwitchCommand command);
+    void onAlertSettings(cocos2d::CCObject* sender);
     void onCameraSettingsClicked(cocos2d::CCObject* sender);
     void onMoveActionUp(cocos2d::CCObject* sender);
     void onMoveActionDown(cocos2d::CCObject* sender);

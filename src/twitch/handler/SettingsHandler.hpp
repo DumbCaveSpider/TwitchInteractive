@@ -6,6 +6,7 @@
 #include "../command/CommandSettingsPopup.hpp"
 
 namespace SettingsHandler {
+    void handleAlertSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender);
     void handleProfileSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
     void handleKeyCodeSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
     void handleColorPlayerSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);

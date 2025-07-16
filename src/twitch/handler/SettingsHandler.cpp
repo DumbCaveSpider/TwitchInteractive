@@ -5,12 +5,46 @@
 #include "MoveSettingsPopup.hpp"
 #include "JumpSettingsPopup.hpp"
 #include "ColorPlayerSettingsPopup.hpp"
+#include "AlertSettingsPopup.hpp"
 
 #include <algorithm>
 
 using namespace cocos2d;
 
 namespace SettingsHandler {
+
+// Handler for Alert Popup settings button
+void SettingsHandler::handleAlertSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int actionIdx = 0;
+    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (!parent || actionIdx < 0 || actionIdx >= static_cast<int>(parent->m_commandActions.size())) return;
+    // Parse current values from m_commandActions[actionIdx]
+    std::string alertTitle, alertDesc;
+    const std::string& actionIdRaw = parent->m_commandActions[actionIdx];
+    size_t firstColon = actionIdRaw.find(":");
+    size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        alertTitle = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+        alertDesc = actionIdRaw.substr(secondColon + 1);
+    }
+    // Show the AlertSettingsPopup and update the value and label on save
+    auto popup = AlertSettingsPopup::create(alertTitle, alertDesc, [parent, actionIdx](const std::string& newTitle, const std::string& newDesc) {
+        std::string newActionStr = "alert_popup:" + newTitle + ":" + newDesc;
+        parent->m_commandActions[actionIdx] = newActionStr;
+        // Update the label in the UI
+        auto children = parent->m_actionContent->getChildren();
+        if (children && actionIdx >= 0 && actionIdx < children->count()) {
+            auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+            if (actionNode) {
+                std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIdx);
+                std::string labelText = "Title: " + newTitle + (newDesc.empty() ? "" : (", Desc: " + newDesc));
+                if (auto alertLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(alertLabelId))) alertLabel->setString(labelText.c_str());
+            }
+        }
+    });
+    if (popup) popup->show();
+}
 
 void handleCameraSettings(CommandSettingsPopup* popup, CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);

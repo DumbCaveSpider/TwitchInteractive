@@ -16,6 +16,7 @@
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/ColorPlayerSettingsPopup.hpp"
 #include "../handler/SettingsHandler.hpp"
+#include "../handler/AlertSettingsPopup.hpp"
 #include "../handler/CameraSettingsPopup.hpp"
 
 using namespace cocos2d;
@@ -475,6 +476,9 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
         } else if (eventId == "move") {
             m_commandActions.push_back("move:1:right");
             refreshActionsList();
+        } else if (eventId == "alert_popup") {
+            m_commandActions.push_back("alert_popup:Title:Description");
+            refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
             refreshActionsList();
@@ -584,6 +588,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Color Player";
         } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
             nodeLabel = "Edit Camera";
+        } else if (actionIdLower.rfind("alert_popup", 0) == 0) {
+            nodeLabel = "Alert Popup";
         } else {
             nodeLabel = eventLabel;
         }
@@ -627,13 +633,50 @@ void CommandSettingsPopup::refreshActionsList() {
             actionIdLower.rfind("profile", 0) == 0 ||
             actionIdLower.rfind("move", 0) == 0 ||
             actionIdLower.rfind("color_player", 0) == 0 ||
-            actionIdLower.rfind("edit_camera", 0) == 0
+            actionIdLower.rfind("edit_camera", 0) == 0 ||
+            actionIdLower.rfind("alert_popup", 0) == 0 ||
             ) {
             if (auto mainLabel = actionNode->getLabel()) mainLabel->setPositionY(mainLabel->getPositionY() + 5.f);
         }
 
         // Unified label position logic for all action nodes with labelId
         float labelY = 8.f;
+
+        // Alert Popup action node (unified UI)
+        if (actionIdLower.rfind("alert_popup", 0) == 0) {
+            std::string alertTitle = "", alertDesc = "";
+            size_t firstColon = actionIdRaw.find(":");
+            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                alertTitle = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                alertDesc = actionIdRaw.substr(secondColon + 1);
+            }
+            std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
+            std::string labelText = "Title: " + alertTitle + (alertDesc.empty() ? "" : (", Desc: " + alertDesc));
+            addOrUpdateActionLabel(actionNode, alertLabelId, labelText, labelX, labelY);
+            // Settings button for alert popup (same style as others)
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5f);
+            CCMenuItemSpriteExtra* settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onAlertSettings)
+            );
+            settingsBtn->setID("alert-popup-settings-btn-" + std::to_string(actionIndex));
+            settingsBtn->setUserObject(cocos2d::CCInteger::create(static_cast<int>(i)));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+            actionNode->addChild(settingsMenu);
+        }
 
         // Notification action node (case-insensitive)
         if (actionIdLower.rfind("notification", 0) == 0) {
@@ -1117,6 +1160,10 @@ void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
     };
 };
 
+void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleAlertSettings(this, sender);
+}
+
 void CommandSettingsPopup::onSave(CCObject* sender) {
     // Build up to 10 actions in order, validate all wait inputs
     std::vector<TwitchCommandAction> actionsVec;
@@ -1127,7 +1174,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         std::string actionId = actionIdRaw;
         std::string waitValue;
         std::string jumpPlayerValue;
-
+        std::string alertTitle, alertDesc;
         bool isHold = false;
 
         if (actionIdRaw.rfind("wait:", 0) == 0) {
@@ -1146,7 +1193,15 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             } else {
                 jumpPlayerValue = val;
             };
-        };
+        } else if (actionIdRaw.rfind("alert_popup:", 0) == 0) {
+            actionId = "alert_popup";
+            size_t firstColon = actionIdRaw.find(":");
+            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                alertTitle = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                alertDesc = actionIdRaw.substr(secondColon + 1);
+            }
+        }
 
         if (actionId == "wait") {
             std::string inputId = "wait-delay-input-" + std::to_string(idx + 1); // match refreshActionsList index label (1-based)
@@ -1198,6 +1253,8 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, jumpActionStr, 0));
 
             actionIdRaw = jumpActionStr;
+        } else if (actionId == "alert_popup") {
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "alert_popup:" + alertTitle + ":" + alertDesc, 0));
         } else if (actionId == "kill_player") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
         } else if (actionIdRaw.rfind("keycode:", 0) == 0) {
@@ -1239,10 +1296,12 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             m_commandActions.push_back("notification:" + action.arg);
         } else if (action.type == CommandActionType::Wait) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
+        } else if (action.type == CommandActionType::Event && action.arg.rfind("alert_popup:", 0) == 0) {
+            m_commandActions.push_back(action.arg);
         } else if (action.type == CommandActionType::Event) {
             m_commandActions.push_back(action.arg);
-        };
-    };
+        }
+    }
 
     // Refresh the actions list to ensure notification node is visible
     refreshActionsList();
