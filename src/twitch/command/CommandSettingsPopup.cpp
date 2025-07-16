@@ -22,8 +22,6 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
-// ...existing code...
-
 // Free function to add or update a label for an action node with uniform style
 void addOrUpdateActionLabel(CCNode* actionNode, const std::string& labelId, const std::string& text, float x, float y) {
     if (!actionNode) return;

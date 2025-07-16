@@ -54,5 +54,5 @@ public:
     void onMoveSettings(cocos2d::CCObject* sender);
     void onEditCameraSettings(cocos2d::CCObject* sender);
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey);
-// ...existing code up to the end of the class CommandSettingsPopup...
+
 };
