@@ -3,8 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/ui/MDPopup.hpp>
 
-bool HandbookPopup::setup()
-{
+bool HandbookPopup::setup() {
     setTitle("Twitch Interactive Handbook");
     setID("handbook-popup");
 
@@ -19,12 +18,12 @@ bool HandbookPopup::setup()
 
     // Commands Settings menu
     auto topMenu = CCMenu::create();
-    topMenu->setContentSize({width, 100.f});
+    topMenu->setContentSize({ width, 100.f });
     // Move menu up a bit to avoid overlap with dashboard section
     topMenu->setPosition(0, height / 2 + 10.f);
     topMenu->setID("handbook-top-menu");
 
-    CCLabelBMFont *commandsLabel = CCLabelBMFont::create("Commands Settings Help", "bigFont.fnt");
+    CCLabelBMFont* commandsLabel = CCLabelBMFont::create("Commands Settings Help", "bigFont.fnt");
     commandsLabel->setScale(0.5f);
     commandsLabel->setPosition(width / 2, 88.f); // Near top of menu
     topMenu->addChild(commandsLabel);
@@ -36,21 +35,21 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onEventsBtn));
     eventsBtn->setID("handbook-events-btn");
-    eventsBtn->setPosition({width / 2 - tripleSpacing, topRowY});
+    eventsBtn->setPosition({ width / 2 - tripleSpacing, topRowY });
 
     auto actionBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Actions", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
         this,
         menu_selector(HandbookPopup::onActionBtn));
     actionBtn->setID("handbook-action-btn");
-    actionBtn->setPosition({width / 2, topRowY});
+    actionBtn->setPosition({ width / 2, topRowY });
 
     auto identifiersBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Identifiers", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
         this,
         menu_selector(HandbookPopup::onIdentifiersBtn));
     identifiersBtn->setID("handbook-identifiers-btn");
-    identifiersBtn->setPosition({width / 2 + tripleSpacing, topRowY});
+    identifiersBtn->setPosition({ width / 2 + tripleSpacing, topRowY });
 
     // Bottom row: User/Role button centered below the top row, with spacing
     float bottomRowY = 16.f;
@@ -59,7 +58,7 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onUserRoleBtn));
     userRoleBtn->setID("handbook-userrole-btn");
-    userRoleBtn->setPosition({width / 2, bottomRowY});
+    userRoleBtn->setPosition({ width / 2, bottomRowY });
 
     topMenu->addChild(eventsBtn);
     topMenu->addChild(actionBtn);
@@ -71,12 +70,12 @@ bool HandbookPopup::setup()
     // Dashboard section
     auto dashMenu = CCMenu::create();
     dashMenu->setID("handbook-dashboard-menu");
-    dashMenu->setContentSize({width, 72.f});
-    dashMenu->setPosition({0.f, height / 2.f - 70.f}); // Centered lower
+    dashMenu->setContentSize({ width, 72.f });
+    dashMenu->setPosition({ 0.f, height / 2.f - 70.f }); // Centered lower
 
-    CCLabelBMFont *dashLabel = CCLabelBMFont::create("Dashboard Help", "bigFont.fnt");
+    CCLabelBMFont* dashLabel = CCLabelBMFont::create("Dashboard Help", "bigFont.fnt");
     dashLabel->setScale(0.5f);
-    dashLabel->setPosition({width / 2, 60.f});
+    dashLabel->setPosition({ width / 2, 60.f });
 
     dashMenu->addChild(dashLabel);
 
@@ -86,7 +85,7 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onDashboardBtn));
     dashBtn->setID("handbook-dashboard-btn");
-    dashBtn->setPosition({width / 2 - 80.f, 24.f});
+    dashBtn->setPosition({ width / 2 - 80.f, 24.f });
 
     dashMenu->addChild(dashBtn);
 
@@ -96,7 +95,7 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onCommandsBtn));
     commandsBtn->setID("handbook-commands-btn");
-    commandsBtn->setPosition({width / 2 + 80.f, 24.f});
+    commandsBtn->setPosition({ width / 2 + 80.f, 24.f });
 
     dashMenu->addChild(commandsBtn);
 
@@ -105,21 +104,20 @@ bool HandbookPopup::setup()
     // Support section
     auto supportMenu = CCMenu::create();
     supportMenu->setID("handbook-support-menu");
-    supportMenu->setContentSize({width, 72.f});
-    supportMenu->setPosition({0.f, 0.f});
+    supportMenu->setContentSize({ width, 72.f });
+    supportMenu->setPosition({ 0.f, 0.f });
 
     // Support label (centered)
-    CCLabelBMFont *supportLabel = CCLabelBMFont::create("Support", "bigFont.fnt");
+    CCLabelBMFont* supportLabel = CCLabelBMFont::create("Support", "bigFont.fnt");
     supportLabel->setScale(0.5f);
-    supportLabel->setAnchorPoint({0.5f, 0.5f});
-    supportLabel->setPosition({width / 2, 60.f});
+    supportLabel->setAnchorPoint({ 0.5f, 0.5f });
+    supportLabel->setPosition({ width / 2, 60.f });
     supportMenu->addChild(supportLabel);
 
     // Discord button
     auto discordIcon = CCSprite::createWithSpriteFrameName("gj_discordIcon_001.png");
     float iconScale = 0.9f;
-    if (discordIcon)
-    {
+    if (discordIcon) {
         discordIcon->setScale(iconScale);
     }
     auto discordBtn = CCMenuItemSpriteExtra::create(
@@ -127,8 +125,8 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onDiscordBtn));
     discordBtn->setID("handbook-discord-btn");
-    discordBtn->setAnchorPoint({0.5f, 0.5f});
-    discordBtn->setPosition({width / 2, 30.f});
+    discordBtn->setAnchorPoint({ 0.5f, 0.5f });
+    discordBtn->setPosition({ width / 2, 30.f });
     supportMenu->addChild(discordBtn);
 
     m_mainLayer->addChild(supportMenu);
@@ -136,15 +134,13 @@ bool HandbookPopup::setup()
     return true;
 }
 // Support Discord button callback
-void HandbookPopup::onDiscordBtn(CCObject *)
-{
+void HandbookPopup::onDiscordBtn(CCObject*) {
     geode::utils::web::openLinkInBrowser("https://discord.gg/gXcppxTNxC");
 }
 
 // Handbook MD instructions
 
-void HandbookPopup::onUserRoleBtn(CCObject *)
-{
+void HandbookPopup::onUserRoleBtn(CCObject*) {
     std::string md =
         "# Command User/Role Restrictions\n\n"
         "Command User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
@@ -161,8 +157,7 @@ void HandbookPopup::onUserRoleBtn(CCObject *)
     MDPopup::create("User/Role Help", md, "OK", nullptr, [](bool) {})->show();
 }
 
-void HandbookPopup::onCommandsBtn(CCObject *)
-{
+void HandbookPopup::onCommandsBtn(CCObject*) {
     std::string md =
         "# Commands\n\n"
         "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
@@ -183,8 +178,7 @@ void HandbookPopup::onCommandsBtn(CCObject *)
     MDPopup::create("Commands Help", md, "OK", nullptr, [](bool) {})->show();
 };
 
-void HandbookPopup::onDashboardBtn(CCObject *)
-{
+void HandbookPopup::onDashboardBtn(CCObject*) {
     std::string md =
         "# Dashboard\n\n"
         "The Dashboard is your main control center for the Twitch Interactive mod.\n\n"
@@ -206,8 +200,7 @@ void HandbookPopup::onDashboardBtn(CCObject *)
     MDPopup::create("Dashboard Help", md, "OK", nullptr, [](bool) {})->show();
 };
 
-void HandbookPopup::onIdentifiersBtn(CCObject *)
-{
+void HandbookPopup::onIdentifiersBtn(CCObject*) {
     std::string md =
         "# Identifiers\n\n"
         "Identifiers are special placeholders you can use in actions to insert dynamic values from Twitch chat.\n\n"
@@ -227,8 +220,7 @@ void HandbookPopup::onIdentifiersBtn(CCObject *)
     MDPopup::create("Identifiers Help", md, "OK", nullptr, [](bool) {})->show();
 };
 
-void HandbookPopup::onActionBtn(CCObject *)
-{
+void HandbookPopup::onActionBtn(CCObject*) {
     std::string md =
         "# Actions\n\n"
         "Actions are the list of events that the command will trigger when activated.\n\n"
@@ -244,8 +236,7 @@ void HandbookPopup::onActionBtn(CCObject *)
     MDPopup::create("Actions Help", md, "OK", nullptr, [](bool) {})->show();
 };
 
-void HandbookPopup::onEventsBtn(CCObject *)
-{
+void HandbookPopup::onEventsBtn(CCObject*) {
     std::string md =
         "# Events\n\n"
         "Events are actions that can be added to the command.\n\n"
@@ -259,12 +250,10 @@ void HandbookPopup::onEventsBtn(CCObject *)
     MDPopup::create("Events Help", md, "OK", nullptr, [](bool) {})->show();
 };
 
-HandbookPopup *HandbookPopup::create()
-{
+HandbookPopup* HandbookPopup::create() {
     auto ret = new HandbookPopup();
 
-    if (ret && ret->initAnchored(480.f, 290.f))
-    {
+    if (ret && ret->initAnchored(480.f, 290.f)) {
         ret->autorelease();
         return ret;
     };

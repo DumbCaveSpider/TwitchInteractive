@@ -23,30 +23,25 @@ using namespace cocos2d;
 using namespace geode::prelude;
 
 // Free function to add or update a label for an action node with uniform style
-void addOrUpdateActionLabel(CCNode *actionNode, const std::string &labelId, const std::string &text, float x, float y)
-{
+void addOrUpdateActionLabel(CCNode* actionNode, const std::string& labelId, const std::string& text, float x, float y) {
     if (!actionNode)
         return;
     auto label = actionNode->getChildByID(labelId);
-    if (!label)
-    {
+    if (!label) {
         auto newLabel = CCLabelBMFont::create(text.c_str(), "chatFont.fnt");
         newLabel->setScale(0.5f);
-        newLabel->setAnchorPoint({0, 0.5f});
+        newLabel->setAnchorPoint({ 0, 0.5f });
         newLabel->setAlignment(kCCTextAlignmentLeft);
         newLabel->setPosition(x, y);
         newLabel->setID(labelId);
         actionNode->addChild(newLabel);
-    }
-    else
-    {
-        if (auto bmLabel = dynamic_cast<CCLabelBMFont *>(label))
+    } else {
+        if (auto bmLabel = dynamic_cast<CCLabelBMFont*>(label))
             bmLabel->setString(text.c_str());
     }
 }
 
-bool CommandSettingsPopup::setup(TwitchCommand command)
-{
+bool CommandSettingsPopup::setup(TwitchCommand command) {
     auto layerSize = m_mainLayer->getContentSize();
     float sectionWidth = 250.f;
     float sectionHeight = 200.f;
@@ -75,14 +70,14 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     // label :)
     auto eventLabel = CCLabelBMFont::create("Events", "bigFont.fnt");
     eventLabel->setScale(0.6f);
-    eventLabel->setAnchorPoint({0.5f, 0.5f});
+    eventLabel->setAnchorPoint({ 0.5f, 0.5f });
     eventLabel->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
     eventLabel->setID("events-section-label");
     m_mainLayer->addChild(eventLabel);
 
     auto actionLabel = CCLabelBMFont::create("Actions", "bigFont.fnt");
     actionLabel->setScale(0.6f);
-    actionLabel->setAnchorPoint({0.5f, 0.5f});
+    actionLabel->setAnchorPoint({ 0.5f, 0.5f });
     actionLabel->setPosition(actionSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
     actionLabel->setID("actions-section-label");
     m_mainLayer->addChild(actionLabel);
@@ -109,7 +104,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     eventScrollBg->setID("events-scroll-background");
     eventScrollBg->setContentSize(scrollSize);
     eventScrollBg->setOpacity(50);
-    eventScrollBg->setAnchorPoint({0.5f, 0.5f});
+    eventScrollBg->setAnchorPoint({ 0.5f, 0.5f });
     eventScrollBg->setScale(1.05f);
     eventScrollBg->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height / 2);
     m_mainLayer->addChild(eventScrollBg);
@@ -124,7 +119,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     actionScrollBg->setID("actions-scroll-background");
     actionScrollBg->setContentSize(scrollSize);
     actionScrollBg->setOpacity(50);
-    actionScrollBg->setAnchorPoint({0.5f, 0.5f});
+    actionScrollBg->setAnchorPoint({ 0.5f, 0.5f });
     actionScrollBg->setScale(1.05f);
     actionScrollBg->setPosition(actionSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height / 2);
     m_mainLayer->addChild(actionScrollBg);
@@ -139,11 +134,11 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     actionScrollLayer->scrollToTop();
 
     auto eventLayout = ColumnLayout::create()
-                           ->setAxisReverse(true) // Make items stack from the top
-                           ->setAxisAlignment(AxisAlignment::Start)
-                           ->setCrossAxisAlignment(AxisAlignment::Start)
-                           ->setAutoGrowAxis(scrollSize.height)
-                           ->setGap(8.0f);
+        ->setAxisReverse(true) // Make items stack from the top
+        ->setAxisAlignment(AxisAlignment::Start)
+        ->setCrossAxisAlignment(AxisAlignment::Start)
+        ->setAutoGrowAxis(scrollSize.height)
+        ->setGap(8.0f);
 
     // Content layer for event nodes
     auto eventContent = eventScrollLayer->m_contentLayer;
@@ -152,11 +147,11 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     eventContent->setLayout(eventLayout);
 
     auto actionLayout = ColumnLayout::create()
-                            ->setAxisReverse(false)
-                            ->setAxisAlignment(AxisAlignment::Start)
-                            ->setCrossAxisAlignment(AxisAlignment::Start)
-                            ->setAutoGrowAxis(scrollSize.height)
-                            ->setGap(8.0f);
+        ->setAxisReverse(false)
+        ->setAxisAlignment(AxisAlignment::Start)
+        ->setCrossAxisAlignment(AxisAlignment::Start)
+        ->setAutoGrowAxis(scrollSize.height)
+        ->setGap(8.0f);
 
     // Content layer for actions
     auto actionContent = actionScrollLayer->m_contentLayer;
@@ -168,24 +163,15 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     m_commandActions.clear();
 
     // Initialize m_commandActions from command.actions
-    for (const auto &action : command.actions)
-    {
-        if (action.type == CommandActionType::Notification)
-        {
+    for (const auto& action : command.actions) {
+        if (action.type == CommandActionType::Notification) {
             m_commandActions.push_back("notification:" + action.arg);
-        }
-        else if (action.type == CommandActionType::Wait)
-        {
+        } else if (action.type == CommandActionType::Wait) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
-        }
-        else if (action.type == CommandActionType::Event)
-        {
-            if (action.arg.rfind("jump:", 0) == 0)
-            {
+        } else if (action.type == CommandActionType::Event) {
+            if (action.arg.rfind("jump:", 0) == 0) {
                 m_commandActions.push_back(action.arg);
-            }
-            else
-            {
+            } else {
                 m_commandActions.push_back(action.arg);
             };
         };
@@ -206,8 +192,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     eventContent->setContentSize(CCSize(scrollSize.width, contentHeight));
 
     float eventNodeY = contentHeight - 16.f;
-    for (const auto &info : CommandActionEventNode::getAllEventNodes())
-    {
+    for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
         auto node = CCNode::create();
         node->setContentSize(CCSize(scrollSize.width, nodeHeight));
 
@@ -215,7 +200,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
         auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
         label->setID("event-" + info.id + "-label");
         label->setScale(0.5f);
-        label->setAnchorPoint({0, 0.5f});
+        label->setAnchorPoint({ 0, 0.5f });
         label->setAlignment(kCCTextAlignmentLeft);
         label->setPosition(20.f, 16.f);
 
@@ -257,7 +242,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(node->getContentSize());
         nodeBg->setOpacity(60);
-        nodeBg->setAnchorPoint({0, 0});
+        nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
 
         node->addChild(nodeBg, -1);
@@ -276,10 +261,8 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 
     // Set checkbox state from command actions
     bool killChecked = false;
-    for (const auto &action : command.actions)
-    {
-        if (action.type == CommandActionType::Event && action.arg == "kill_player")
-        {
+    for (const auto& action : command.actions) {
+        if (action.type == CommandActionType::Event && action.arg == "kill_player") {
             killChecked = true;
             break;
         };
@@ -315,7 +298,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     commandBtnMenu->addChild(saveBtn);
     commandBtnMenu->addChild(handbookBtn);
     commandBtnMenu->addChild(closeBtn);
-    commandBtnMenu->setContentSize({570.f, 25.f});
+    commandBtnMenu->setContentSize({ 570.f, 25.f });
 
     auto menuSize = commandBtnMenu->getContentSize();
 
@@ -337,8 +320,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     return true;
 }
 
-void CommandSettingsPopup::onProfileUserSettings(CCObject *sender)
-{
+void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
     std::string allowedUser = m_command.allowedUser;
     bool allowVip = m_command.allowVip;
     bool allowMod = m_command.allowMod;
@@ -350,8 +332,7 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject *sender)
         allowMod,
         allowSubscriber,
         allowStreamer,
-        [this](const std::string &user, bool vip, bool mod, bool subscriber, bool streamer)
-        {
+        [this](const std::string& user, bool vip, bool mod, bool subscriber, bool streamer) {
             m_command.allowedUser = user;
             m_command.allowVip = vip;
             m_command.allowMod = mod;
@@ -359,19 +340,14 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject *sender)
             m_command.allowStreamer = streamer;
 
             // Update all CommandActionEventNode role labels in the UI
-            if (m_actionContent)
-            {
+            if (m_actionContent) {
                 auto children = m_actionContent->getChildren();
-                if (children)
-                {
-                    for (int i = 0; i < children->count(); ++i)
-                    {
-                        auto node = as<CCNode *>(children->objectAtIndex(i));
-                        if (node)
-                        {
-                            auto eventNode = dynamic_cast<CommandActionEventNode *>(node);
-                            if (eventNode)
-                            {
+                if (children) {
+                    for (int i = 0; i < children->count(); ++i) {
+                        auto node = as<CCNode*>(children->objectAtIndex(i));
+                        if (node) {
+                            auto eventNode = dynamic_cast<CommandActionEventNode*>(node);
+                            if (eventNode) {
                                 eventNode->updateRoleLabel();
                             }
                         }
@@ -384,24 +360,22 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject *sender)
     return;
 }
 
-void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject *sender)
-{
-    auto btn = as<CCMenuItemSpriteExtra *>(sender);
+void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
     if (btn->getUserObject())
-        idx = as<CCInteger *>(btn->getUserObject())->getValue();
+        idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx <= 0 || idx >= as<int>(m_commandActions.size()))
         return;
     std::swap(m_commandActions[idx], m_commandActions[idx - 1]);
     refreshActionsList();
 }
 
-void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject *sender)
-{
-    auto btn = as<CCMenuItemSpriteExtra *>(sender);
+void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
     if (btn->getUserObject())
-        idx = as<CCInteger *>(btn->getUserObject())->getValue();
+        idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= as<int>(m_commandActions.size()) - 1)
         return;
     std::swap(m_commandActions[idx], m_commandActions[idx + 1]);
@@ -409,108 +383,82 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject *sender)
 }
 
 // Handler for color player settings button
-void CommandSettingsPopup::onColorPlayerSettings(CCObject *sender)
-{
+void CommandSettingsPopup::onColorPlayerSettings(CCObject* sender) {
     SettingsHandler::handleColorPlayerSettings(this, sender);
 }
 
 // Jump settings handler
-void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleJumpSettings(this, sender);
 }
 
 // Move Player settings handler
-void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleMoveSettings(this, sender);
 }
 
 // Edit Camera settings handler
-void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleEditCameraSettings(this, sender);
 }
 
 // Notification settings handler
-void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleNotificationSettings(this, sender);
 }
 
-void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleAlertSettings(this, sender);
 }
 
 // Player Profile settings handler
-void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleProfileSettings(this, sender);
 }
 // KeyCode settings handler
-void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleKeyCodeSettings(this, sender);
 }
 
 // Handbook button handler
-void CommandSettingsPopup::onHandbookBtn(cocos2d::CCObject *sender)
-{
+void CommandSettingsPopup::onHandbookBtn(cocos2d::CCObject* sender) {
     auto popup = HandbookPopup::create();
     if (popup)
         popup->show();
 }
 
-void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
-{
-    auto btn = as<CCMenuItemSpriteExtra *>(sender);
+void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
 
     std::string eventId;
     if (btn->getUserObject())
-        eventId = as<CCString *>(btn->getUserObject())->getCString();
+        eventId = as<CCString*>(btn->getUserObject())->getCString();
 
-    if (!eventId.empty())
-    {
-        if (eventId == "jump")
-        {
+    if (!eventId.empty()) {
+        if (eventId == "jump") {
             m_commandActions.push_back("jump:1");
             refreshActionsList();
-        }
-        else if (eventId == "notification")
-        {
+        } else if (eventId == "notification") {
             m_commandActions.push_back("notification:");
             refreshActionsList();
-        }
-        else if (eventId == "keycode")
-        {
+        } else if (eventId == "keycode") {
             m_commandActions.push_back("keycode:");
             refreshActionsList();
-        }
-        else if (eventId == "profile")
-        {
+        } else if (eventId == "profile") {
             m_commandActions.push_back("profile:");
             refreshActionsList();
-        }
-        else if (eventId == "move")
-        {
+        } else if (eventId == "move") {
             m_commandActions.push_back("move:1:right");
             refreshActionsList();
-        }
-        else if (eventId == "alert_popup")
-        {
+        } else if (eventId == "alert_popup") {
             m_commandActions.push_back("alert_popup:-:-");
             refreshActionsList();
-        }
-        else
-        {
+        } else {
             m_commandActions.push_back(eventId);
             refreshActionsList();
-            if (m_mainLayer)
-            {
-                auto eventScrollLayer = dynamic_cast<ScrollLayer *>(m_mainLayer->getChildByID("events-scroll"));
-                if (eventScrollLayer && eventScrollLayer->m_contentLayer)
-                {
+            if (m_mainLayer) {
+                auto eventScrollLayer = dynamic_cast<ScrollLayer*>(m_mainLayer->getChildByID("events-scroll"));
+                if (eventScrollLayer && eventScrollLayer->m_contentLayer) {
                     auto eventContent = eventScrollLayer->m_contentLayer;
                     float eventNodeGap = 8.0f;
                     float nodeHeight = 32.f;
@@ -525,17 +473,15 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
     }
 }
 
-void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::string &nextKey)
-{
-    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size()))
-    {
+void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey) {
+    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
         m_commandActions[actionIdx] = "keycode:" + nextKey;
     }
     // Update the label in the action node
     auto children = m_actionContent->getChildren();
     if (!children || actionIdx < 0 || actionIdx >= children->count())
         return;
-    auto actionNode = as<CCNode *>(children->objectAtIndex(actionIdx));
+    auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
     if (!actionNode)
         return;
     std::string keyLabelId = "keycode-action-text-label-" + std::to_string(actionIdx);
@@ -545,12 +491,11 @@ void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::
     if (pipePos != std::string::npos)
         keyPart = keyPart.substr(0, pipePos);
     std::string labelText = keyPart.empty() ? "-" : keyPart;
-    if (auto keyLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(keyLabelId)))
+    if (auto keyLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(keyLabelId)))
         keyLabel->setString(labelText.c_str());
 }
 
-void CommandSettingsPopup::refreshActionsList()
-{
+void CommandSettingsPopup::refreshActionsList() {
     if (!m_actionContent)
         return;
 
@@ -569,16 +514,15 @@ void CommandSettingsPopup::refreshActionsList()
 
     float actionNodeY = contentHeight - nodeHeight / 2;
     int actionIndex = 0;
-    for (int i = 0; i < actionCount; ++i)
-    {
-        std::string &actionIdRaw = m_commandActions[i];
+    for (int i = 0; i < actionCount; ++i) {
+        std::string& actionIdRaw = m_commandActions[i];
         std::string actionIdLower = actionIdRaw;
         std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
 
         // Create the action node and align to left edge of scroll content
         TwitchCommandAction actionObj(CommandActionType::Event, actionIdRaw, 0);
         auto actionNode = CommandActionEventNode::create(actionObj, CCSize(m_actionContent->getContentSize().width, nodeHeight));
-        actionNode->setAnchorPoint({0, 0.5f});
+        actionNode->setAnchorPoint({ 0, 0.5f });
         actionNode->setPosition(0, actionNodeY); // align left, vertical stack
         m_actionContent->addChild(actionNode);
 
@@ -586,7 +530,7 @@ void CommandSettingsPopup::refreshActionsList()
         std::string indexLabelId = "action-index-label-" + std::to_string(i);
         auto indexLabel = CCLabelBMFont::create(std::to_string(i + 1).c_str(), "goldFont.fnt");
         indexLabel->setScale(0.4f);
-        indexLabel->setAnchorPoint({0, 0.5f});
+        indexLabel->setAnchorPoint({ 0, 0.5f });
         indexLabel->setAlignment(kCCTextAlignmentLeft);
         indexLabel->setPosition(4.f, 16.f);
         indexLabel->setID(indexLabelId);
@@ -596,11 +540,9 @@ void CommandSettingsPopup::refreshActionsList()
         std::string mainLabelId = "action-main-label-" + std::to_string(i);
         std::string mainLabelText = actionIdRaw;
         // Use the event name from CommandActionEventNode::getAllEventNodes if available
-        for (const auto &info : CommandActionEventNode::getAllEventNodes())
-        {
+        for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
             // Match by prefix (e.g., "jump:", "move:", etc.)
-            if (actionIdLower.rfind(info.id, 0) == 0)
-            {
+            if (actionIdLower.rfind(info.id, 0) == 0) {
                 mainLabelText = info.label;
                 break;
             }
@@ -608,55 +550,39 @@ void CommandSettingsPopup::refreshActionsList()
 
         std::string btnId;
         bool hasSettingsHandler = false;
-        if (actionIdLower.rfind("alert_popup", 0) == 0)
-        {
+        if (actionIdLower.rfind("alert_popup", 0) == 0) {
             btnId = "alert-popup-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("notification", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("notification", 0) == 0) {
             btnId = "notification-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("keycode", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("keycode", 0) == 0) {
             btnId = "keycode-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("profile", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("profile", 0) == 0) {
             btnId = "profile-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("move", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("move", 0) == 0) {
             btnId = "move-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("jump", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("jump", 0) == 0) {
             btnId = "jump-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("color_player", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("color_player", 0) == 0) {
             btnId = "color-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        }
-        else if (actionIdLower.rfind("edit_camera", 0) == 0)
-        {
+        } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
             btnId = "edit-camera-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
         auto mainLabel = CCLabelBMFont::create(mainLabelText.c_str(), "bigFont.fnt");
         mainLabel->setScale(0.5f);
-        mainLabel->setAnchorPoint({0, 0.5f});
+        mainLabel->setAnchorPoint({ 0, 0.5f });
         mainLabel->setAlignment(kCCTextAlignmentLeft);
         float mainLabelX = 20.f;
         float mainLabelY = 16.f;
 
-        if (hasSettingsHandler)
-        {
+        if (hasSettingsHandler) {
             mainLabelX += 5.f;
             mainLabelY += 5.f;
         }
@@ -671,102 +597,76 @@ void CommandSettingsPopup::refreshActionsList()
         // Add a settings text label for the current settings values (if any)
         std::string settingsLabelId = "action-settings-label-" + std::to_string(i);
         std::string settingsLabelText = "";
-        if (hasSettingsHandler)
-        {
-            if (actionIdLower.rfind("alert_popup", 0) == 0)
-            {
+        if (hasSettingsHandler) {
+            if (actionIdLower.rfind("alert_popup", 0) == 0) {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-                if (firstColon != std::string::npos && secondColon != std::string::npos)
-                {
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
                     std::string title = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string desc = actionIdRaw.substr(secondColon + 1);
                     settingsLabelText = "Title: " + title + " | Desc: " + desc;
                 }
-            }
-            else if (actionIdLower.rfind("notification", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("notification", 0) == 0) {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-                if (firstColon != std::string::npos && secondColon != std::string::npos)
-                {
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
                     std::string iconType = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string notifText = actionIdRaw.substr(secondColon + 1);
                     settingsLabelText = "Icon: " + iconType + " | Text: " + notifText;
                 }
-            }
-            else if (actionIdLower.rfind("keycode", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("keycode", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                {
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string key = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "Key: " + key;
                 }
-            }
-            else if (actionIdLower.rfind("profile", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("profile", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                {
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string user = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "User: " + user;
                 }
-            }
-            else if (actionIdLower.rfind("move", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("move", 0) == 0) {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-                if (firstColon != std::string::npos && secondColon != std::string::npos)
-                {
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
                     std::string player = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string dir = actionIdRaw.substr(secondColon + 1);
                     settingsLabelText = "Player: " + player + " | Dir: " + dir;
                 }
-            }
-            else if (actionIdLower.rfind("jump", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("jump", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                {
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string rest = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "Player: " + rest;
                 }
-            }
-            else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                {
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string rgb = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "RGB: " + rgb;
                 }
-            }
-            else if (actionIdLower.rfind("edit_camera", 0) == 0)
-            {
+            } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                {
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string params = actionIdRaw.substr(colon + 1);
                     settingsLabelText = params;
                 }
             }
         }
-        if (!textLabelText.empty())
-        {
+        if (!textLabelText.empty()) {
             auto textLabel = CCLabelBMFont::create(textLabelText.c_str(), "chatFont.fnt");
             textLabel->setScale(0.5f);
-            textLabel->setAnchorPoint({0, 0.5f});
+            textLabel->setAnchorPoint({ 0, 0.5f });
             textLabel->setAlignment(kCCTextAlignmentLeft);
             textLabel->setPosition(140.f, 16.f);
             textLabel->setID(textLabelId);
             actionNode->addChild(textLabel);
         }
-        if (hasSettingsHandler && !settingsLabelText.empty())
-        {
+        if (hasSettingsHandler && !settingsLabelText.empty()) {
             auto settingsLabel = CCLabelBMFont::create(settingsLabelText.c_str(), "chatFont.fnt");
             settingsLabel->setScale(0.5f);
-            settingsLabel->setAnchorPoint({0, 0.5f});
+            settingsLabel->setAnchorPoint({ 0, 0.5f });
             settingsLabel->setAlignment(kCCTextAlignmentLeft);
             // Place settings label directly underneath the main label
             float settingsLabelX = mainLabel->getPositionX();
@@ -794,9 +694,8 @@ void CommandSettingsPopup::refreshActionsList()
         downBtn->setPosition(btnX - 80.f, arrowBtnY - 8.f);
 
         // Settings button (if applicable)
-        CCMenuItemSpriteExtra *settingsBtn = nullptr;
-        if (hasSettingsHandler)
-        {
+        CCMenuItemSpriteExtra* settingsBtn = nullptr;
+        if (hasSettingsHandler) {
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
             settingsBtn = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(CommandSettingsPopup::onSettingsButtonUnified));
@@ -818,8 +717,7 @@ void CommandSettingsPopup::refreshActionsList()
         removeBtn->setScale(1.2f);
 
         // If this is a wait action, add a TextInput to the left of the button
-        if (actionIdLower == "wait")
-        {
+        if (actionIdLower == "wait") {
             std::string waitInputId = "wait-delay-input-" + std::to_string(actionIndex);
             auto waitInput = TextInput::create(50, "Sec", "chatFont.fnt");
             waitInput->setPosition(btnX - 40.f, 16.f);
@@ -843,7 +741,7 @@ void CommandSettingsPopup::refreshActionsList()
         auto nodeBg = CCScale9Sprite::create("square02_001.png");
         nodeBg->setContentSize(CCSize(nodeBgWidth, actionNode->getContentSize().height));
         nodeBg->setOpacity(60);
-        nodeBg->setAnchorPoint({0, 0});
+        nodeBg->setAnchorPoint({ 0, 0 });
         nodeBg->setPosition(0, 0);
         actionNode->addChild(nodeBg, -1);
 
@@ -852,13 +750,12 @@ void CommandSettingsPopup::refreshActionsList()
     }
 }
 
-void CommandSettingsPopup::onRemoveAction(CCObject *sender)
-{
-    auto btn = as<CCMenuItemSpriteExtra *>(sender);
+void CommandSettingsPopup::onRemoveAction(CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int idx = 0;
 
     if (btn->getUserObject())
-        idx = as<CCInteger *>(btn->getUserObject())->getValue();
+        idx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size()))
         return;
 
@@ -867,15 +764,12 @@ void CommandSettingsPopup::onRemoveAction(CCObject *sender)
     refreshActionsList();
 };
 
-void CommandSettingsPopup::onCloseBtn(CCObject *sender)
-{
+void CommandSettingsPopup::onCloseBtn(CCObject* sender) {
     onClose(sender);
 };
 
-std::string CommandSettingsPopup::getNotificationText() const
-{
-    if (m_notificationInput)
-    {
+std::string CommandSettingsPopup::getNotificationText() const {
+    if (m_notificationInput) {
         std::string text = m_notificationInput->getString();
 
         // Trim whitespace
@@ -889,30 +783,24 @@ std::string CommandSettingsPopup::getNotificationText() const
 }
 
 // Helper to update the color player RGB label for a given action index
-void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx)
-{
-    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size()))
-    {
-        std::string &actionStr = m_commandActions[actionIdx];
+void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx) {
+    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
+        std::string& actionStr = m_commandActions[actionIdx];
         std::string actionStrLower = actionStr;
         std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-        if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0)
-        {
+        if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0) {
             auto children = m_actionContent->getChildren();
-            if (children && actionIdx < children->count())
-            {
-                auto actionNode = as<CCNode *>(children->objectAtIndex(actionIdx));
-                if (actionNode)
-                {
+            if (children && actionIdx < children->count()) {
+                auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+                if (actionNode) {
                     std::string colorLabelId = "color-player-action-text-label-" + std::to_string(actionIdx);
                     std::string rgbText = "255,255,255";
                     size_t colonPos = actionStr.find(":");
-                    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size())
-                    {
+                    if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
                         rgbText = actionStr.substr(colonPos + 1);
                     }
                     std::string labelText = "RGB: " + rgbText;
-                    if (auto colorLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(colorLabelId)))
+                    if (auto colorLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(colorLabelId)))
                         colorLabel->setString(labelText.c_str());
                 }
             }
@@ -921,56 +809,46 @@ void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx)
 }
 
 // Info button handler for event list
-void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject *sender)
-{
-    auto btn = as<CCMenuItemSpriteExtra *>(sender);
+void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     std::string desc;
     std::string eventName = "Event";
     std::string btnId = btn ? btn->getID() : "";
     std::string eventId;
 
     // ID format: event-<id>-info-btn
-    if (btnId.rfind("event-", 0) == 0)
-    {
+    if (btnId.rfind("event-", 0) == 0) {
         size_t start = 6;
         size_t end = btnId.find("-info-btn");
-        if (end != std::string::npos && end > start)
-        {
+        if (end != std::string::npos && end > start) {
             eventId = btnId.substr(start, end - start);
         };
     };
 
     // Find the event name from EventNodeInfo
-    for (const auto &info : CommandActionEventNode::getAllEventNodes())
-    {
-        if (info.id == eventId)
-        {
+    for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
+        if (info.id == eventId) {
             eventName = info.label;
             break;
         };
     };
 
     if (btn && btn->getUserObject())
-        desc = as<CCString *>(btn->getUserObject())->getCString();
+        desc = as<CCString*>(btn->getUserObject())->getCString();
 
-    if (!desc.empty())
-    {
+    if (!desc.empty()) {
         FLAlertLayer::create(eventName.c_str(), desc, "OK")->show();
-    }
-    else
-    {
+    } else {
         FLAlertLayer::create(eventName.c_str(), "No description available.", "OK")->show();
     };
 };
 
-void CommandSettingsPopup::onSave(CCObject *sender)
-{
+void CommandSettingsPopup::onSave(CCObject* sender) {
     // Build up to 10 actions in order, validate all wait inputs
     std::vector<TwitchCommandAction> actionsVec;
 
-    for (size_t idx = 0; idx < m_commandActions.size(); ++idx)
-    {
-        std::string &actionIdRaw = m_commandActions[idx];
+    for (size_t idx = 0; idx < m_commandActions.size(); ++idx) {
+        std::string& actionIdRaw = m_commandActions[idx];
 
         std::string actionId = actionIdRaw;
         std::string waitValue;
@@ -978,59 +856,45 @@ void CommandSettingsPopup::onSave(CCObject *sender)
         std::string alertTitle, alertDesc;
         bool isHold = false;
 
-        if (actionIdRaw.rfind("wait:", 0) == 0)
-        {
+        if (actionIdRaw.rfind("wait:", 0) == 0) {
             actionId = "wait";
             waitValue = actionIdRaw.substr(5);
-        }
-        else if (actionIdRaw.rfind("jump:", 0) == 0)
-        {
+        } else if (actionIdRaw.rfind("jump:", 0) == 0) {
             actionId = "jump";
 
             // Parse jumpPlayerValue and hold
             std::string val = actionIdRaw.substr(5); // could be "1", "1:hold", etc.
 
             size_t holdPos = val.find(":hold");
-            if (holdPos != std::string::npos)
-            {
+            if (holdPos != std::string::npos) {
                 isHold = true;
                 jumpPlayerValue = val.substr(0, holdPos);
-            }
-            else
-            {
+            } else {
                 jumpPlayerValue = val;
             };
-        }
-        else if (actionIdRaw.rfind("alert_popup:", 0) == 0)
-        {
+        } else if (actionIdRaw.rfind("alert_popup:", 0) == 0) {
             actionId = "alert_popup";
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos)
-            {
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
                 alertTitle = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                 alertDesc = actionIdRaw.substr(secondColon + 1);
             }
         }
 
-        if (actionId == "wait")
-        {
+        if (actionId == "wait") {
             std::string inputId = "wait-delay-input-" + std::to_string(idx + 1); // match refreshActionsList index label (1-based)
-            TextInput *waitInput = nullptr;
+            TextInput* waitInput = nullptr;
 
             auto children = m_actionContent->getChildren();
 
-            if (children)
-            {
-                for (int i = 0; i < children->count(); ++i)
-                {
-                    auto node = as<CCNode *>(children->objectAtIndex(i));
-                    if (node)
-                    {
+            if (children) {
+                for (int i = 0; i < children->count(); ++i) {
+                    auto node = as<CCNode*>(children->objectAtIndex(i));
+                    if (node) {
                         auto inputNode = node->getChildByID("wait-delay-input-" + std::to_string(idx));
-                        if (inputNode)
-                        {
-                            waitInput = dynamic_cast<TextInput *>(inputNode);
+                        if (inputNode) {
+                            waitInput = dynamic_cast<TextInput*>(inputNode);
                             if (waitInput)
                                 break;
                         };
@@ -1042,30 +906,24 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             if (waitInput)
                 delayStr = waitInput->getString();
 
-            if (delayStr.empty())
-            {
+            if (delayStr.empty()) {
                 Notification::create("Please fill in all wait delay fields!", NotificationIcon::Error)->show();
                 return;
             }
 
             {
                 bool valid = !delayStr.empty() && (delayStr.find_first_not_of("-0123456789") == std::string::npos);
-                if (valid)
-                {
+                if (valid) {
                     int delay = std::stoi(delayStr);
 
                     actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
                     actionIdRaw = "wait:" + std::to_string(delay);
-                }
-                else
-                {
+                } else {
                     Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
                     return;
                 };
             };
-        }
-        else if (actionId == "jump")
-        {
+        } else if (actionId == "jump") {
             // Always use the value from m_commandActions (jumpPlayerValue and isHold)
             int playerIdx = 1;
             if (!jumpPlayerValue.empty() && (jumpPlayerValue.find_first_not_of("-0123456789") == std::string::npos))
@@ -1078,22 +936,14 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, jumpActionStr, 0));
 
             actionIdRaw = jumpActionStr;
-        }
-        else if (actionId == "alert_popup")
-        {
+        } else if (actionId == "alert_popup") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "alert_popup:" + alertTitle + ":" + alertDesc, 0));
-        }
-        else if (actionId == "kill_player")
-        {
+        } else if (actionId == "kill_player") {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
-        }
-        else if (actionIdRaw.rfind("keycode:", 0) == 0)
-        {
+        } else if (actionIdRaw.rfind("keycode:", 0) == 0) {
             // Save as event with arg 'keycode:<key>'
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
-        }
-        else if (actionIdRaw.rfind("notification:", 0) == 0)
-        {
+        } else if (actionIdRaw.rfind("notification:", 0) == 0) {
             // Parse icon type and text: notification:<iconInt>:<text>
             int iconTypeInt = 1;
             std::string notifText;
@@ -1101,29 +951,20 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
 
-            if (firstColon != std::string::npos && secondColon != std::string::npos)
-            {
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
                 iconTypeInt = std::stoi(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1));
                 notifText = actionIdRaw.substr(secondColon + 1);
-            }
-            else if (actionIdRaw.length() > 13)
-            {
+            } else if (actionIdRaw.length() > 13) {
                 notifText = actionIdRaw.substr(13);
-            }
-            else
-            {
+            } else {
                 notifText = "";
             };
 
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, std::to_string(iconTypeInt) + ":" + notifText, 0));
-        }
-        else if (actionIdRaw.rfind("move:", 0) == 0)
-        {
+        } else if (actionIdRaw.rfind("move:", 0) == 0) {
             // Save as event with arg 'move:<player>:<direction>'
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
-        }
-        else
-        {
+        } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
         };
     };
@@ -1133,22 +974,14 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
     // Rebuild m_commandActions from m_command.actions to ensure UI and data are in sync
     m_commandActions.clear();
-    for (const auto &action : m_command.actions)
-    {
-        if (action.type == CommandActionType::Notification)
-        {
+    for (const auto& action : m_command.actions) {
+        if (action.type == CommandActionType::Notification) {
             m_commandActions.push_back("notification:" + action.arg);
-        }
-        else if (action.type == CommandActionType::Wait)
-        {
+        } else if (action.type == CommandActionType::Wait) {
             m_commandActions.push_back("wait:" + std::to_string(action.index));
-        }
-        else if (action.type == CommandActionType::Event && action.arg.rfind("alert_popup:", 0) == 0)
-        {
+        } else if (action.type == CommandActionType::Event && action.arg.rfind("alert_popup:", 0) == 0) {
             m_commandActions.push_back(action.arg);
-        }
-        else if (action.type == CommandActionType::Event)
-        {
+        } else if (action.type == CommandActionType::Event) {
             m_commandActions.push_back(action.arg);
         }
     }
@@ -1160,10 +993,8 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
     // Save changes to the command manager
     auto commandManager = TwitchCommandManager::getInstance();
-    for (auto &cmd : commandManager->getCommands())
-    {
-        if (cmd.name == m_command.name)
-        {
+    for (auto& cmd : commandManager->getCommands()) {
+        if (cmd.name == m_command.name) {
             cmd = m_command; // Replace the entire command object
             break;
         };
@@ -1172,10 +1003,8 @@ void CommandSettingsPopup::onSave(CCObject *sender)
     commandManager->saveCommands();
 
     // Refresh the dashboard command list if the dashboard is open
-    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene())
-    {
-        if (auto dashboard = dynamic_cast<TwitchDashboard *>(scene->getChildByID("twitch-dashboard-popup")))
-        {
+    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene()) {
+        if (auto dashboard = dynamic_cast<TwitchDashboard*>(scene->getChildByID("twitch-dashboard-popup"))) {
             dashboard->refreshCommandsList();
         }
     }
@@ -1183,10 +1012,8 @@ void CommandSettingsPopup::onSave(CCObject *sender)
     onClose(nullptr);
 };
 
-void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string &nextText, NotificationIconType iconType)
-{
-    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size()))
-    {
+void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType) {
+    if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
         int iconTypeInt = static_cast<int>(iconType);
         m_commandActions[actionIdx] = "notification:" + std::to_string(iconTypeInt) + ":" + nextText;
 
@@ -1194,25 +1021,19 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
         int notifNodeIdx = -1;
         int notifCount = 0;
 
-        for (int i = 0; i <= actionIdx; ++i)
-        {
-            if (m_commandActions[i].rfind("notification:", 0) == 0)
-            {
+        for (int i = 0; i <= actionIdx; ++i) {
+            if (m_commandActions[i].rfind("notification:", 0) == 0) {
                 notifNodeIdx = notifCount;
                 notifCount++;
             };
         };
 
         // Now update the notifNodeIdx-th notification action in m_command.actions
-        if (notifNodeIdx >= 0)
-        {
+        if (notifNodeIdx >= 0) {
             int notifIdx = 0;
-            for (auto &action : m_command.actions)
-            {
-                if (action.type == CommandActionType::Notification)
-                {
-                    if (notifIdx == notifNodeIdx)
-                    {
+            for (auto& action : m_command.actions) {
+                if (action.type == CommandActionType::Notification) {
+                    if (notifIdx == notifNodeIdx) {
                         action.arg = std::to_string(iconTypeInt) + ":" + nextText;
                         break;
                     };
@@ -1227,15 +1048,14 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
     if (!children || actionIdx < 0 || actionIdx >= children->count())
         return;
 
-    auto actionNode = as<CCNode *>(children->objectAtIndex(actionIdx));
+    auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
     if (!actionNode)
         return;
 
     std::string notifLabelId = "notification-action-text-label-" + std::to_string(actionIdx);
     // Show icon name and text
     std::string iconName = "Info";
-    switch (iconType)
-    {
+    switch (iconType) {
     case NotificationIconType::None:
         iconName = "None";
         break;
@@ -1261,68 +1081,49 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
     };
 
     std::string labelText = iconName;
-    if (!nextText.empty())
-    {
+    if (!nextText.empty()) {
         labelText += ": ";
         labelText += nextText;
     };
 
-    if (auto notifLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(notifLabelId)))
+    if (auto notifLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(notifLabelId)))
         notifLabel->setString(labelText.c_str());
 };
 
 // Unified settings button handler
-void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
-{
-    auto btn = as<CCMenuItemSpriteExtra *>(sender);
+void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int actionIdx = 0;
     if (btn && btn->getUserObject())
-        actionIdx = as<CCInteger *>(btn->getUserObject())->getValue();
+        actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
     if (actionIdx < 0 || actionIdx >= static_cast<int>(m_commandActions.size()))
         return;
-    std::string &actionStr = m_commandActions[actionIdx];
+    std::string& actionStr = m_commandActions[actionIdx];
     std::string actionStrLower = actionStr;
     std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
-    if (actionStrLower.rfind("alert_popup", 0) == 0)
-    {
+    if (actionStrLower.rfind("alert_popup", 0) == 0) {
         SettingsHandler::handleAlertSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("notification", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("notification", 0) == 0) {
         SettingsHandler::handleNotificationSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("keycode", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("keycode", 0) == 0) {
         SettingsHandler::handleKeyCodeSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("profile", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("profile", 0) == 0) {
         SettingsHandler::handleProfileSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("move", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("move", 0) == 0) {
         SettingsHandler::handleMoveSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("jump", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("jump", 0) == 0) {
         SettingsHandler::handleJumpSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0) {
         SettingsHandler::handleColorPlayerSettings(this, sender);
-    }
-    else if (actionStrLower.rfind("edit_camera", 0) == 0)
-    {
+    } else if (actionStrLower.rfind("edit_camera", 0) == 0) {
         SettingsHandler::handleEditCameraSettings(this, sender);
     }
 }
 
 // Static create function for CommandSettingsPopup with only TwitchCommand argument
-CommandSettingsPopup *CommandSettingsPopup::create(TwitchCommand command)
-{
+CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {
     auto ret = new CommandSettingsPopup();
-    if (ret && ret->initAnchored(800.f, 325.f, command))
-    { // 620
+    if (ret && ret->initAnchored(800.f, 325.f, command)) { // 620
         ret->autorelease();
         return ret;
     }

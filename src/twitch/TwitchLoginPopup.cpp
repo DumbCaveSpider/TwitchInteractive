@@ -8,8 +8,7 @@
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
-bool TwitchLoginPopup::setup()
-{
+bool TwitchLoginPopup::setup() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     setTitle("Twitch Connection");
@@ -22,14 +21,11 @@ bool TwitchLoginPopup::setup()
     std::string channelName = "";
 
     auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
-    if (twitchMod)
-    {
+    if (twitchMod) {
         auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
         if (!savedChannel.empty())
             channelName = savedChannel;
-    }
-    else
-    {
+    } else {
         log::error("TwitchChatAPI mod not found while getting Twitch channel name");
     };
 
@@ -52,8 +48,7 @@ bool TwitchLoginPopup::setup()
 
     m_mainLayer->addChild(m_loginMenu);
 
-    if (!channelName.empty())
-    {
+    if (!channelName.empty()) {
         // Create a label to show the authenticated channel
         auto userLabel = CCLabelBMFont::create(("Login as: " + channelName).c_str(), "bigFont.fnt");
         userLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 50);
@@ -85,12 +80,10 @@ bool TwitchLoginPopup::setup()
     return true;
 };
 
-void TwitchLoginPopup::onLoginPressed(CCObject *)
-{
+void TwitchLoginPopup::onLoginPressed(CCObject*) {
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
-    if (!api)
-    {
+    if (!api) {
         log::error("TwitchChatAPI is not available");
 
         m_statusLabel->setVisible(true);
@@ -108,8 +101,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject *)
     log::debug("Starting Twitch connection check");
 
     // Check if Twitch channel is configured - if so, proceed directly to dashboard
-    if (checkTwitchChannelExists())
-    {
+    if (checkTwitchChannelExists()) {
         log::debug("Channel name exists, proceeding directly to dashboard");
         m_statusLabel->setString("Opening dashboard...");
 
@@ -125,8 +117,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject *)
     // Register callback for when connection is established (for new logins)
     auto validityFlag = m_validityFlag; // Capture the shared_ptr by value
 
-    api->registerOnConnectedCallback([this, validityFlag]()
-                                     {
+    api->registerOnConnectedCallback([this, validityFlag]() {
         // Check if this object is still valid using the shared validity flag
         if (!validityFlag || !*validityFlag) {
             log::warn("TwitchLoginPopup was destroyed before authentication callback executed");
@@ -170,29 +161,27 @@ void TwitchLoginPopup::onLoginPressed(CCObject *)
             log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
         }; });
 
-    // Prompt login without forcing (this should not prompt if already logged in)
-    api->promptLogin(false);
+        // Prompt login without forcing (this should not prompt if already logged in)
+        api->promptLogin(false);
 
-    // Set up a timeout to check if we're already connected but callback wasn't triggered
-    auto timeoutAction = CCDelayTime::create(5.0f); // Wait 5 seconds
-    auto checkConnectionAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::checkExistingConnection));
-    auto timeoutSequence = CCSequence::create(timeoutAction, checkConnectionAction, nullptr);
+        // Set up a timeout to check if we're already connected but callback wasn't triggered
+        auto timeoutAction = CCDelayTime::create(5.0f); // Wait 5 seconds
+        auto checkConnectionAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::checkExistingConnection));
+        auto timeoutSequence = CCSequence::create(timeoutAction, checkConnectionAction, nullptr);
 
-    // Schedule timeout check with a unique tag
-    stopActionByTag(999); // Stop any previous timeout
-    timeoutSequence->setTag(999);
+        // Schedule timeout check with a unique tag
+        stopActionByTag(999); // Stop any previous timeout
+        timeoutSequence->setTag(999);
 
-    runAction(timeoutSequence);
+        runAction(timeoutSequence);
 };
 
-void TwitchLoginPopup::checkExistingConnection()
-{
+void TwitchLoginPopup::checkExistingConnection() {
     // This method is called after a timeout to check if user is already connected
     // but the callback wasn't triggered (e.g., already authenticated)
 
     // Check if we're still in the "checking" state (not already processed)
-    if (!m_statusLabel || !m_statusLabel->isVisible())
-    {
+    if (!m_statusLabel || !m_statusLabel->isVisible()) {
         log::debug("Connection check timeout but UI already processed");
         return;
     };
@@ -200,8 +189,7 @@ void TwitchLoginPopup::checkExistingConnection()
     // Check if the status label still shows "Checking connection status..."
     std::string currentStatus = m_statusLabel->getString();
 
-    if (currentStatus != "Checking connection status...")
-    {
+    if (currentStatus != "Checking connection status...") {
         log::debug("Connection check timeout but status already changed to: {}", currentStatus);
         return;
     };
@@ -212,8 +200,7 @@ void TwitchLoginPopup::checkExistingConnection()
     stopActionByTag(999);
 
     // Check if Twitch channel is configured before proceeding to dashboard
-    if (!checkTwitchChannelExists())
-    {
+    if (!checkTwitchChannelExists()) {
         log::error("Twitch channel is not configured during timeout check");
         m_statusLabel->setString("Twitch channel not configured!\nRetrying authentication...");
 
@@ -233,8 +220,7 @@ void TwitchLoginPopup::checkExistingConnection()
 
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
-    if (!api)
-    {
+    if (!api) {
         log::error("TwitchChatAPI is not available during timeout retry");
 
         m_statusLabel->setString("API error!");
@@ -248,8 +234,7 @@ void TwitchLoginPopup::checkExistingConnection()
 
     // Register callback for when connection is established (for new logins)
     auto validityFlag = m_validityFlag; // Capture the shared_ptr by value
-    api->registerOnConnectedCallback([this, validityFlag]()
-                                     {
+    api->registerOnConnectedCallback([this, validityFlag]() {
         // Check if this object is still valid using the shared validity flag
         if (!validityFlag || !*validityFlag) {
             log::warn("TwitchLoginPopup was destroyed before authentication callback executed");
@@ -293,30 +278,28 @@ void TwitchLoginPopup::checkExistingConnection()
             log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
         }; });
 
-    // Prompt login without forcing (this should not prompt if already logged in)
-    api->promptLogin(false);
+        // Prompt login without forcing (this should not prompt if already logged in)
+        api->promptLogin(false);
 
-    // Set up another timeout to check if we're already connected but callback wasn't triggered
-    auto timeoutAction = CCDelayTime::create(5.0f); // Wait 5 seconds
-    auto checkConnectionAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::checkExistingConnection));
-    auto timeoutSequence = CCSequence::create(timeoutAction, checkConnectionAction, nullptr);
+        // Set up another timeout to check if we're already connected but callback wasn't triggered
+        auto timeoutAction = CCDelayTime::create(5.0f); // Wait 5 seconds
+        auto checkConnectionAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::checkExistingConnection));
+        auto timeoutSequence = CCSequence::create(timeoutAction, checkConnectionAction, nullptr);
 
-    // Schedule timeout check with a unique tag
-    stopActionByTag(999); // Stop any previous timeout
-    timeoutSequence->setTag(999);
-    runAction(timeoutSequence);
+        // Schedule timeout check with a unique tag
+        stopActionByTag(999); // Stop any previous timeout
+        timeoutSequence->setTag(999);
+        runAction(timeoutSequence);
 };
 
-void TwitchLoginPopup::openDashboard()
-{
+void TwitchLoginPopup::openDashboard() {
     // Close this popup and open the dashboard
     auto dashboard = TwitchDashboard::create();
     dashboard->show();
     keyBackClicked(); // Close the login popup
 };
 
-void TwitchLoginPopup::resetToLogin()
-{
+void TwitchLoginPopup::resetToLogin() {
     // Stop any pending timeout actions
     stopActionByTag(999);
 
@@ -325,11 +308,9 @@ void TwitchLoginPopup::resetToLogin()
     m_loggedInMenu->setVisible(false);
 };
 
-void TwitchLoginPopup::onAuthenticationCompleted()
-{
+void TwitchLoginPopup::onAuthenticationCompleted() {
     // Check if this object is still valid and active
-    if (!m_isActive || !m_statusLabel)
-    {
+    if (!m_isActive || !m_statusLabel) {
         log::warn("TwitchLoginPopup became invalid before authentication completed callback");
         return;
     };
@@ -337,8 +318,7 @@ void TwitchLoginPopup::onAuthenticationCompleted()
     log::debug("Twitch account authentication completed, checking channel configuration");
 
     // Check if Twitch channel is configured before proceeding to dashboard
-    if (!checkTwitchChannelExists())
-    {
+    if (!checkTwitchChannelExists()) {
         log::error("Twitch channel is not configured");
         m_statusLabel->setString("Twitch channel not configured!\nRetrying authentication...");
 
@@ -361,21 +341,16 @@ void TwitchLoginPopup::onAuthenticationCompleted()
     auto sequence = CCSequence::create(delayAction, openDashboardAction, nullptr);
 
     // Final safety check before opening dashboard
-    if (m_isActive && m_statusLabel)
-    {
+    if (m_isActive && m_statusLabel) {
         runAction(sequence);
-    }
-    else
-    {
+    } else {
         log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
     };
 };
 
-void TwitchLoginPopup::onAuthenticationTimeout()
-{
+void TwitchLoginPopup::onAuthenticationTimeout() {
     // Check if this object is still valid and active
-    if (!m_isActive || !m_statusLabel)
-    {
+    if (!m_isActive || !m_statusLabel) {
         log::warn("TwitchLoginPopup became invalid before authentication timeout callback");
         return;
     };
@@ -383,8 +358,7 @@ void TwitchLoginPopup::onAuthenticationTimeout()
     log::debug("Authentication timeout reached - assuming user is already authenticated");
 
     // Check if Twitch channel is configured first
-    if (!checkTwitchChannelExists())
-    {
+    if (!checkTwitchChannelExists()) {
         log::error("Twitch channel is not configured during timeout check");
         m_statusLabel->setString("Twitch channel not configured!\nRetrying authentication...");
 
@@ -411,12 +385,10 @@ void TwitchLoginPopup::onAuthenticationTimeout()
         runAction(sequence);
 };
 
-bool TwitchLoginPopup::checkTwitchChannelExists()
-{
+bool TwitchLoginPopup::checkTwitchChannelExists() {
     // Get the TwitchChatAPI mod
     auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
-    if (!twitchMod)
-    {
+    if (!twitchMod) {
         log::error("TwitchChatAPI mod not found");
         return false;
     };
@@ -425,8 +397,7 @@ bool TwitchLoginPopup::checkTwitchChannelExists()
     auto channelName = twitchMod->getSavedValue<std::string>("twitch-channel");
 
     // Check if the channel name exists and is not empty
-    if (channelName.empty())
-    {
+    if (channelName.empty()) {
         log::debug("Twitch channel is not configured or is empty");
         return false;
     };
@@ -435,11 +406,9 @@ bool TwitchLoginPopup::checkTwitchChannelExists()
     return true;
 };
 
-void TwitchLoginPopup::retryAuthenticationProcess()
-{
+void TwitchLoginPopup::retryAuthenticationProcess() {
     // Check if this object is still valid and active
-    if (!m_isActive || !m_statusLabel)
-    {
+    if (!m_isActive || !m_statusLabel) {
         log::warn("TwitchLoginPopup became invalid before retry authentication");
         return;
     };
@@ -451,8 +420,7 @@ void TwitchLoginPopup::retryAuthenticationProcess()
 
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
-    if (!api)
-    {
+    if (!api) {
         log::error("TwitchChatAPI is not available during retry");
         m_statusLabel->setString("Twitch API not available!");
         resetToLogin();
@@ -461,8 +429,7 @@ void TwitchLoginPopup::retryAuthenticationProcess()
 
     // Register callback for when connection is established
     auto validityFlag = m_validityFlag; // Capture the shared_ptr by value
-    api->registerOnConnectedCallback([this, validityFlag]()
-                                     {
+    api->registerOnConnectedCallback([this, validityFlag]() {
         // Check if this object is still valid using the shared validity flag
         if (!validityFlag || !*validityFlag) {
             log::warn("TwitchLoginPopup was destroyed before authentication callback executed");
@@ -506,35 +473,32 @@ void TwitchLoginPopup::retryAuthenticationProcess()
             log::warn("TwitchLoginPopup became invalid, cannot open dashboard");
         }; });
 
-    // Prompt login without forcing (this should not prompt if already logged in)
-    api->promptLogin(false);
+        // Prompt login without forcing (this should not prompt if already logged in)
+        api->promptLogin(false);
 
-    // Set up a timeout to check if we're already connected but callback wasn't triggered
-    auto timeoutAction = CCDelayTime::create(5.0f); // Wait 5 seconds
-    auto checkConnectionAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::checkExistingConnection));
-    auto timeoutSequence = CCSequence::create(timeoutAction, checkConnectionAction, nullptr);
+        // Set up a timeout to check if we're already connected but callback wasn't triggered
+        auto timeoutAction = CCDelayTime::create(5.0f); // Wait 5 seconds
+        auto checkConnectionAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::checkExistingConnection));
+        auto timeoutSequence = CCSequence::create(timeoutAction, checkConnectionAction, nullptr);
 
-    // Schedule timeout check with a unique tag
-    stopActionByTag(999); // Stop any previous timeout
-    timeoutSequence->setTag(999);
+        // Schedule timeout check with a unique tag
+        stopActionByTag(999); // Stop any previous timeout
+        timeoutSequence->setTag(999);
 
-    runAction(timeoutSequence);
+        runAction(timeoutSequence);
 };
 
-std::string TwitchLoginPopup::getAuthenticatedUsername()
-{
+std::string TwitchLoginPopup::getAuthenticatedUsername() {
     // Get the TwitchChatAPI mod
     auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
-    if (!twitchMod)
-    {
+    if (!twitchMod) {
         log::error("TwitchChatAPI mod not found");
         return "";
     };
 
     // Get the saved Twitch username value
     auto username = twitchMod->getSavedValue<std::string>("twitch-username");
-    if (username.empty())
-    { // Check if the username exists and is not empty
+    if (username.empty()) { // Check if the username exists and is not empty
         log::debug("Twitch username is not configured or is empty");
         return "";
     };
@@ -543,8 +507,7 @@ std::string TwitchLoginPopup::getAuthenticatedUsername()
     return username;
 };
 
-TwitchLoginPopup::~TwitchLoginPopup()
-{
+TwitchLoginPopup::~TwitchLoginPopup() {
     m_isActive = false;
     if (m_validityFlag)
         *m_validityFlag = false;
@@ -552,12 +515,10 @@ TwitchLoginPopup::~TwitchLoginPopup()
     log::debug("TwitchLoginPopup destructor called");
 };
 
-TwitchLoginPopup *TwitchLoginPopup::create()
-{
+TwitchLoginPopup* TwitchLoginPopup::create() {
     auto ret = new TwitchLoginPopup();
 
-    if (ret && ret->initAnchored(300.f, 200.f))
-    {
+    if (ret && ret->initAnchored(300.f, 200.f)) {
         ret->autorelease();
         return ret;
     };

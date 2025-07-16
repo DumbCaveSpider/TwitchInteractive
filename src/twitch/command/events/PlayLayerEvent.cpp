@@ -7,25 +7,25 @@
 using namespace geode::prelude;
 
 // Helper to parse color from string (format: "R,G,B")
-cocos2d::ccColor3B parseColorString(const std::string &str)
-{
+cocos2d::ccColor3B parseColorString(const std::string& str) {
     int r = 255, g = 255, b = 255;
     sscanf(str.c_str(), "%d,%d,%d", &r, &g, &b);
-    return {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
-}
+    return { static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b) };
+};
+
 // Set player color (playerIdx: 1, 2, or 3 for both)
-void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B &color)
-{
-    Loader::get()->queueInMainThread([playerIdx, color]
-                                     {
+void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B& color) {
+    Loader::get()->queueInMainThread([playerIdx, color] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] setPlayerColor: PlayLayer not found");
             return;
-        }
+        };
+
         auto setColor = [&](auto* player) {
             if (player) player->setColor(color);
-        };
+            };
+
         if (playerIdx == 3) {
             setColor(playLayer->m_player1);
             setColor(playLayer->m_player2);
@@ -35,24 +35,22 @@ void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B &col
             if (!player) {
                 log::debug("[PlayLayerEvent] Player {} not found", playerIdx);
                 return;
-            }
+            };
+
             setColor(player);
+
             log::info("[PlayLayerEvent] Set color for player {}: R{} G{} B{}", playerIdx, color.r, color.g, color.b);
         } });
-}
+};
 
-namespace
-{
+namespace {
     bool g_pendingKillPlayer = false;
 
-    class KillPlayerScheduler : public cocos2d::CCNode
-    {
+    class KillPlayerScheduler : public cocos2d::CCNode {
     public:
-        void update(float)
-        {
+        void update(float) {
             auto playLayer = PlayLayer::get();
-            if (playLayer && g_pendingKillPlayer)
-            {
+            if (playLayer && g_pendingKillPlayer) {
                 log::debug("[PlayLayerEvent] KillPlayerScheduler: Executing kill player");
 
                 playLayer->destroyPlayer(playLayer->m_player1, nullptr);
@@ -63,8 +61,7 @@ namespace
             };
         };
 
-        static void start()
-        {
+        static void start() {
             log::debug("[PlayLayerEvent] KillPlayerScheduler: Scheduling kill player");
 
             auto node = new KillPlayerScheduler();
@@ -77,10 +74,8 @@ namespace
 };
 
 // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
-void PlayLayerEvent::setCameraFromString(const std::string &arg)
-{
-    Loader::get()->queueInMainThread([arg]
-                                     {
+void PlayLayerEvent::setCameraFromString(const std::string& arg) {
+    Loader::get()->queueInMainThread([arg] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] setCameraFromString: PlayLayer not found");
@@ -132,8 +127,8 @@ void PlayLayerEvent::setCameraFromString(const std::string &arg)
                         target->setScale(newScale);
                     }
                     if (t >= 1.f) {
-                        this->unscheduleAllSelectors();
-                        this->removeFromParentAndCleanup(true);
+                        unscheduleAllSelectors();
+                        removeFromParentAndCleanup(true);
                     }
                 }
                 static CameraAnimScheduler* create(float d, float fs, float ts, float fr, float tr, float fsc, float tsc, cocos2d::CCNode* tgt) {
@@ -154,10 +149,8 @@ void PlayLayerEvent::setCameraFromString(const std::string &arg)
 }
 
 // Simulate holding the jump button for a short duration
-void PlayLayerEvent::jumpPlayerTap(int playerIdx)
-{
-    Loader::get()->queueInMainThread([playerIdx]
-                                     {
+void PlayLayerEvent::jumpPlayerTap(int playerIdx) {
+    Loader::get()->queueInMainThread([playerIdx] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] holdJumpPlayer: PlayLayer not found");
@@ -190,13 +183,11 @@ void PlayLayerEvent::jumpPlayerTap(int playerIdx)
         }; });
 };
 
-void PlayLayerEvent::killPlayer()
-{
+void PlayLayerEvent::killPlayer() {
     log::debug("[PlayLayerEvent] destroyPlayer called");
     g_pendingKillPlayer = true;
 
-    Loader::get()->queueInMainThread([]
-                                     {
+    Loader::get()->queueInMainThread([] {
         auto playLayer = PlayLayer::get();
 
         if (playLayer && g_pendingKillPlayer) {
@@ -209,10 +200,8 @@ void PlayLayerEvent::killPlayer()
         }; });
 };
 
-void PlayLayerEvent::jumpPlayerHold(int playerIdx)
-{
-    Loader::get()->queueInMainThread([playerIdx]
-                                     {
+void PlayLayerEvent::jumpPlayerHold(int playerIdx) {
+    Loader::get()->queueInMainThread([playerIdx] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] jumpPlayer: PlayLayer not found");
@@ -241,12 +230,11 @@ void PlayLayerEvent::jumpPlayerHold(int playerIdx)
 };
 
 // Simulate a keypress by key string (universal, works anywhere in the game if supported)
-void PlayLayerEvent::pressKey(const std::string &key, float duration)
-{
-    Loader::get()->queueInMainThread([key, duration]
-                                     {
+void PlayLayerEvent::pressKey(const std::string& key, float duration) {
+    Loader::get()->queueInMainThread([key, duration] {
         cocos2d::enumKeyCodes keyCode = cocos2d::KEY_None;
 
+        // switch doesnt support strings :/
         if (key == "Space" || key == "Jump") keyCode = cocos2d::KEY_Space;
         else if (key == "Left") keyCode = cocos2d::KEY_Left;
         else if (key == "Right") keyCode = cocos2d::KEY_Right;
@@ -260,8 +248,7 @@ void PlayLayerEvent::pressKey(const std::string &key, float duration)
         };
 
         // Use CCKeyboardDispatcher for global key simulation
-        auto dispatcher = cocos2d::CCKeyboardDispatcher::get();
-        if (dispatcher) {
+        if (auto dispatcher = cocos2d::CCKeyboardDispatcher::get()) {
             dispatcher->dispatchKeyboardMSG(keyCode, true, 0); // key down
 
             if (duration > 0.f) {
@@ -281,10 +268,8 @@ void PlayLayerEvent::pressKey(const std::string &key, float duration)
 };
 
 // Move player left or right by a distance
-void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance)
-{
-    Loader::get()->queueInMainThread([playerIdx, moveRight, distance]
-                                     {
+void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance) {
+    Loader::get()->queueInMainThread([playerIdx, moveRight, distance] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] movePlayer: PlayLayer not found");
@@ -299,8 +284,8 @@ void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance)
             // Estimate how long to hold the button based on player speed
             float speed = 240.f; // Default speed if not available
 
-            // If the player has a velocity property, prefer that
 #ifdef GEODE_IS_GEODE
+            // If the player has a velocity property, prefer that
             if (player->m_xAccel != 0.f) speed = std::abs(player->m_xAccel);
 #endif
 

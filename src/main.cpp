@@ -11,14 +11,16 @@ class $modify(MyCreatorLayer, CreatorLayer) {
     bool init() {
         if (!CreatorLayer::init()) return false;
 
-        // Add Twitch button to the CreatorLayer using custom PNG sprite
         auto twitchBtnSprite = CCSprite::create("AW_creatortwitchBtn_001.png"_spr);
+
+        // Add Twitch button to the CreatorLayer using custom PNG sprite
         auto twitchBtn = CCMenuItemSpriteExtra::create(
             twitchBtnSprite,
             this,
             menu_selector(MyCreatorLayer::onTwitchPressed)
         );
         twitchBtn->setID("twitch-button"_spr);
+
         // Find an existing menu to add our button to, or create a new one
         auto menu = getChildByID("creator-buttons-menu");
         if (!menu) menu = getChildByID("social-media-menu");
@@ -30,8 +32,9 @@ class $modify(MyCreatorLayer, CreatorLayer) {
         } else {
             // Create our own menu if we can't find existing ones
             auto newMenu = CCMenu::create();
-            newMenu->addChild(twitchBtn);
             newMenu->setPosition(CCDirector::sharedDirector()->getWinSize().width - 50, 50);
+
+            newMenu->addChild(twitchBtn);
 
             addChild(newMenu);
         };
@@ -39,13 +42,14 @@ class $modify(MyCreatorLayer, CreatorLayer) {
         // login circle button on the side
         if (auto bottomLeftMenu = getChildByID("bottom-left-menu")) {
             auto twitchBtnSprite = CircleButtonSprite::createWithSpriteFrameName(
-                "gj_twitchIcon_001.png", // change this to a custom texture
+                "gj_twitchIcon_001.png",
                 1.f,
                 CircleBaseColor::Green,
                 CircleBaseSize::Medium
             );
             twitchBtnSprite->setScale(0.875f);
 
+            // create the circle twitch button
             auto twitchBtn = CCMenuItemSpriteExtra::create(
                 twitchBtnSprite,
                 this,
@@ -71,6 +75,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
                 "The <cb>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
                 "OK"
             )->show();
+
             return;
         };
 
@@ -91,29 +96,31 @@ class $modify(MyPauseLayer, PauseLayer) {
         // Add Twitch listening status label (hidden by default)
         if (!m_fields->m_twitchStatusLabel) {
             m_fields->m_twitchStatusLabel = CCLabelBMFont::create("Twitch Chat: Listening", "bigFont.fnt");
-            m_fields->m_twitchStatusLabel->setAnchorPoint({0.0f, 0.0f});
             m_fields->m_twitchStatusLabel->setID("twitch-status-label"_spr);
-            // Bottom left, 10px from left and bottom
-            m_fields->m_twitchStatusLabel->setPosition({35.0f, 15.0f});
+            m_fields->m_twitchStatusLabel->setAnchorPoint({ 0.0f, 0.0f });
+            m_fields->m_twitchStatusLabel->setPosition({ 35.0f, 15.0f });// Bottom left, 10px from left and bottom
             m_fields->m_twitchStatusLabel->setScale(0.3f);
             m_fields->m_twitchStatusLabel->setZOrder(100);
-            m_fields->m_twitchStatusLabel->setColor({163, 92, 255}); // Twitch purple
+            m_fields->m_twitchStatusLabel->setColor({ 163, 92, 255 }); // Twitch purple
             m_fields->m_twitchStatusLabel->setVisible(false); // always hidden by default
+
             addChild(m_fields->m_twitchStatusLabel);
-        }
+        };
+
         // Always update the label after creation
         updateTwitchStatusLabel();
 
         // login circle button in right side menu
         if (auto rightMenu = getChildByID("right-button-menu")) {
             auto twitchBtnSprite = CircleButtonSprite::createWithSpriteFrameName(
-                "gj_twitchIcon_001.png", // change this to a custom texture
+                "gj_twitchIcon_001.png",
                 1.f,
                 CircleBaseColor::Green,
                 CircleBaseSize::Medium
             );
             twitchBtnSprite->setScale(0.625f);
 
+            // create the circle twitch button
             auto twitchBtn = CCMenuItemSpriteExtra::create(
                 twitchBtnSprite,
                 this,
@@ -124,9 +131,8 @@ class $modify(MyPauseLayer, PauseLayer) {
 
             rightMenu->addChild(twitchBtn);
             rightMenu->updateLayout(true);
-        }
-    }
-
+        };
+    };
 
     void updateTwitchStatusLabel() {
         if (!m_fields->m_twitchStatusLabel) return;
@@ -136,13 +142,13 @@ class $modify(MyPauseLayer, PauseLayer) {
             m_fields->m_twitchStatusLabel->setVisible(true);
         } else {
             m_fields->m_twitchStatusLabel->setVisible(false);
-        }
-    }
+        };
+    };
 
     void onEnter() {
         PauseLayer::onEnter();
         updateTwitchStatusLabel();
-    }
+    };
 
     void onTwitchPressed(CCObject*) {
         // Check if Twitch Chat API mod is loaded
@@ -155,9 +161,9 @@ class $modify(MyPauseLayer, PauseLayer) {
                 "OK"
             )->show();
             return;
-        }
+        };
 
         auto popup = TwitchLoginPopup::create();
         popup->show();
-    }
+    };
 };
