@@ -1161,36 +1161,47 @@ void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
 };
 
 void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject* sender) {
-    // Sync the latest alert popup content from the action node label to m_commandActions before opening the settings popup
+    // Parse the current title and description from m_commandActions and open AlertSettingsPopup with them
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
     int actionIdx = 0;
     if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (actionIdx >= 0 && actionIdx < static_cast<int>(m_actionContent->getChildrenCount())) {
-        auto actionNode = as<CCNode*>(m_actionContent->getChildren()->objectAtIndex(actionIdx));
-        if (actionNode) {
-            std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIdx);
-            if (auto alertLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(alertLabelId))) {
-                // Parse the label text: "Title: ...[, Content: ...]"
-                std::string labelText = alertLabel->getString();
-                std::string title, desc;
-                size_t titlePos = labelText.find("Title: ");
-                size_t descPos = labelText.find(", Content: ");
-                if (titlePos != std::string::npos) {
-                    if (descPos != std::string::npos) {
-                        title = labelText.substr(titlePos + 7, descPos - (titlePos + 7));
-                        desc = labelText.substr(descPos + 8);
-                    } else {
-                        title = labelText.substr(titlePos + 7);
-                        desc = "";
-                    }
-                    if (title.empty()) title = "-";
-                    if (desc.empty()) desc = "-";
-                    m_commandActions[actionIdx] = "alert_popup:" + title + ":" + desc;
-                }
+    std::string title = "", desc = "";
+    if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
+        const std::string& actionStr = m_commandActions[actionIdx];
+        if (actionStr.rfind("alert_popup:", 0) == 0) {
+            size_t firstColon = actionStr.find(":");
+            size_t secondColon = actionStr.find(":", firstColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                title = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+                desc = actionStr.substr(secondColon + 1);
+                // Treat '-' as empty for UI
+                if (title == "-") title = "";
+                if (desc == "-") desc = "";
             }
         }
     }
-    SettingsHandler::handleAlertSettings(this, sender);
+    // Show the AlertSettingsPopup and update m_commandActions and label on save
+    auto popup = AlertSettingsPopup::create(title, desc, [this, actionIdx](const std::string& newTitle, const std::string& newDesc) {
+        std::string storeTitle = newTitle.empty() ? "-" : newTitle;
+        std::string storeDesc = newDesc.empty() ? "-" : newDesc;
+        if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
+            m_commandActions[actionIdx] = "alert_popup:" + storeTitle + ":" + storeDesc;
+            // Update the label in the UI
+            auto children = m_actionContent->getChildren();
+            if (children && actionIdx < children->count()) {
+                auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+                if (actionNode) {
+                    std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIdx);
+                    std::string labelText = "Title: " + storeTitle;
+                    if (!storeDesc.empty() && storeDesc != "-") labelText += ", Content: " + storeDesc;
+                    if (auto alertLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(alertLabelId))) {
+                        alertLabel->setString(labelText.c_str());
+                    }
+                }
+            }
+        }
+    });
+    if (popup) popup->show();
 }
 
 void CommandSettingsPopup::onSave(CCObject* sender) {

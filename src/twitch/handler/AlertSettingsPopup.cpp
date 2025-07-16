@@ -67,13 +67,15 @@ void AlertSettingsPopup::onClose(cocos2d::CCObject* sender) {
 
 AlertSettingsPopup* AlertSettingsPopup::create(const std::string& title, const std::string& desc, std::function<void(const std::string&, const std::string&)> callback) {
     auto ret = new AlertSettingsPopup();
-    if (ret && ret->initAnchored(320.f, 180.f)) {
+    if (ret) {
         ret->m_callback = callback;
         ret->m_initTitle = title;
         ret->m_initDesc = desc;
-        ret->autorelease();
-        return ret;
+        if (ret->initAnchored(320.f, 180.f)) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
     }
-    CC_SAFE_DELETE(ret);
     return nullptr;
 }
