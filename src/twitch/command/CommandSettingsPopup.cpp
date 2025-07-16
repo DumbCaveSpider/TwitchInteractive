@@ -502,6 +502,11 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
             m_commandActions.push_back("alert_popup:-:-");
             refreshActionsList();
         }
+        else if (eventId == "wait")
+        {
+            m_commandActions.push_back("wait:");
+            refreshActionsList();
+        }
         else
         {
             m_commandActions.push_back(eventId);
@@ -606,6 +611,7 @@ void CommandSettingsPopup::refreshActionsList()
             }
         }
 
+        //
         std::string btnId;
         bool hasSettingsHandler = false;
         if (actionIdLower.rfind("alert_popup", 0) == 0)
@@ -652,14 +658,9 @@ void CommandSettingsPopup::refreshActionsList()
         mainLabel->setScale(0.5f);
         mainLabel->setAnchorPoint({0, 0.5f});
         mainLabel->setAlignment(kCCTextAlignmentLeft);
-        float mainLabelX = 20.f;
-        float mainLabelY = 16.f;
-
-        if (hasSettingsHandler)
-        {
-            mainLabelX += 5.f;
-            mainLabelY += 5.f;
-        }
+        // Always align main label to the same x/y for all nodes
+        float mainLabelX = 25.f;
+        float mainLabelY = hasSettingsHandler ? 21.f : 16.f;
         mainLabel->setPosition(mainLabelX, mainLabelY);
         mainLabel->setID(mainLabelId);
         actionNode->addChild(mainLabel);
@@ -681,7 +682,7 @@ void CommandSettingsPopup::refreshActionsList()
                 {
                     std::string title = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string desc = actionIdRaw.substr(secondColon + 1);
-                    settingsLabelText = "Title: " + title + " | Desc: " + desc;
+                    settingsLabelText = "Title: " + title + " | Content: " + desc;
                 }
             }
             else if (actionIdLower.rfind("notification", 0) == 0)
@@ -690,9 +691,48 @@ void CommandSettingsPopup::refreshActionsList()
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 if (firstColon != std::string::npos && secondColon != std::string::npos)
                 {
-                    std::string iconType = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string iconTypeStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string notifText = actionIdRaw.substr(secondColon + 1);
-                    settingsLabelText = "Icon: " + iconType + " | Text: " + notifText;
+                    std::string iconName = "Info";
+                    int iconTypeInt = 1;
+                    bool validInt = true;
+                    for (char c : iconTypeStr)
+                    {
+                        if (!isdigit(c) && !(c == '-' && &c == &iconTypeStr[0]))
+                        {
+                            validInt = false;
+                            break;
+                        }
+                    }
+                    if (validInt && !iconTypeStr.empty())
+                    {
+                        iconTypeInt = std::atoi(iconTypeStr.c_str());
+                    }
+                    switch (iconTypeInt)
+                    {
+                    case 0:
+                        iconName = "None";
+                        break;
+                    case 1:
+                        iconName = "Info";
+                        break;
+                    case 2:
+                        iconName = "Success";
+                        break;
+                    case 3:
+                        iconName = "Warning";
+                        break;
+                    case 4:
+                        iconName = "Error";
+                        break;
+                    case 5:
+                        iconName = "Loading";
+                        break;
+                    default:
+                        iconName = "Info";
+                        break;
+                    }
+                    settingsLabelText = "Icon: " + iconName + " | Text: " + notifText;
                 }
             }
             else if (actionIdLower.rfind("keycode", 0) == 0)
@@ -717,11 +757,42 @@ void CommandSettingsPopup::refreshActionsList()
             {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                size_t thirdColon = std::string::npos;
+                if (secondColon != std::string::npos)
+                    thirdColon = actionIdRaw.find(":", secondColon + 1);
                 if (firstColon != std::string::npos && secondColon != std::string::npos)
                 {
                     std::string player = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                    std::string dir = actionIdRaw.substr(secondColon + 1);
-                    settingsLabelText = "Player: " + player + " | Dir: " + dir;
+                    std::string dir, amount;
+                    if (thirdColon != std::string::npos)
+                    {
+                        dir = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+                        amount = actionIdRaw.substr(thirdColon + 1);
+                    }
+                    else
+                    {
+                        dir = actionIdRaw.substr(secondColon + 1);
+                        amount = "";
+                    }
+                    // Capitalize direction
+                    if (!dir.empty())
+                        dir[0] = toupper(dir[0]);
+                    // Format amount to 4 decimal places if it's a number
+                    std::string amountStr = amount;
+                    if (!amount.empty())
+                    {
+                        char *endptr = nullptr;
+                        float amt = strtof(amount.c_str(), &endptr);
+                        if (endptr != amount.c_str() && *endptr == '\0')
+                        {
+                            char buf[32];
+                            snprintf(buf, sizeof(buf), "%.4f", amt);
+                            amountStr = buf;
+                        }
+                    }
+                    settingsLabelText = "Player " + player + " | Dir: " + dir;
+                    if (!amountStr.empty())
+                        settingsLabelText += " (" + amountStr + ")";
                 }
             }
             else if (actionIdLower.rfind("jump", 0) == 0)
@@ -730,10 +801,18 @@ void CommandSettingsPopup::refreshActionsList()
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
                 {
                     std::string rest = actionIdRaw.substr(colon + 1);
-                    settingsLabelText = "Player: " + rest;
+                    // If rest is "3" or starts with "3:hold", show Both Players
+                    if (rest == "3" || rest.rfind("3:hold", 0) == 0)
+                    {
+                        settingsLabelText = "Both Players";
+                    }
+                    else
+                    {
+                        settingsLabelText = "Player: " + rest;
+                    }
                 }
             }
-            else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0)
+            else if (actionIdLower.rfind("color_player", 0) == 0)
             {
                 size_t colon = actionIdRaw.find(":");
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
@@ -745,11 +824,21 @@ void CommandSettingsPopup::refreshActionsList()
             else if (actionIdLower.rfind("edit_camera", 0) == 0)
             {
                 size_t colon = actionIdRaw.find(":");
+                float skew = 0.f, rot = 0.f, scale = 0.f, time = 0.f;
+                bool parsedOk = false;
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
                 {
                     std::string params = actionIdRaw.substr(colon + 1);
-                    settingsLabelText = params;
+                    if (!params.empty())
+                    {
+                        int parsed = sscanf(params.c_str(), "%f,%f,%f,%f", &skew, &rot, &scale, &time);
+                        if (parsed == 4)
+                            parsedOk = true;
+                    }
                 }
+                char buf[128];
+                snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2f", skew, rot, scale, time);
+                settingsLabelText = buf;
             }
         }
         if (!textLabelText.empty())
@@ -762,7 +851,8 @@ void CommandSettingsPopup::refreshActionsList()
             textLabel->setID(textLabelId);
             actionNode->addChild(textLabel);
         }
-        if (hasSettingsHandler && !settingsLabelText.empty())
+        // Always create the settings label for these actions, even if the text is empty
+        if (hasSettingsHandler)
         {
             auto settingsLabel = CCLabelBMFont::create(settingsLabelText.c_str(), "chatFont.fnt");
             settingsLabel->setScale(0.5f);
@@ -776,22 +866,26 @@ void CommandSettingsPopup::refreshActionsList()
             actionNode->addChild(settingsLabel);
         }
 
-        // Up/Down arrow buttons for reordering
-        float btnX = m_actionContent->getContentSize().width - 24.f;
-        float arrowBtnY = 16.f;
+        // Right-aligned button layout
+        float btnMenuRight = m_actionContent->getContentSize().width - 16.f; // right edge of the action node
+        float btnMenuY = 16.f;
+        float btnSpacing = 28.f; // horizontal spacing between buttons
+
+        // Up arrow
         auto upSprite = CCSprite::createWithSpriteFrameName("edit_upBtn_001.png");
-        upSprite->setScale(0.4f);
+        upSprite->setScale(0.7f);
         auto upBtn = CCMenuItemSpriteExtra::create(upSprite, this, menu_selector(CommandSettingsPopup::onMoveActionUp));
         upBtn->setID("action-" + std::to_string(i) + "-up-btn");
         upBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-        upBtn->setPosition(btnX - 80.f, arrowBtnY + 8.f);
-        upBtn->setRotation(0.f);
+        upBtn->setPosition(0, 8.f);
+
+        // Down arrow
         auto downSprite = CCSprite::createWithSpriteFrameName("edit_downBtn_001.png");
-        downSprite->setScale(0.4f);
+        downSprite->setScale(0.7f);
         auto downBtn = CCMenuItemSpriteExtra::create(downSprite, this, menu_selector(CommandSettingsPopup::onMoveActionDown));
         downBtn->setID("action-" + std::to_string(i) + "-down-btn");
         downBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-        downBtn->setPosition(btnX - 80.f, arrowBtnY - 8.f);
+        downBtn->setPosition(0, -8.f);
 
         // Settings button (if applicable)
         CCMenuItemSpriteExtra *settingsBtn = nullptr;
@@ -802,36 +896,46 @@ void CommandSettingsPopup::refreshActionsList()
             settingsBtn = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(CommandSettingsPopup::onSettingsButtonUnified));
             settingsBtn->setID(btnId);
             settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-            settingsBtn->setPosition(btnX - 40.f, 16.f);
+            settingsBtn->setPosition(btnSpacing, 0);
         }
 
         // Remove button
-        auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-        removeSprite->setScale(0.5f);
+        auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
+        removeSprite->setScale(0.55f);
         auto removeBtn = CCMenuItemSpriteExtra::create(
             removeSprite,
             this,
             menu_selector(CommandSettingsPopup::onRemoveAction));
         removeBtn->setID("action-" + std::to_string(i) + "-remove-btn");
-        removeBtn->setPosition(btnX, 16.f);
+        removeBtn->setPosition(btnSpacing * 2, 0);
         removeBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
-        removeBtn->setScale(1.2f);
+        removeBtn->setScale(1.0f);
 
-        // If this is a wait action, add a TextInput to the left of the button
-        if (actionIdLower == "wait")
+        // If this is a wait action, add a TextInput at the settings button
+        if (actionIdLower.rfind("wait:", 0) == 0) // Match any wait action with value
         {
-            std::string waitInputId = "wait-delay-input-" + std::to_string(actionIndex);
-            auto waitInput = TextInput::create(50, "Sec", "chatFont.fnt");
-            waitInput->setPosition(btnX - 40.f, 16.f);
+            std::string waitInputId = "wait-delay-input-" + std::to_string(i); // Use i for consistent indexing
+            auto waitInput = TextInput::create(50, "Sec", "bigFont.fnt");
+            // If there is a value in the action string, set it
+            std::string waitValue = "";
+            size_t colon = actionIdRaw.find(":");
+            if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
+            {
+                waitValue = actionIdRaw.substr(colon + 1);
+            }
+            if (!waitValue.empty())
+            {
+                waitInput->setString(waitValue.c_str());
+            }
+            waitInput->setPosition(btnMenuRight - btnSpacing, 16.f);
             waitInput->setScale(0.5f);
             waitInput->setID(waitInputId);
-            // Optionally set value if available (not shown in original code)
             actionNode->addChild(waitInput);
         }
 
-        // Menu for all buttons
+        // Menu for all buttons, positioned at the right side of the node
         auto menu = CCMenu::create();
-        menu->setPosition(0, 0);
+        menu->setPosition(btnMenuRight - btnSpacing * 2, btnMenuY);
         menu->addChild(upBtn);
         menu->addChild(downBtn);
         if (settingsBtn)
@@ -1015,28 +1119,23 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
         if (actionId == "wait")
         {
-            std::string inputId = "wait-delay-input-" + std::to_string(idx + 1); // match refreshActionsList index label (1-based)
+            std::string inputId = "wait-delay-input-" + std::to_string(idx); // Use idx for consistent indexing
             TextInput *waitInput = nullptr;
 
             auto children = m_actionContent->getChildren();
 
-            if (children)
+            if (children && idx < children->count())
             {
-                for (int i = 0; i < children->count(); ++i)
+                auto node = as<CCNode *>(children->objectAtIndex(idx));
+                if (node)
                 {
-                    auto node = as<CCNode *>(children->objectAtIndex(i));
-                    if (node)
+                    auto inputNode = node->getChildByID(inputId);
+                    if (inputNode)
                     {
-                        auto inputNode = node->getChildByID("wait-delay-input-" + std::to_string(idx));
-                        if (inputNode)
-                        {
-                            waitInput = dynamic_cast<TextInput *>(inputNode);
-                            if (waitInput)
-                                break;
-                        };
-                    };
-                };
-            };
+                        waitInput = dynamic_cast<TextInput *>(inputNode);
+                    }
+                }
+            }
 
             std::string delayStr = waitValue;
             if (waitInput)
