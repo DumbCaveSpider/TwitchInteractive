@@ -18,6 +18,7 @@
 #include "../handler/SettingsHandler.hpp"
 #include "../handler/AlertSettingsPopup.hpp"
 #include "../handler/CameraSettingsPopup.hpp"
+#include "../handler/LevelInfoSettingsPopup.hpp"
 
 using namespace cocos2d;
 using namespace geode::prelude;
@@ -507,6 +508,10 @@ void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject* sender) {
 void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleKeyCodeSettings(this, sender);
 }
+// Level Info settings handler
+void CommandSettingsPopup::onOpenLevelInfoSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleLevelInfoSettings(this, sender);
+}
 
 void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey) {
     if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
@@ -590,6 +595,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Edit Camera";
         } else if (actionIdLower.rfind("alert_popup", 0) == 0) {
             nodeLabel = "Alert Popup";
+        } else if (actionIdLower.rfind("open_levelinfo", 0) == 0) {
+            nodeLabel = "Open Level Info";
         } else {
             nodeLabel = eventLabel;
         }
@@ -670,6 +677,41 @@ void CommandSettingsPopup::refreshActionsList() {
             );
             settingsBtn->setID("alert-popup-settings-btn-" + std::to_string(actionIndex));
             settingsBtn->setUserObject(cocos2d::CCInteger::create(static_cast<int>(i)));
+            auto settingsMenu = CCMenu::create();
+            settingsMenu->addChild(settingsBtn);
+            settingsMenu->setPosition(0, 0);
+            float btnX = m_actionContent->getContentSize().width - 24.f;
+            settingsBtn->setPosition(btnX - 40.f, 16.f);
+            actionNode->addChild(settingsMenu);
+        }
+
+        // Open Level Info action node (unified UI)
+        if (actionIdLower.rfind("open_levelinfo", 0) == 0) {
+            std::string levelId = "";
+            size_t colonPos = actionIdRaw.find(":");
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+                levelId = actionIdRaw.substr(colonPos + 1);
+            }
+            std::string levelInfoLabelId = "open-levelinfo-action-text-label-" + std::to_string(actionIndex);
+            float labelX = 0.f;
+            if (auto mainLabel = actionNode->getLabel()) {
+                labelX = mainLabel->getPositionX();
+            } else {
+                labelX = 8.f;
+            }
+            std::string labelText = "Level ID: " + (levelId.empty() ? "-" : levelId);
+            addOrUpdateActionLabel(actionNode, levelInfoLabelId, labelText, labelX, labelY);
+
+            // Settings button for open level info (same style as others)
+            auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+            settingsSprite->setScale(0.5f);
+            auto settingsBtn = CCMenuItemSpriteExtra::create(
+                settingsSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onOpenLevelInfoSettings)
+            );
+            settingsBtn->setID("open-levelinfo-settings-btn-" + std::to_string(actionIndex));
+            settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);
             settingsMenu->setPosition(0, 0);

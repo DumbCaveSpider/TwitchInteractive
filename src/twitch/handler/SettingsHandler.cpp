@@ -6,6 +6,7 @@
 #include "JumpSettingsPopup.hpp"
 #include "ColorPlayerSettingsPopup.hpp"
 #include "AlertSettingsPopup.hpp"
+#include "LevelInfoSettingsPopup.hpp"
 
 #include <algorithm>
 
@@ -266,4 +267,40 @@ void handleNotificationSettings(CommandSettingsPopup* popup, CCObject* sender) {
         static_cast<NotificationIconType>(iconTypeInt)
     )->show();
 }
+
+void handleLevelInfoSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int actionIdx = 0;
+    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (!parent || actionIdx < 0 || actionIdx >= static_cast<int>(parent->m_commandActions.size())) return;
+    std::string levelId = "";
+    const std::string& actionStr = parent->m_commandActions[actionIdx];
+    if (actionStr.rfind("open_levelinfo:", 0) == 0) {
+        size_t colonPos = actionStr.find(":");
+        if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
+            levelId = actionStr.substr(colonPos + 1);
+        }
+    }
+    // Show the LevelInfoSettingsPopup and update m_commandActions and label on save
+    auto popup = LevelInfoSettingsPopup::create(levelId, [parent, actionIdx](const std::string& newLevelId) {
+        std::string storeLevelId = newLevelId.empty() ? "-" : newLevelId;
+        if (actionIdx >= 0 && actionIdx < static_cast<int>(parent->m_commandActions.size())) {
+            parent->m_commandActions[actionIdx] = "open_levelinfo:" + storeLevelId;
+            // Update the label in the UI
+            auto children = parent->m_actionContent->getChildren();
+            if (children && actionIdx < children->count()) {
+                auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+                if (actionNode) {
+                    std::string levelInfoLabelId = "open-levelinfo-action-text-label-" + std::to_string(actionIdx);
+                    std::string labelText = "Level ID: " + (storeLevelId == "-" ? "" : storeLevelId);
+                    if (auto infoLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(levelInfoLabelId))) {
+                        infoLabel->setString(labelText.c_str());
+                    }
+                }
+            }
+        }
+    });
+    if (popup) popup->show();
 }
+
+} // namespace SettingsHandler

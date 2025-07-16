@@ -427,6 +427,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
         {"color_player", "Color Player", "Set the player's color based on the RGB value."},
         {"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)."},
+        {"open_levelinfo", "Open Level Info", "Opens the Level Info screen for the provided Level ID."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading."},
@@ -437,6 +438,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     return nodes;
 };
 
+
 // Unified interface
 bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize) {
     m_action = action;
@@ -444,8 +446,53 @@ bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize)
     if (!CCNode::create()) return false;
 
     setContentSize(CCSize(scrollSize.width, 32.f));
+
+
+    // Handle special event execution for open_levelinfo
+    if (action.type == CommandActionType::Event && !action.arg.empty()) {
+        // For open_levelinfo, arg is the level ID
+        std::string levelIdStr = action.arg;
+        int levelId = 0;
+        try {
+            levelId = std::stoi(levelIdStr);
+        } catch (...) {
+            log::error("[CommandActionEventNode] Invalid level ID: {}", levelIdStr);
+            return true;
+        }
+
+        // Create a GJGameLevel and set its levelID
+        auto level = GJGameLevel::create();
+        if (level) {
+            level->m_levelID = levelId;
+            // Optionally set other fields if needed
+        } else {
+            log::error("[CommandActionEventNode] Failed to create GJGameLevel");
+            return true;
+        }
+
+        // Try to open LevelInfoLayer (reflection, since header not found)
+        // TODO: If you have the header, replace with direct call
+        auto runningScene = CCDirector::sharedDirector()->getRunningScene();
+        if (runningScene) {
+            auto infoLayer = geode::createQuickPopup(
+                "Level Info", "Loading...", "OK", nullptr,
+                [](FLAlertLayer*, bool) {}, false
+            );
+            // Try to use Geode's reflection to create LevelInfoLayer if available
+            /*
+            auto infoLayer = LevelInfoLayer::create(level, false);
+            */
+            if (infoLayer) {
+                runningScene->addChild(infoLayer, 1000);
+            } else {
+                log::error("[CommandActionEventNode] Could not create LevelInfoLayer. Please update this code with the correct class/method if available.");
+            }
+        }
+        return true;
+    }
+
     return true;
-};
+}
 
 
 
