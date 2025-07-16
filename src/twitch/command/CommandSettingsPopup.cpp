@@ -365,14 +365,6 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject* sender) {
     return;
 }
 
-// Handler for color player settings button
-void CommandSettingsPopup::onColorPlayerSettings(CCObject* sender) {
-    SettingsHandler::handleColorPlayerSettings(this, sender);
-}
-
-void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
-    SettingsHandler::handleJumpSettings(this, sender);
-}
 
 
 void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject* sender) {
@@ -393,6 +385,16 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject* sender) {
     refreshActionsList();
 }
 
+// Handler for color player settings button
+void CommandSettingsPopup::onColorPlayerSettings(CCObject* sender) {
+    SettingsHandler::handleColorPlayerSettings(this, sender);
+}
+
+// Jump settings handler
+void CommandSettingsPopup::onJumpSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleJumpSettings(this, sender);
+}
+
 // Move Player settings handler
 void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleMoveSettings(this, sender);
@@ -406,6 +408,23 @@ void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
 // Notification settings handler
 void CommandSettingsPopup::onNotificationSettings(cocos2d::CCObject* sender) {
     SettingsHandler::handleNotificationSettings(this, sender);
+}
+
+void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleAlertSettings(this, sender);
+}
+
+// Player Profile settings handler
+void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleProfileSettings(this, sender);
+}
+// KeyCode settings handler
+void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleKeyCodeSettings(this, sender);
+}
+// Level Info settings handler
+void CommandSettingsPopup::onOpenLevelInfoSettings(cocos2d::CCObject* sender) {
+    SettingsHandler::handleLevelInfoSettings(this, sender);
 }
 
 // Handbook button handler
@@ -460,18 +479,6 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
     }
 }
 
-// Player Profile settings handler
-void CommandSettingsPopup::onProfileSettings(cocos2d::CCObject* sender) {
-    SettingsHandler::handleProfileSettings(this, sender);
-}
-// KeyCode settings handler
-void CommandSettingsPopup::onKeyCodeSettings(cocos2d::CCObject* sender) {
-    SettingsHandler::handleKeyCodeSettings(this, sender);
-}
-// Level Info settings handler
-void CommandSettingsPopup::onOpenLevelInfoSettings(cocos2d::CCObject* sender) {
-    SettingsHandler::handleLevelInfoSettings(this, sender);
-}
 
 void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey) {
     if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {
@@ -1160,50 +1167,6 @@ void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
         FLAlertLayer::create(eventName.c_str(), "No description available.", "OK")->show();
     };
 };
-
-void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject* sender) {
-    // Parse the current title and description from m_commandActions and open AlertSettingsPopup with them
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int actionIdx = 0;
-    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
-    std::string title = "", desc = "";
-    if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
-        const std::string& actionStr = m_commandActions[actionIdx];
-        if (actionStr.rfind("alert_popup:", 0) == 0) {
-            size_t firstColon = actionStr.find(":");
-            size_t secondColon = actionStr.find(":", firstColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                title = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
-                desc = actionStr.substr(secondColon + 1);
-                // Treat '-' as empty for UI
-                if (title == "-") title = "";
-                if (desc == "-") desc = "";
-            }
-        }
-    }
-    // Show the AlertSettingsPopup and update m_commandActions and label on save
-    auto popup = AlertSettingsPopup::create(title, desc, [this, actionIdx](const std::string& newTitle, const std::string& newDesc) {
-        std::string storeTitle = newTitle.empty() ? "-" : newTitle;
-        std::string storeDesc = newDesc.empty() ? "-" : newDesc;
-        if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size())) {
-            m_commandActions[actionIdx] = "alert_popup:" + storeTitle + ":" + storeDesc;
-            // Update the label in the UI
-            auto children = m_actionContent->getChildren();
-            if (children && actionIdx < children->count()) {
-                auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
-                if (actionNode) {
-                    std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIdx);
-                    std::string labelText = "Title: " + storeTitle;
-                    if (!storeDesc.empty() && storeDesc != "-") labelText += ", Content: " + storeDesc;
-                    if (auto alertLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(alertLabelId))) {
-                        alertLabel->setString(labelText.c_str());
-                    }
-                }
-            }
-        }
-    });
-    if (popup) popup->show();
-}
 
 void CommandSettingsPopup::onSave(CCObject* sender) {
     // Build up to 10 actions in order, validate all wait inputs
