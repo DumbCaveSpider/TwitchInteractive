@@ -5,12 +5,13 @@
 
 using namespace geode::prelude;
 
-class TwitchLoginPopup : public Popup<> {
+class TwitchLoginPopup : public Popup<>
+{
 protected:
-    CCMenu* m_loginMenu = nullptr;
-    CCMenu* m_loggedInMenu = nullptr;
+    CCMenu *m_loginMenu = nullptr;
+    CCMenu *m_loggedInMenu = nullptr;
 
-    CCLabelBMFont* m_statusLabel = nullptr;
+    CCLabelBMFont *m_statusLabel = nullptr;
 
     bool m_isActive = true;
     bool m_isWaitingForAuth = false;
@@ -19,7 +20,7 @@ protected:
 
     bool setup() override;
 
-    void onLoginPressed(CCObject* sender);
+    void onLoginPressed(CCObject *sender);
     void onAuthenticationCompleted();
     void onAuthenticationTimeout();
     void checkExistingConnection();
@@ -30,7 +31,8 @@ protected:
     bool checkTwitchChannelExists();
 
     std::string getAuthenticatedUsername();
+
 public:
     ~TwitchLoginPopup();
-    static TwitchLoginPopup* create();
+    static TwitchLoginPopup *create();
 };

@@ -6,30 +6,32 @@
 #include <functional>
 
 // Role toggles and labels
-struct RoleTogglerInfo {
-    const char* label;
+struct RoleTogglerInfo
+{
+    const char *label;
     float posX;
-    CCMenuItemToggler** togglerPtr;
+    CCMenuItemToggler **togglerPtr;
     bool initial;
 };
 
-class CommandUserSettingsPopup : public geode::Popup<> {
+class CommandUserSettingsPopup : public geode::Popup<>
+{
 protected:
-    geode::TextInput* m_userInput = nullptr;
-    CCMenuItemToggler* m_vipToggler = nullptr;
-    CCMenuItemToggler* m_modToggler = nullptr;
-    CCMenuItemToggler* m_streamerToggler = nullptr;
-    CCMenuItemToggler* m_subscriberToggler = nullptr;
+    geode::TextInput *m_userInput = nullptr;
+    CCMenuItemToggler *m_vipToggler = nullptr;
+    CCMenuItemToggler *m_modToggler = nullptr;
+    CCMenuItemToggler *m_streamerToggler = nullptr;
+    CCMenuItemToggler *m_subscriberToggler = nullptr;
     std::string m_allowedUser;
     bool m_allowVip = false;
     bool m_allowMod = false;
     bool m_allowStreamer = false;
     bool m_allowSubscriber = false;
-    std::function<void(const std::string&, bool, bool, bool, bool)> m_callback;
+    std::function<void(const std::string &, bool, bool, bool, bool)> m_callback;
 
     bool setup() override;
-    void onSave(CCObject* sender);
+    void onSave(CCObject *sender);
 
 public:
-    static CommandUserSettingsPopup* create(const std::string& allowedUser, bool allowVip, bool allowMod, bool allowStreamer, bool allowSubscriber, std::function<void(const std::string&, bool, bool, bool, bool)> callback);
+    static CommandUserSettingsPopup *create(const std::string &allowedUser, bool allowVip, bool allowMod, bool allowStreamer, bool allowSubscriber, std::function<void(const std::string &, bool, bool, bool, bool)> callback);
 };

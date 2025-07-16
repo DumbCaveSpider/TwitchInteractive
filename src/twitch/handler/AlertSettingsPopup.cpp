@@ -6,8 +6,8 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
-
-bool AlertSettingsPopup::setup() {
+bool AlertSettingsPopup::setup()
+{
     float width = 320.f;
     float height = 180.f;
     setTitle("Alert Popup Settings");
@@ -42,8 +42,7 @@ bool AlertSettingsPopup::setup() {
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
-        menu_selector(AlertSettingsPopup::onSave)
-    );
+        menu_selector(AlertSettingsPopup::onSave));
     saveBtn->setPosition(popupSize.width / 2, btnY);
     auto menu = CCMenu::create();
     menu->addChild(saveBtn);
@@ -52,8 +51,10 @@ bool AlertSettingsPopup::setup() {
     return true;
 }
 
-void AlertSettingsPopup::onSave(cocos2d::CCObject* sender) {
-    if (m_callback) {
+void AlertSettingsPopup::onSave(cocos2d::CCObject *sender)
+{
+    if (m_callback)
+    {
         std::string title = m_titleInput ? m_titleInput->getString() : "";
         std::string desc = m_descInput ? m_descInput->getString() : "";
         m_callback(title, desc);
@@ -61,17 +62,21 @@ void AlertSettingsPopup::onSave(cocos2d::CCObject* sender) {
     onClose(sender);
 }
 
-void AlertSettingsPopup::onClose(cocos2d::CCObject* sender) {
+void AlertSettingsPopup::onClose(cocos2d::CCObject *sender)
+{
     this->removeFromParentAndCleanup(true);
 }
 
-AlertSettingsPopup* AlertSettingsPopup::create(const std::string& title, const std::string& desc, std::function<void(const std::string&, const std::string&)> callback) {
+AlertSettingsPopup *AlertSettingsPopup::create(const std::string &title, const std::string &desc, std::function<void(const std::string &, const std::string &)> callback)
+{
     auto ret = new AlertSettingsPopup();
-    if (ret) {
+    if (ret)
+    {
         ret->m_callback = callback;
         ret->m_initTitle = title;
         ret->m_initDesc = desc;
-        if (ret->initAnchored(320.f, 180.f)) {
+        if (ret->initAnchored(320.f, 180.f))
+        {
             ret->autorelease();
             return ret;
         }

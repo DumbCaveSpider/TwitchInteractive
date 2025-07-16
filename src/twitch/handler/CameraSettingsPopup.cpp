@@ -6,7 +6,8 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
-bool CameraSettingsPopup::setup() {
+bool CameraSettingsPopup::setup()
+{
     setTitle("Camera Settings");
     setID("camera-settings-popup");
 
@@ -27,9 +28,10 @@ bool CameraSettingsPopup::setup() {
     float inputY = rowY - 20.f;
 
     // Labels and inputs in a row: Skew, Rotation, Scale, Time
-    const char* names[] = {"Skew", "Rotation", "Scale", "Time"};
-    geode::TextInput** inputs[] = { &m_skewInput, &m_rotInput, &m_scaleInput, &m_timeInput };
-    for (int i = 0; i < 4; ++i) {
+    const char *names[] = {"Skew", "Rotation", "Scale", "Time"};
+    geode::TextInput **inputs[] = {&m_skewInput, &m_rotInput, &m_scaleInput, &m_timeInput};
+    for (int i = 0; i < 4; ++i)
+    {
         float x = rowStartX + i * (fieldWidth + spacing);
         // Label above input
         auto label = CCLabelBMFont::create(names[i], "bigFont.fnt");
@@ -49,8 +51,7 @@ bool CameraSettingsPopup::setup() {
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.7f),
         this,
-        menu_selector(CameraSettingsPopup::onSave)
-    );
+        menu_selector(CameraSettingsPopup::onSave));
     saveBtn->setID("camera-save-btn");
     float btnY = inputY - fieldHeight - 30.f;
     auto menu = CCMenu::create();
@@ -61,8 +62,10 @@ bool CameraSettingsPopup::setup() {
     return true;
 }
 
-void CameraSettingsPopup::onSave(CCObject* sender) {
-    if (m_callback) {
+void CameraSettingsPopup::onSave(CCObject *sender)
+{
+    if (m_callback)
+    {
         float skew = getSkew();
         float rot = getRotation();
         float scale = getScale();
@@ -72,41 +75,52 @@ void CameraSettingsPopup::onSave(CCObject* sender) {
     this->onClose(sender);
 }
 
-std::string CameraSettingsPopup::formatCameraLabel(float skew, float rot, float scale, float time) {
+std::string CameraSettingsPopup::formatCameraLabel(float skew, float rot, float scale, float time)
+{
     char buf[128];
     snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", skew, rot, scale, time);
     return std::string(buf);
 }
 
-void CameraSettingsPopup::onApply(CCObject* sender) {
+void CameraSettingsPopup::onApply(CCObject *sender)
+{
     // Optionally apply changes live
-    if (m_callback) {
+    if (m_callback)
+    {
         m_callback(getSkew(), getRotation(), getScale(), getTime());
     }
 }
 
-void CameraSettingsPopup::onClose(CCObject* sender) {
+void CameraSettingsPopup::onClose(CCObject *sender)
+{
     this->removeFromParentAndCleanup(true);
 }
 
-float CameraSettingsPopup::getSkew() const {
+float CameraSettingsPopup::getSkew() const
+{
     return std::stof(m_skewInput->getString());
 }
-float CameraSettingsPopup::getRotation() const {
+float CameraSettingsPopup::getRotation() const
+{
     return std::stof(m_rotInput->getString());
 }
-float CameraSettingsPopup::getScale() const {
+float CameraSettingsPopup::getScale() const
+{
     return std::stof(m_scaleInput->getString());
 }
-float CameraSettingsPopup::getTime() const {
+float CameraSettingsPopup::getTime() const
+{
     return std::stof(m_timeInput->getString());
 }
 
-CameraSettingsPopup* CameraSettingsPopup::create(float skew, float rot, float scale, float time, std::function<void(float,float,float,float)> callback) {
+CameraSettingsPopup *CameraSettingsPopup::create(float skew, float rot, float scale, float time, std::function<void(float, float, float, float)> callback)
+{
     auto ret = new CameraSettingsPopup();
-    if (ret) {
+    if (ret)
+    {
         ret->m_callback = callback;
-        if (ret->initAnchored(330.f, 180.f)) {
+        if (ret->initAnchored(330.f, 180.f))
+        {
             ret->autorelease();
             ret->m_skewInput->setString(fmt::format("{:.2f}", skew).c_str());
             ret->m_rotInput->setString(fmt::format("{:.2f}", rot).c_str());

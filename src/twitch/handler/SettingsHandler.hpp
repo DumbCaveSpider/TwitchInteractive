@@ -5,15 +5,15 @@
 
 #include "../command/CommandSettingsPopup.hpp"
 
-namespace SettingsHandler {
-    void handleAlertSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender);
-    void handleProfileSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleKeyCodeSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleColorPlayerSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleJumpSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleMoveSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleNotificationSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleCameraSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleEditCameraSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
-    void handleLevelInfoSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender);
+namespace SettingsHandler
+{
+    void handleAlertSettings(CommandSettingsPopup *parent, cocos2d::CCObject *sender);
+    void handleProfileSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleKeyCodeSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleColorPlayerSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleJumpSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleMoveSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleNotificationSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleCameraSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleEditCameraSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
 }

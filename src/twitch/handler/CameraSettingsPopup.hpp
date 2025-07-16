@@ -7,25 +7,27 @@
 
 using namespace cocos2d;
 
-class CameraSettingsPopup : public geode::Popup<> {
+class CameraSettingsPopup : public geode::Popup<>
+{
 protected:
-    CCLayer* m_mainLayer = nullptr;
-    geode::TextInput* m_skewInput = nullptr;
-    geode::TextInput* m_rotInput = nullptr;
-    geode::TextInput* m_scaleInput = nullptr;
-    geode::TextInput* m_timeInput = nullptr;
+    CCLayer *m_mainLayer = nullptr;
+    geode::TextInput *m_skewInput = nullptr;
+    geode::TextInput *m_rotInput = nullptr;
+    geode::TextInput *m_scaleInput = nullptr;
+    geode::TextInput *m_timeInput = nullptr;
     std::function<void(float, float, float, float)> m_callback;
 
     bool setup();
-    void onSave(CCObject* sender);
-    void onApply(CCObject* sender);
-    void onClose(CCObject* sender);
+    void onSave(CCObject *sender);
+    void onApply(CCObject *sender);
+    void onClose(CCObject *sender);
     float getSkew() const;
     float getRotation() const;
     float getScale() const;
     float getTime() const;
+
 public:
-    static CameraSettingsPopup* create(float skew, float rot, float scale, float time, std::function<void(float,float,float,float)> callback);
+    static CameraSettingsPopup *create(float skew, float rot, float scale, float time, std::function<void(float, float, float, float)> callback);
     // Helper to format the edit camera action label string
     static std::string formatCameraLabel(float skew, float rot, float scale, float time);
 };

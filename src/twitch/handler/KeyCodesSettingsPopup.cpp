@@ -5,13 +5,15 @@
 using namespace geode::prelude;
 using namespace cocos2d;
 
-bool KeyCodesSettingsPopup::setup(std::string keyCode) {
+bool KeyCodesSettingsPopup::setup(std::string keyCode)
+{
     // Parse key and duration if present (format: key|duration)
     m_keyCode = keyCode;
     m_holdDuration = "";
 
     size_t pipePos = keyCode.find("|");
-    if (pipePos != std::string::npos) {
+    if (pipePos != std::string::npos)
+    {
         m_keyCode = keyCode.substr(0, pipePos);
         m_holdDuration = keyCode.substr(pipePos + 1);
     };
@@ -43,8 +45,7 @@ bool KeyCodesSettingsPopup::setup(std::string keyCode) {
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
-        menu_selector(KeyCodesSettingsPopup::onSave)
-    );
+        menu_selector(KeyCodesSettingsPopup::onSave));
     saveBtn->setID("keycode-save-btn");
 
     auto menu = CCMenu::create();
@@ -59,27 +60,40 @@ bool KeyCodesSettingsPopup::setup(std::string keyCode) {
     return true;
 };
 
-void KeyCodesSettingsPopup::onSave(cocos2d::CCObject* sender) {
-    if (m_durationInput) m_holdDuration = m_durationInput->getString();
+void KeyCodesSettingsPopup::onSave(cocos2d::CCObject *sender)
+{
+    if (m_durationInput)
+        m_holdDuration = m_durationInput->getString();
 
     // Validate hold duration: must be blank or a valid number
     bool valid = true;
 
-    if (!m_holdDuration.empty()) {
+    if (!m_holdDuration.empty())
+    {
         // Accept integer or float (e.g. 1, 1.5, .5)
         bool seenDot = false;
 
-        for (size_t i = 0; i < m_holdDuration.size(); ++i) {
+        for (size_t i = 0; i < m_holdDuration.size(); ++i)
+        {
             char c = m_holdDuration[i];
-            if (c == '.') {
-                if (seenDot) { valid = false; break; }
+            if (c == '.')
+            {
+                if (seenDot)
+                {
+                    valid = false;
+                    break;
+                }
                 seenDot = true;
-            } else if (!isdigit(c)) {
-                valid = false; break;
+            }
+            else if (!isdigit(c))
+            {
+                valid = false;
+                break;
             };
         };
 
-        if (!valid || m_holdDuration == "." || m_holdDuration == "-") {
+        if (!valid || m_holdDuration == "." || m_holdDuration == "-")
+        {
             Notification::create("Hold duration must be a number!", NotificationIcon::Error)->show();
             return;
         };
@@ -87,53 +101,117 @@ void KeyCodesSettingsPopup::onSave(cocos2d::CCObject* sender) {
 
     std::string result = m_keyCode;
 
-    if (!m_holdDuration.empty()) result += "|" + m_holdDuration;
-    if (m_onSelect) m_onSelect(result);
+    if (!m_holdDuration.empty())
+        result += "|" + m_holdDuration;
+    if (m_onSelect)
+        m_onSelect(result);
 
     onClose(nullptr);
 };
 
-void KeyCodesSettingsPopup::keyDown(cocos2d::enumKeyCodes key) {
+void KeyCodesSettingsPopup::keyDown(cocos2d::enumKeyCodes key)
+{
     // Convert key code to string representation
     std::string keyStr;
-    if (key >= KEY_A && key <= KEY_Z) {
+    if (key >= KEY_A && key <= KEY_Z)
+    {
         keyStr = std::string(1, 'A' + (key - KEY_A));
-    } else if (key >= 48 && key <= 57) { // ASCII '0'-'9'
+    }
+    else if (key >= 48 && key <= 57)
+    { // ASCII '0'-'9'
         keyStr = std::string(1, static_cast<char>(key));
-    } else {
-        switch (key) {
-        case KEY_Space: keyStr = "Space"; break;
-        case KEY_Enter: keyStr = "Enter"; break;
-        case KEY_Escape: keyStr = "Escape"; break;
-        case KEY_Left: keyStr = "Left"; break;
-        case KEY_Right: keyStr = "Right"; break;
-        case KEY_Up: keyStr = "Up"; break;
-        case KEY_Down: keyStr = "Down"; break;
-        case KEY_Tab: keyStr = "Tab"; break;
-        case KEY_Backspace: keyStr = "Backspace"; break;
-        case KEY_Shift: keyStr = "Shift"; break;
-        case KEY_Control: keyStr = "Ctrl"; break;
-        case KEY_Alt: keyStr = "Alt"; break;
-        case 20: keyStr = "CapsLock"; break;
-        case 160: keyStr = "LeftShift"; break;
-        case 161: keyStr = "RightShift"; break;
-        case 4101: keyStr = ";"; break;
-        case 4097: keyStr = "="; break;
-        case 188: keyStr = ","; break;
-        case 189: keyStr = "-"; break;
-        case 190: keyStr = "."; break;
-        case 4103: keyStr = "/"; break;
-        case 4096: keyStr = "`"; break;
-        case 4098: keyStr = "["; break;
-        case 4100: keyStr = "\\"; break;
-        case 4099: keyStr = "]"; break;
-        case 4102: keyStr = "'"; break;
+    }
+    else
+    {
+        switch (key)
+        {
+        case KEY_Space:
+            keyStr = "Space";
+            break;
+        case KEY_Enter:
+            keyStr = "Enter";
+            break;
+        case KEY_Escape:
+            keyStr = "Escape";
+            break;
+        case KEY_Left:
+            keyStr = "Left";
+            break;
+        case KEY_Right:
+            keyStr = "Right";
+            break;
+        case KEY_Up:
+            keyStr = "Up";
+            break;
+        case KEY_Down:
+            keyStr = "Down";
+            break;
+        case KEY_Tab:
+            keyStr = "Tab";
+            break;
+        case KEY_Backspace:
+            keyStr = "Backspace";
+            break;
+        case KEY_Shift:
+            keyStr = "Shift";
+            break;
+        case KEY_Control:
+            keyStr = "Ctrl";
+            break;
+        case KEY_Alt:
+            keyStr = "Alt";
+            break;
+        case 20:
+            keyStr = "CapsLock";
+            break;
+        case 160:
+            keyStr = "LeftShift";
+            break;
+        case 161:
+            keyStr = "RightShift";
+            break;
+        case 4101:
+            keyStr = ";";
+            break;
+        case 4097:
+            keyStr = "=";
+            break;
+        case 188:
+            keyStr = ",";
+            break;
+        case 189:
+            keyStr = "-";
+            break;
+        case 190:
+            keyStr = ".";
+            break;
+        case 4103:
+            keyStr = "/";
+            break;
+        case 4096:
+            keyStr = "`";
+            break;
+        case 4098:
+            keyStr = "[";
+            break;
+        case 4100:
+            keyStr = "\\";
+            break;
+        case 4099:
+            keyStr = "]";
+            break;
+        case 4102:
+            keyStr = "'";
+            break;
 
         default:
             // If in ASCII printable range
-            if (key >= 32 && key <= 126) {
+            if (key >= 32 && key <= 126)
+            {
                 keyStr = std::string(1, static_cast<char>(key));
-            } else {
+            }
+            else
+            {
                 keyStr = fmt::format("KeyCode({})", (int)key);
             };
             break;
@@ -141,14 +219,17 @@ void KeyCodesSettingsPopup::keyDown(cocos2d::enumKeyCodes key) {
     };
 
     m_keyCode = keyStr;
-    if (m_keyLabel) m_keyLabel->setString(keyStr.c_str());
+    if (m_keyLabel)
+        m_keyLabel->setString(keyStr.c_str());
 };
 
-KeyCodesSettingsPopup* KeyCodesSettingsPopup::create(const std::string& keyCode, std::function<void(const std::string&)> onSelect) {
+KeyCodesSettingsPopup *KeyCodesSettingsPopup::create(const std::string &keyCode, std::function<void(const std::string &)> onSelect)
+{
     auto ret = new KeyCodesSettingsPopup();
     ret->m_onSelect = onSelect;
 
-    if (ret && ret->initAnchored(220.f, 180.f, keyCode)) {
+    if (ret && ret->initAnchored(220.f, 180.f, keyCode))
+    {
         ret->autorelease();
         return ret;
     };

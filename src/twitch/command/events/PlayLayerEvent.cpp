@@ -7,14 +7,17 @@
 using namespace geode::prelude;
 
 // Helper to parse color from string (format: "R,G,B")
-cocos2d::ccColor3B parseColorString(const std::string& str) {
+cocos2d::ccColor3B parseColorString(const std::string &str)
+{
     int r = 255, g = 255, b = 255;
     sscanf(str.c_str(), "%d,%d,%d", &r, &g, &b);
     return {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
 }
 // Set player color (playerIdx: 1, 2, or 3 for both)
-void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B& color) {
-    Loader::get()->queueInMainThread([playerIdx, color] {
+void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B &color)
+{
+    Loader::get()->queueInMainThread([playerIdx, color]
+                                     {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] setPlayerColor: PlayLayer not found");
@@ -35,18 +38,21 @@ void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B& col
             }
             setColor(player);
             log::info("[PlayLayerEvent] Set color for player {}: R{} G{} B{}", playerIdx, color.r, color.g, color.b);
-        }
-    });
+        } });
 }
 
-namespace {
+namespace
+{
     bool g_pendingKillPlayer = false;
 
-    class KillPlayerScheduler : public cocos2d::CCNode {
+    class KillPlayerScheduler : public cocos2d::CCNode
+    {
     public:
-        void update(float) {
+        void update(float)
+        {
             auto playLayer = PlayLayer::get();
-            if (playLayer && g_pendingKillPlayer) {
+            if (playLayer && g_pendingKillPlayer)
+            {
                 log::debug("[PlayLayerEvent] KillPlayerScheduler: Executing kill player");
 
                 playLayer->destroyPlayer(playLayer->m_player1, nullptr);
@@ -57,7 +63,8 @@ namespace {
             };
         };
 
-        static void start() {
+        static void start()
+        {
             log::debug("[PlayLayerEvent] KillPlayerScheduler: Scheduling kill player");
 
             auto node = new KillPlayerScheduler();
@@ -70,8 +77,10 @@ namespace {
 };
 
 // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
-void PlayLayerEvent::setCameraFromString(const std::string& arg) {
-    Loader::get()->queueInMainThread([arg] {
+void PlayLayerEvent::setCameraFromString(const std::string &arg)
+{
+    Loader::get()->queueInMainThread([arg]
+                                     {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] setCameraFromString: PlayLayer not found");
@@ -141,13 +150,14 @@ void PlayLayerEvent::setCameraFromString(const std::string& arg) {
             playLayer->setSkewY(skew);
             playLayer->setRotation(rot);
             playLayer->setScale(scale);
-        }
-    });
+        } });
 }
 
 // Simulate holding the jump button for a short duration
-void PlayLayerEvent::jumpPlayerTap(int playerIdx) {
-    Loader::get()->queueInMainThread([playerIdx] {
+void PlayLayerEvent::jumpPlayerTap(int playerIdx)
+{
+    Loader::get()->queueInMainThread([playerIdx]
+                                     {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] holdJumpPlayer: PlayLayer not found");
@@ -177,15 +187,16 @@ void PlayLayerEvent::jumpPlayerTap(int playerIdx) {
 
             log::info("[PlayLayerEvent] Player {} jump", playerIdx);
             pressAndRelease(player);
-        };
-                                     });
+        }; });
 };
 
-void PlayLayerEvent::killPlayer() {
+void PlayLayerEvent::killPlayer()
+{
     log::debug("[PlayLayerEvent] destroyPlayer called");
     g_pendingKillPlayer = true;
 
-    Loader::get()->queueInMainThread([] {
+    Loader::get()->queueInMainThread([]
+                                     {
         auto playLayer = PlayLayer::get();
 
         if (playLayer && g_pendingKillPlayer) {
@@ -195,12 +206,13 @@ void PlayLayerEvent::killPlayer() {
             g_pendingKillPlayer = false;
         } else if (g_pendingKillPlayer) {
             KillPlayerScheduler::start();
-        };
-                                     });
+        }; });
 };
 
-void PlayLayerEvent::jumpPlayerHold(int playerIdx) {
-    Loader::get()->queueInMainThread([playerIdx] {
+void PlayLayerEvent::jumpPlayerHold(int playerIdx)
+{
+    Loader::get()->queueInMainThread([playerIdx]
+                                     {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] jumpPlayer: PlayLayer not found");
@@ -225,13 +237,14 @@ void PlayLayerEvent::jumpPlayerHold(int playerIdx) {
 
             log::info("[PlayLayerEvent] Player {} hold jump", playerIdx);
             player->pushButton(PlayerButton::Jump);
-        };
-                                     });
+        }; });
 };
 
 // Simulate a keypress by key string (universal, works anywhere in the game if supported)
-void PlayLayerEvent::pressKey(const std::string& key, float duration) {
-    Loader::get()->queueInMainThread([key, duration] {
+void PlayLayerEvent::pressKey(const std::string &key, float duration)
+{
+    Loader::get()->queueInMainThread([key, duration]
+                                     {
         cocos2d::enumKeyCodes keyCode = cocos2d::KEY_None;
 
         if (key == "Space" || key == "Jump") keyCode = cocos2d::KEY_Space;
@@ -264,13 +277,14 @@ void PlayLayerEvent::pressKey(const std::string& key, float duration) {
             return;
         };
 
-        log::debug("[PlayLayerEvent] No universal key simulation available for '{}', code {}", key, static_cast<int>(keyCode));
-                                     });
+        log::debug("[PlayLayerEvent] No universal key simulation available for '{}', code {}", key, static_cast<int>(keyCode)); });
 };
 
 // Move player left or right by a distance
-void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance) {
-    Loader::get()->queueInMainThread([playerIdx, moveRight, distance] {
+void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance)
+{
+    Loader::get()->queueInMainThread([playerIdx, moveRight, distance]
+                                     {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] movePlayer: PlayLayer not found");
@@ -315,6 +329,5 @@ void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance) {
             cocos2d::CCDirector::sharedDirector()->getRunningScene()->addChild(node);
 
             log::info("[PlayLayerEvent] Moved player {} {} (button sim)", playerIdx, moveRight ? "right" : "left");
-        };
-                                     });
+        }; });
 };

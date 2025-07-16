@@ -1,7 +1,8 @@
 #include "ColorPlayerSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
 
-bool ColorPlayerSettingsPopup::setup() {
+bool ColorPlayerSettingsPopup::setup()
+{
     setTitle("Color Player Settings");
     setID("color-player-settings-popup");
 
@@ -15,21 +16,21 @@ bool ColorPlayerSettingsPopup::setup() {
 
     // Add background effect for color picker area (like main popup)
     auto pickerBg = CCMenu::create();
-    pickerBg->setContentSize({ popupSize.width - 40.f, 120.f });
+    pickerBg->setContentSize({popupSize.width - 40.f, 120.f});
     float pickerY = popupSize.height / 2 + 20.f;
     pickerBg->setPosition(popupSize.width / 2, pickerY);
     pickerBg->setOpacity(180);
     m_mainLayer->addChild(pickerBg, 0);
 
     m_colorPicker = new cocos2d::extension::CCControlColourPicker();
-    if (m_colorPicker && m_colorPicker->init()) {
+    if (m_colorPicker && m_colorPicker->init())
+    {
         m_colorPicker->autorelease();
         m_colorPicker->setColorValue(m_selectedColor);
         m_colorPicker->addTargetWithActionForControlEvents(
             this,
             cccontrol_selector(ColorPlayerSettingsPopup::onColorChanged),
-            cocos2d::extension::CCControlEventValueChanged
-        );
+            cocos2d::extension::CCControlEventValueChanged);
         m_colorPicker->setPosition(popupSize.width / 2, pickerY);
         m_mainLayer->addChild(m_colorPicker, 1);
     }
@@ -69,15 +70,13 @@ bool ColorPlayerSettingsPopup::setup() {
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
-        menu_selector(ColorPlayerSettingsPopup::onSave)
-    );
+        menu_selector(ColorPlayerSettingsPopup::onSave));
     saveBtn->setID("color-player-save-btn");
 
     auto applyBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Apply RGB", "bigFont.fnt", "GJ_button_02.png", 0.5f),
         this,
-        menu_selector(ColorPlayerSettingsPopup::onApplyRGB)
-    );
+        menu_selector(ColorPlayerSettingsPopup::onApplyRGB));
     applyBtn->setID("color-player-apply-rgb-btn");
 
     // Add extra spacing between RGB fields and button menu
@@ -86,13 +85,13 @@ bool ColorPlayerSettingsPopup::setup() {
 
     // Create a container layer for the button menu, with background effect
     auto btnMenuLayer = cocos2d::CCLayer::create();
-    btnMenuLayer->setContentSize({ popupSize.width, 50.f });
+    btnMenuLayer->setContentSize({popupSize.width, 50.f});
     btnMenuLayer->setAnchorPoint({0, 0});
     btnMenuLayer->setPosition(0, btnMenuY - 25.f); // center the 50.f height on btnMenuY
 
     // Add background effect to button menu
     auto btnMenuBg = CCMenu::create();
-    btnMenuBg->setContentSize({ popupSize.width - 40.f, 50.f });
+    btnMenuBg->setContentSize({popupSize.width - 40.f, 50.f});
     btnMenuBg->setPosition(btnMenuLayer->getContentSize().width / 2, btnMenuLayer->getContentSize().height / 2);
     btnMenuBg->setOpacity(180);
     btnMenuLayer->addChild(btnMenuBg, 0);
@@ -105,32 +104,38 @@ bool ColorPlayerSettingsPopup::setup() {
     float centerX = btnMenuLayer->getContentSize().width / 2;
     float centerY = btnMenuLayer->getContentSize().height / 2;
     auto menu = CCMenu::create();
-    saveBtn->setPosition(-totalButtonWidth/2 + saveBtnWidth/2, 0.f);
-    applyBtn->setPosition(totalButtonWidth/2 - applyBtnWidth/2, 0.f);
+    saveBtn->setPosition(-totalButtonWidth / 2 + saveBtnWidth / 2, 0.f);
+    applyBtn->setPosition(totalButtonWidth / 2 - applyBtnWidth / 2, 0.f);
     menu->addChild(saveBtn);
     menu->addChild(applyBtn);
     menu->setPosition(centerX, centerY);
     btnMenuLayer->addChild(menu, 1);
     m_mainLayer->addChild(btnMenuLayer, 2);
-    
+
     return true;
 }
 
-void ColorPlayerSettingsPopup::onApplyRGB(cocos2d::CCObject* sender) {
+void ColorPlayerSettingsPopup::onApplyRGB(cocos2d::CCObject *sender)
+{
     int r = std::max(0, std::min(255, atoi(m_rInput->getString().c_str())));
     int g = std::max(0, std::min(255, atoi(m_gInput->getString().c_str())));
     int b = std::max(0, std::min(255, atoi(m_bInput->getString().c_str())));
-    m_selectedColor = cocos2d::ccColor3B{ static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b) };
-    if (m_colorPicker) m_colorPicker->setColorValue(m_selectedColor);
+    m_selectedColor = cocos2d::ccColor3B{static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+    if (m_colorPicker)
+        m_colorPicker->setColorValue(m_selectedColor);
     char buf[8];
-    snprintf(buf, sizeof(buf), "%d", r); m_rInput->setString(buf);
-    snprintf(buf, sizeof(buf), "%d", g); m_gInput->setString(buf);
-    snprintf(buf, sizeof(buf), "%d", b); m_bInput->setString(buf);
+    snprintf(buf, sizeof(buf), "%d", r);
+    m_rInput->setString(buf);
+    snprintf(buf, sizeof(buf), "%d", g);
+    m_gInput->setString(buf);
+    snprintf(buf, sizeof(buf), "%d", b);
+    m_bInput->setString(buf);
 }
 
-
-void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d::extension::CCControlEvent) {
-    if (m_colorPicker) {
+void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject *sender, cocos2d::extension::CCControlEvent)
+{
+    if (m_colorPicker)
+    {
         m_selectedColor = m_colorPicker->getColorValue();
         // Update RGB textboxes
         char buf[8];
@@ -143,23 +148,29 @@ void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d
     }
 }
 
-void ColorPlayerSettingsPopup::onSave(cocos2d::CCObject* sender) {
-    if (m_callback) {
+void ColorPlayerSettingsPopup::onSave(cocos2d::CCObject *sender)
+{
+    if (m_callback)
+    {
         m_callback(m_selectedColor);
     }
     this->onClose(sender);
 }
 
-void ColorPlayerSettingsPopup::onClose(cocos2d::CCObject* sender) {
+void ColorPlayerSettingsPopup::onClose(cocos2d::CCObject *sender)
+{
     this->removeFromParentAndCleanup(true);
 }
 
-ColorPlayerSettingsPopup* ColorPlayerSettingsPopup::create(const cocos2d::ccColor3B& initialColor, std::function<void(const cocos2d::ccColor3B&)> callback) {
+ColorPlayerSettingsPopup *ColorPlayerSettingsPopup::create(const cocos2d::ccColor3B &initialColor, std::function<void(const cocos2d::ccColor3B &)> callback)
+{
     auto ret = new ColorPlayerSettingsPopup();
-    if (ret) {
+    if (ret)
+    {
         ret->m_selectedColor = initialColor;
         ret->m_callback = callback;
-        if (ret->initAnchored(320.f, 280.f)) {
+        if (ret->initAnchored(320.f, 280.f))
+        {
             ret->autorelease();
             return ret;
         }
