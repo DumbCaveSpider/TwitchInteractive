@@ -248,6 +248,19 @@ struct ActionContext : public CCObject {
                 // Format: edit_camera:<skew>:<rot>:<scale>:<time>
                 log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);
                 PlayLayerEvent::setCameraFromString(processedArg);
+            } else if (processedArg.rfind("alert_popup:", 0) == 0) {
+                // Format: alert_popup:<title>:<desc>
+                std::string title = "-", desc = "-";
+                size_t firstColon = processedArg.find(":");
+                size_t secondColon = processedArg.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                    title = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                    desc = processedArg.substr(secondColon + 1);
+                    if (title.empty()) title = "-";
+                    if (desc.empty()) desc = "-";
+                }
+                log::info("[TwitchCommandManager] Showing alert popup: title='{}', desc='{}' (command: {})", title, desc, ctx->commandName);
+                FLAlertLayer::create(title.c_str(), desc.c_str(), "OK")->show();
             } else if (processedArg.rfind("jump:", 0) == 0) {
                 // Format: jump:<playerIdx>:hold|tap
                 int playerIdx = 1;
