@@ -1,0 +1,6 @@
+TODO:
+- FREAKING FIX THE TwitchCommandManger.hpp OML I CRAP MYSELF 
+(i want it to move the functions and logic to the main file without breaking the entire code)
+- add scale player event
+- add player control event (reverse player, invert player)
+- custom global prefix command

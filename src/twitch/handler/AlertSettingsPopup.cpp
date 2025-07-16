@@ -12,6 +12,7 @@ bool AlertSettingsPopup::setup() {
     float height = 180.f;
     setTitle("Alert Popup Settings");
     setID("alert-settings-popup");
+    this->m_noElasticity = true;
 
     auto popupSize = m_mainLayer->getContentSize();
     float margin = 30.f;
