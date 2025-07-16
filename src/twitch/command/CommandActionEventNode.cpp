@@ -429,13 +429,11 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)."},
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
-        {"keycode", "Key Code", "Simulates a key press or release. Accepts a key name as argument (e.g., 'A', 'Space')."},
+        {"keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users</cr>"},
         {"profile", "Profile", "Opens the Player Profile in-game. Only accepts Account ID only!"},
         {"nothing", "Nothing", "Does nothing at all."},
     };
-
     return nodes;
-// Add handling for Color Player event node in action/event node logic as needed
 };
 
 // Unified interface
