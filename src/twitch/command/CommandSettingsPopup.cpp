@@ -531,17 +531,14 @@ void CommandSettingsPopup::refreshActionsList() {
         // Main label for the action node (ensure always present)
         std::string mainLabelId = "action-main-label-" + std::to_string(i);
         std::string mainLabelText = actionIdRaw;
-        // Optionally, parse and prettify label text for known types
-        if (actionIdLower.rfind("wait", 0) == 0) mainLabelText = "Wait";
-        else if (actionIdLower.rfind("jump", 0) == 0) mainLabelText = "Jump";
-        else if (actionIdLower.rfind("alert_popup", 0) == 0) mainLabelText = "Alert Popup";
-        else if (actionIdLower.rfind("notification", 0) == 0) mainLabelText = "Notification";
-        else if (actionIdLower.rfind("keycode", 0) == 0) mainLabelText = "Keycode";
-        else if (actionIdLower.rfind("profile", 0) == 0) mainLabelText = "Profile";
-        else if (actionIdLower.rfind("move", 0) == 0) mainLabelText = "Move";
-        else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) mainLabelText = "Color Player";
-        else if (actionIdLower.rfind("edit_camera", 0) == 0) mainLabelText = "Edit Camera";
-        else if (actionIdLower.rfind("level_info", 0) == 0) mainLabelText = "Level Info";
+        // Use the event name from CommandActionEventNode::getAllEventNodes if available
+        for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
+            // Match by prefix (e.g., "jump:", "move:", etc.)
+            if (actionIdLower.rfind(info.id, 0) == 0) {
+                mainLabelText = info.label;
+                break;
+            }
+        }
 
         std::string btnId;
         bool hasSettingsHandler = false;
@@ -563,7 +560,7 @@ void CommandSettingsPopup::refreshActionsList() {
         } else if (actionIdLower.rfind("jump", 0) == 0) {
             btnId = "jump-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        } else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
+        } else if (actionIdLower.rfind("color_player", 0) == 0) {
             btnId = "color-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
@@ -578,15 +575,20 @@ void CommandSettingsPopup::refreshActionsList() {
         mainLabel->setAnchorPoint({0, 0.5f});
         mainLabel->setAlignment(kCCTextAlignmentLeft);
         float mainLabelX = 20.f;
-        if (hasSettingsHandler) mainLabelX += 5.f;
-        mainLabel->setPosition(mainLabelX, 16.f);
+        float mainLabelY = 16.f;
+
+        if (hasSettingsHandler) {
+            mainLabelX += 5.f;
+            mainLabelY += 5.f;
+        }
+        mainLabel->setPosition(mainLabelX, mainLabelY);
         mainLabel->setID(mainLabelId);
         actionNode->addChild(mainLabel);
 
         // Add a secondary text label for extra info (if needed)
         std::string textLabelId = "action-text-label-" + std::to_string(i);
         std::string textLabelText = "";
-        
+
         // Add a settings text label for the current settings values (if any)
         std::string settingsLabelId = "action-settings-label-" + std::to_string(i);
         std::string settingsLabelText = "";
@@ -667,7 +669,10 @@ void CommandSettingsPopup::refreshActionsList() {
             settingsLabel->setScale(0.5f);
             settingsLabel->setAnchorPoint({0, 0.5f});
             settingsLabel->setAlignment(kCCTextAlignmentLeft);
-            settingsLabel->setPosition(140.f, 2.f);
+            // Place settings label directly underneath the main label
+            float settingsLabelX = mainLabel->getPositionX();
+            float settingsLabelY = mainLabel->getPositionY() - (mainLabel->getContentSize().height * mainLabel->getScale() / 2) - (settingsLabel->getContentSize().height * settingsLabel->getScale() / 2) - 2.f;
+            settingsLabel->setPosition(settingsLabelX, settingsLabelY);
             settingsLabel->setID(settingsLabelId);
             actionNode->addChild(settingsLabel);
         }

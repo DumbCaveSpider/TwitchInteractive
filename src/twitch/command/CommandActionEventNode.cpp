@@ -453,12 +453,6 @@ bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize)
         // For open_levelinfo, arg is the level ID
         std::string levelIdStr = action.arg;
         int levelId = 0;
-        try {
-            levelId = std::stoi(levelIdStr);
-        } catch (...) {
-            log::error("[CommandActionEventNode] Invalid level ID: {}", levelIdStr);
-            return true;
-        }
 
         // Create a GJGameLevel and set its levelID
         auto level = GJGameLevel::create();

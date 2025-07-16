@@ -41,17 +41,8 @@ void SettingsHandler::handleEditCameraSettings(CommandSettingsPopup* popup, coco
         char buf[128];
         snprintf(buf, sizeof(buf), "edit_camera:%.2f:%.2f:%.2f:%.2f", newZoom, newX, newY, newDuration);
         popup->m_commandActions[actionIdx] = buf;
-        // Update the label in the UI
-        auto children = popup->m_actionContent->getChildren();
-        if (children && actionIdx >= 0 && actionIdx < children->count()) {
-            auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
-            if (actionNode) {
-                std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
-                char labelBuf[128];
-                snprintf(labelBuf, sizeof(labelBuf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
-                if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
-            }
-        }
+        // Refresh the action node UI after saving
+        popup->refreshActionsList();
     });
     if (popupWindow) popupWindow->show();
 }
@@ -80,17 +71,8 @@ void SettingsHandler::handleAlertSettings(CommandSettingsPopup* parent, cocos2d:
         std::string safeDesc = newDesc.empty() ? "-" : newDesc;
         std::string newActionStr = "alert_popup:" + safeTitle + ":" + safeDesc;
         parent->m_commandActions[actionIdx] = newActionStr;
-        // Update the label in the UI
-        auto children = parent->m_actionContent->getChildren();
-        if (children && actionIdx >= 0 && actionIdx < children->count()) {
-            auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
-            if (actionNode) {
-                std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIdx);
-                std::string labelText = "Title: " + safeTitle;
-                if (!safeDesc.empty() && safeDesc != "-") labelText += ", Content: " + safeDesc;
-                if (auto alertLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(alertLabelId))) alertLabel->setString(labelText.c_str());
-            }
-        }
+        // Refresh the action node UI after saving
+        parent->refreshActionsList();
     });
     if (popup) popup->show();
 }
@@ -162,6 +144,7 @@ void handleKeyCodeSettings(CommandSettingsPopup* popup, CCObject* sender) {
         keyValue,
         [popup, idx](const std::string& newKeyWithDuration) {
             popup->updateKeyCodeNextTextLabel(idx, newKeyWithDuration);
+            popup->refreshActionsList();
         }
     )->show();
 }
@@ -188,6 +171,7 @@ void handleColorPlayerSettings(CommandSettingsPopup* popup, CCObject* sender) {
         snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
         popup->m_commandActions[idx] = std::string("color_player:") + buf;
         popup->updateColorPlayerLabel(idx);
+        popup->refreshActionsList();
     })->show();
 }
 
@@ -305,6 +289,7 @@ void handleNotificationSettings(CommandSettingsPopup* popup, CCObject* sender) {
         notifText,
         [popup, idx](const std::string& newText, NotificationIconType newIconType) {
             popup->updateNotificationNextTextLabel(idx, newText, newIconType);
+            popup->refreshActionsList();
         },
         static_cast<NotificationIconType>(iconTypeInt)
     )->show();
@@ -328,18 +313,7 @@ void handleLevelInfoSettings(CommandSettingsPopup* parent, cocos2d::CCObject* se
         std::string storeLevelId = newLevelId.empty() ? "-" : newLevelId;
         if (actionIdx >= 0 && actionIdx < static_cast<int>(parent->m_commandActions.size())) {
             parent->m_commandActions[actionIdx] = "open_levelinfo:" + storeLevelId;
-            // Update the label in the UI
-            auto children = parent->m_actionContent->getChildren();
-            if (children && actionIdx < children->count()) {
-                auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
-                if (actionNode) {
-                    std::string levelInfoLabelId = "open-levelinfo-action-text-label-" + std::to_string(actionIdx);
-                    std::string labelText = "Level ID: " + (storeLevelId == "-" ? "" : storeLevelId);
-                    if (auto infoLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(levelInfoLabelId))) {
-                        infoLabel->setString(labelText.c_str());
-                    }
-                }
-            }
+            parent->refreshActionsList();
         }
     });
     if (popup) popup->show();
