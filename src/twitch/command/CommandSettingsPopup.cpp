@@ -762,23 +762,26 @@ void CommandSettingsPopup::refreshActionsList() {
                     settingsLabelText = "RGB: " + rgb;
                 };
             } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
-                size_t colon = actionIdRaw.find(":");
-
+                // Parse colon-separated values: edit_camera:skew:rot:scale:time
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
+                size_t fourthColon = actionIdRaw.find(":", thirdColon + 1);
                 float skew = 0.f, rot = 0.f, scale = 0.f, time = 0.f;
-                bool parsedOk = false;
-
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                    std::string params = actionIdRaw.substr(colon + 1);
-
-                    if (!params.empty()) {
-                        int parsed = sscanf(params.c_str(), "%f,%f,%f,%f", &skew, &rot, &scale, &time);
-                        if (parsed == 4) parsedOk = true;
-                    };
-                };
+                if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos && fourthColon != std::string::npos) {
+                    std::string skewStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string rotStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+                    std::string scaleStr = actionIdRaw.substr(thirdColon + 1, fourthColon - thirdColon - 1);
+                    std::string timeStr = actionIdRaw.substr(fourthColon + 1);
+                    if (!skewStr.empty()) skew = strtof(skewStr.c_str(), nullptr);
+                    if (!rotStr.empty()) rot = strtof(rotStr.c_str(), nullptr);
+                    if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                    if (!timeStr.empty()) time = strtof(timeStr.c_str(), nullptr);
+                }
                 char buf[128];
                 snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2f", skew, rot, scale, time);
                 settingsLabelText = buf;
-            };
+            }
         };
 
         if (!textLabelText.empty()) {
