@@ -189,7 +189,7 @@ void ColorPlayerSettingsPopup::onClose(cocos2d::CCObject* sender) {
 ColorPlayerSettingsPopup* ColorPlayerSettingsPopup::create(const cocos2d::ccColor3B& initialColor, std::function<void(const cocos2d::ccColor3B&)> callback) {
     auto ret = new ColorPlayerSettingsPopup();
 
-    if (ret) {
+    if (ret != nullptr) {
         ret->m_selectedColor = initialColor;
         ret->m_callback = callback;
 
