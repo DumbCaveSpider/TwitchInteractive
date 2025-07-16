@@ -25,7 +25,7 @@ class CommandActionEventNode : public cocos2d::CCNode {
 protected:
     // Command node members
     TwitchDashboard* m_parent = nullptr;
-    TwitchCommand m_command = TwitchCommand("Name", "Description", "This argument has no use but the int is the cooldown", 0, {});
+    TwitchCommand m_command = TwitchCommand("Name", "Description", 0, {});
     int m_cooldownRemaining = 0;
     cocos2d::CCLabelBMFont* m_cooldownLabel = nullptr;
     cocos2d::extension::CCScale9Sprite* m_commandBg = nullptr;

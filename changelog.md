@@ -1,5 +1,6 @@
 # v0.1.3-beta.1
 - Fixed the Action Node Labels' spacing
+- Removed Unnecessary/useless data stored in the Commands JSON 
 # v0.1.2-beta.1
 - Fixed the **Edit Camera** event having a misleading label and fixed the default value
 - Fixed the issues with Commands not saving correctly after quitting the game on Android + iOS

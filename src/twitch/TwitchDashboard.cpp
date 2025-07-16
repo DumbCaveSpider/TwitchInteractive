@@ -365,7 +365,7 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
         };
 
         // Create a new command that logs when triggered
-        TwitchCommand newCmd(commandName, desc, "Custom command: " + desc, cooldown);
+        TwitchCommand newCmd(commandName, desc, cooldown);
         newCmd.callback = [commandName, desc](const std::string& args) {
             log::info("Custom command '{}' ({}) triggered with args: '{}'", commandName, desc, args);
             };
@@ -485,7 +485,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
 
     // Find the old command
     bool foundOld = false;
-    TwitchCommand oldCommand("temp", "temp", "temp"); // Temporary default values
+    TwitchCommand oldCommand("temp", "temp", 0);
 
     for (const auto& cmd : commandManager->getCommands()) {
         if (cmd.name == originalName) {
@@ -510,7 +510,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     };
 
     // Create a new command with the updated values
-    TwitchCommand newCmd(finalName, desc, "Custom command: " + desc, cooldown);
+    TwitchCommand newCmd(finalName, desc, cooldown);
     newCmd.callback = [finalName, desc](const std::string& args) {
         log::info("Custom command '{}' ({}) triggered with args: '{}'", finalName, desc, args);
         };

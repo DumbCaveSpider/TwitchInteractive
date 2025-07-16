@@ -20,7 +20,7 @@ class CommandSettingsPopup : public geode::Popup<TwitchCommand> {
     protected:
     TextInput* m_notificationInput = nullptr;
     CCMenuItemToggler* m_killPlayerCheckbox = nullptr;
-    TwitchCommand m_command = TwitchCommand("", "", "", 0, {});
+    TwitchCommand m_command = TwitchCommand("", "", 0, {});
     CommandListPopup* m_parent = nullptr;
     bool setup(TwitchCommand command) override;
     void onSave(cocos2d::CCObject* sender);

@@ -63,21 +63,15 @@ void TwitchCommandManager::loadCommands() {
 TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     std::string name = (v.contains("name") && v["name"].asString().ok()) ? v["name"].asString().unwrap() : "";
     std::string description = (v.contains("description") && v["description"].asString().ok()) ? v["description"].asString().unwrap() : "";
-    std::string response = (v.contains("response") && v["response"].asString().ok()) ? v["response"].asString().unwrap() : "";
-
     int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? as<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
-
     std::vector<TwitchCommandAction> actions;
-
     if (v.contains("actions") && v["actions"].isArray()) {
         auto& actionsArr = v["actions"];
         for (size_t i = 0; i < actionsArr.size(); ++i) actions.push_back(TwitchCommandAction::fromJson(actionsArr[i]));
     };
-
-    TwitchCommand cmd(name, description, response, cooldown, actions);
+    TwitchCommand cmd(name, description, cooldown, actions);
     cmd.enabled = enabled;
-
     return cmd;
 };
 
@@ -94,16 +88,11 @@ matjson::Value TwitchCommand::toJson() const {
     matjson::Value v = matjson::Value::object();
     v["name"] = name;
     v["description"] = description;
-    v["response"] = response;
     v["cooldown"] = cooldown;
     v["enabled"] = enabled;
-
     std::vector<matjson::Value> actionsVec;
-
     for (const auto& action : actions) actionsVec.push_back(action.toJson());
-
     v["actions"] = matjson::Value(actionsVec);
-
     return v;
 };
 
@@ -311,17 +300,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         // Execute command callback if it exists
         if (it->callback) it->callback(commandArgs);
 
-        // For now, just log the response since we don't have a send method
-        if (!it->response.empty()) {
-            // Replace placeholders in response
-            std::string response = it->response;
-            size_t pos = response.find("{username}");
-
-            if (pos != std::string::npos) response.replace(pos, 10, username);
-
-            // Log the response (in a real implementation, this would be sent to chat)
-            log::info("Command response: {}", response);
-        };
+        // Removed response field handling
     } else {
         log::debug("Command '{}' not found or disabled", commandName);
     };

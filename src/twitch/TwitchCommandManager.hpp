@@ -84,12 +84,10 @@ struct TwitchCommand {
     int cooldown = 0; // Cooldown in seconds
 
     std::function<void(const std::string&)> callback; // Custom callback
-    std::string response; // Custom chat response
 
     TwitchCommand(
         const std::string& cmdName = "",
         const std::string& cmdDesc = "",
-        const std::string& cmdResponse = "",
         int cmdCooldown = 0,
         std::vector<TwitchCommandAction> cmdActions = {},
         const std::string& allowedUser_ = "",
@@ -97,7 +95,7 @@ struct TwitchCommand {
         bool allowMod_ = false,
         bool allowStreamer_ = false,
         bool allowSubscriber_ = false
-    ) : name(cmdName), description(cmdDesc), response(cmdResponse), cooldown(cmdCooldown), actions(cmdActions),
+    ) : name(cmdName), description(cmdDesc), cooldown(cmdCooldown), actions(cmdActions),
         allowedUser(allowedUser_), allowVip(allowVip_), allowMod(allowMod_), allowStreamer(allowStreamer_), allowSubscriber(allowSubscriber_) {};
 };
 
