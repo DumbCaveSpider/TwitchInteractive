@@ -3,19 +3,18 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 
+#include <algorithm>
+
 #include "CommandSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
+#include "CommandUserSettingsPopup.hpp"
+
 #include "../TwitchCommandManager.hpp"
-#include <cocos2d.h>
-#include <cocos-ext.h>
-#include <algorithm>
 #include "../handler/KeyCodesSettingsPopup.hpp"
 #include "../handler/ProfileSettingsPopup.hpp"
 #include "../handler/MoveSettingsPopup.hpp"
 #include "../handler/JumpSettingsPopup.hpp"
 #include "../handler/ColorPlayerSettingsPopup.hpp"
-
-#include "CommandUserSettingsPopup.hpp"
 #include "../handler/SettingsHandler.hpp"
 #include "../handler/CameraSettingsPopup.hpp"
 
