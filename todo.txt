@@ -1,9 +1,8 @@
 TODO:
 [Important]
-- FREAKING FIX THE TwitchCommandManger.hpp OML I CRAP MYSELF 
+- FREAKING CLEAN THE TwitchCommandManger.hpp OML I CRAP MYSELF 
 (i want it to move the functions and logic to the main file without breaking the entire code)
 - Fix the crash on android32 whenever the user clicked the settings on the color player
-- make a helper on automatically create the settings button on a specific action node
 (instead of doing it manually (i tried to do it and broke the entire mod lol))
 [Minor]
 - add scale player event
