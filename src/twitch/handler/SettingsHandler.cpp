@@ -13,7 +13,7 @@ using namespace cocos2d;
 
 namespace SettingsHandler {
     // Process the edit camera action settings
-    void SettingsHandler::handleEditCameraSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
+    void handleEditCameraSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
         auto btn = as<CCMenuItemSpriteExtra*>(sender);
         int actionIdx = 0;
 
@@ -58,7 +58,7 @@ namespace SettingsHandler {
     };
 
     // Process the alert popup action settings
-    void SettingsHandler::handleAlertSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender) {
+    void handleAlertSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender) {
         auto btn = as<CCMenuItemSpriteExtra*>(sender);
         int actionIdx = 0;
 
