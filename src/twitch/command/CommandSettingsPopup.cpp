@@ -543,125 +543,6 @@ void CommandSettingsPopup::refreshActionsList() {
         else if (actionIdLower.rfind("edit_camera", 0) == 0) mainLabelText = "Edit Camera";
         else if (actionIdLower.rfind("level_info", 0) == 0) mainLabelText = "Level Info";
 
-        auto mainLabel = CCLabelBMFont::create(mainLabelText.c_str(), "bigFont.fnt");
-        mainLabel->setScale(0.5f);
-        mainLabel->setAnchorPoint({0, 0.5f});
-        mainLabel->setAlignment(kCCTextAlignmentLeft);
-        mainLabel->setPosition(20.f, 16.f);
-        mainLabel->setID(mainLabelId);
-        actionNode->addChild(mainLabel);
-
-        // Add a secondary text label for extra info (if needed)
-        std::string textLabelId = "action-text-label-" + std::to_string(i);
-        std::string textLabelText = "";
-        if (actionIdLower.rfind("notification", 0) == 0) {
-            // Show notification text if present
-            size_t secondColon = actionIdRaw.find(":", 13);
-            if (secondColon != std::string::npos && secondColon + 1 < actionIdRaw.size())
-                textLabelText = actionIdRaw.substr(secondColon + 1);
-        } else if (actionIdLower.rfind("wait", 0) == 0) {
-            // Show wait seconds if present
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                textLabelText = actionIdRaw.substr(colon + 1) + " sec";
-        } else if (actionIdLower.rfind("keycode", 0) == 0) {
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
-                textLabelText = actionIdRaw.substr(colon + 1);
-        }
-        // Add a settings text label for the current settings values (if any)
-        std::string settingsLabelId = "action-settings-label-" + std::to_string(i);
-        std::string settingsLabelText = "";
-        if (actionIdLower.rfind("alert_popup", 0) == 0) {
-            // Format: alert_popup:title:desc
-            size_t firstColon = actionIdRaw.find(":");
-            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                std::string title = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string desc = actionIdRaw.substr(secondColon + 1);
-                settingsLabelText = "Title: " + title + " | Desc: " + desc;
-            }
-        } else if (actionIdLower.rfind("notification", 0) == 0) {
-            // Format: notification:iconType:text
-            size_t firstColon = actionIdRaw.find(":");
-            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                std::string iconType = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string notifText = actionIdRaw.substr(secondColon + 1);
-                settingsLabelText = "Icon: " + iconType + " | Text: " + notifText;
-            }
-        } else if (actionIdLower.rfind("keycode", 0) == 0) {
-            // Format: keycode:key
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                std::string key = actionIdRaw.substr(colon + 1);
-                settingsLabelText = "Key: " + key;
-            }
-        } else if (actionIdLower.rfind("profile", 0) == 0) {
-            // Format: profile:username
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                std::string user = actionIdRaw.substr(colon + 1);
-                settingsLabelText = "User: " + user;
-            }
-        } else if (actionIdLower.rfind("move", 0) == 0) {
-            // Format: move:player:direction
-            size_t firstColon = actionIdRaw.find(":");
-            size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                std::string player = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string dir = actionIdRaw.substr(secondColon + 1);
-                settingsLabelText = "Player: " + player + " | Dir: " + dir;
-            }
-        } else if (actionIdLower.rfind("jump", 0) == 0) {
-            // Format: jump:player[:hold]
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                std::string rest = actionIdRaw.substr(colon + 1);
-                settingsLabelText = "Player: " + rest;
-            }
-        } else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
-            // Format: color_player:r,g,b
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                std::string rgb = actionIdRaw.substr(colon + 1);
-                settingsLabelText = "RGB: " + rgb;
-            }
-        } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
-            // Format: edit_camera:params
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                std::string params = actionIdRaw.substr(colon + 1);
-                settingsLabelText = params;
-            }
-        } else if (actionIdLower.rfind("level_info", 0) == 0) {
-            // Format: level_info:params
-            size_t colon = actionIdRaw.find(":");
-            if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                std::string params = actionIdRaw.substr(colon + 1);
-                settingsLabelText = params;
-            }
-        }
-        if (!textLabelText.empty()) {
-            auto textLabel = CCLabelBMFont::create(textLabelText.c_str(), "chatFont.fnt");
-            textLabel->setScale(0.5f);
-            textLabel->setAnchorPoint({0, 0.5f});
-            textLabel->setAlignment(kCCTextAlignmentLeft);
-            textLabel->setPosition(140.f, 16.f);
-            textLabel->setID(textLabelId);
-            actionNode->addChild(textLabel);
-        }
-        if (!settingsLabelText.empty()) {
-            auto settingsLabel = CCLabelBMFont::create(settingsLabelText.c_str(), "chatFont.fnt");
-            settingsLabel->setScale(0.5f);
-            settingsLabel->setAnchorPoint({0, 0.5f});
-            settingsLabel->setAlignment(kCCTextAlignmentLeft);
-            settingsLabel->setPosition(140.f, 2.f);
-            settingsLabel->setID(settingsLabelId);
-            actionNode->addChild(settingsLabel);
-        }
-
-        // Unified settings button logic for nodes with a SettingsHandler
         std::string btnId;
         bool hasSettingsHandler = false;
         if (actionIdLower.rfind("alert_popup", 0) == 0) {
@@ -691,6 +572,104 @@ void CommandSettingsPopup::refreshActionsList() {
         } else if (actionIdLower.rfind("level_info", 0) == 0) {
             btnId = "level_info-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
+        }
+        auto mainLabel = CCLabelBMFont::create(mainLabelText.c_str(), "bigFont.fnt");
+        mainLabel->setScale(0.5f);
+        mainLabel->setAnchorPoint({0, 0.5f});
+        mainLabel->setAlignment(kCCTextAlignmentLeft);
+        float mainLabelX = 20.f;
+        if (hasSettingsHandler) mainLabelX += 5.f;
+        mainLabel->setPosition(mainLabelX, 16.f);
+        mainLabel->setID(mainLabelId);
+        actionNode->addChild(mainLabel);
+
+        // Add a secondary text label for extra info (if needed)
+        std::string textLabelId = "action-text-label-" + std::to_string(i);
+        std::string textLabelText = "";
+        
+        // Add a settings text label for the current settings values (if any)
+        std::string settingsLabelId = "action-settings-label-" + std::to_string(i);
+        std::string settingsLabelText = "";
+        if (hasSettingsHandler) {
+            if (actionIdLower.rfind("alert_popup", 0) == 0) {
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                    std::string title = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string desc = actionIdRaw.substr(secondColon + 1);
+                    settingsLabelText = "Title: " + title + " | Desc: " + desc;
+                }
+            } else if (actionIdLower.rfind("notification", 0) == 0) {
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                    std::string iconType = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string notifText = actionIdRaw.substr(secondColon + 1);
+                    settingsLabelText = "Icon: " + iconType + " | Text: " + notifText;
+                }
+            } else if (actionIdLower.rfind("keycode", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string key = actionIdRaw.substr(colon + 1);
+                    settingsLabelText = "Key: " + key;
+                }
+            } else if (actionIdLower.rfind("profile", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string user = actionIdRaw.substr(colon + 1);
+                    settingsLabelText = "User: " + user;
+                }
+            } else if (actionIdLower.rfind("move", 0) == 0) {
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                    std::string player = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string dir = actionIdRaw.substr(secondColon + 1);
+                    settingsLabelText = "Player: " + player + " | Dir: " + dir;
+                }
+            } else if (actionIdLower.rfind("jump", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string rest = actionIdRaw.substr(colon + 1);
+                    settingsLabelText = "Player: " + rest;
+                }
+            } else if (actionIdLower.rfind("color_player", 0) == 0 || actionIdLower.rfind("color player", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string rgb = actionIdRaw.substr(colon + 1);
+                    settingsLabelText = "RGB: " + rgb;
+                }
+            } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string params = actionIdRaw.substr(colon + 1);
+                    settingsLabelText = params;
+                }
+            } else if (actionIdLower.rfind("level_info", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string params = actionIdRaw.substr(colon + 1);
+                    settingsLabelText = params;
+                }
+            }
+        }
+        if (!textLabelText.empty()) {
+            auto textLabel = CCLabelBMFont::create(textLabelText.c_str(), "chatFont.fnt");
+            textLabel->setScale(0.5f);
+            textLabel->setAnchorPoint({0, 0.5f});
+            textLabel->setAlignment(kCCTextAlignmentLeft);
+            textLabel->setPosition(140.f, 16.f);
+            textLabel->setID(textLabelId);
+            actionNode->addChild(textLabel);
+        }
+        if (hasSettingsHandler && !settingsLabelText.empty()) {
+            auto settingsLabel = CCLabelBMFont::create(settingsLabelText.c_str(), "chatFont.fnt");
+            settingsLabel->setScale(0.5f);
+            settingsLabel->setAnchorPoint({0, 0.5f});
+            settingsLabel->setAlignment(kCCTextAlignmentLeft);
+            settingsLabel->setPosition(140.f, 2.f);
+            settingsLabel->setID(settingsLabelId);
+            actionNode->addChild(settingsLabel);
         }
 
         if (hasSettingsHandler) {
