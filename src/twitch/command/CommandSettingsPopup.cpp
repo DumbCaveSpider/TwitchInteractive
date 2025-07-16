@@ -400,47 +400,7 @@ void CommandSettingsPopup::onMoveSettings(cocos2d::CCObject* sender) {
 
 // Edit Camera settings handler
 void CommandSettingsPopup::onEditCameraSettings(cocos2d::CCObject* sender) {
-    // Find the action index from the sender's user object
-    auto btn = as<CCMenuItemSpriteExtra*>(sender);
-    int actionIdx = 0;
-    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
-    if (actionIdx < 0 || actionIdx >= static_cast<int>(m_commandActions.size())) return;
-    // Parse current values from m_commandActions[actionIdx]
-    // For context: zoom is skew, x is rotation, y is scale, duration is time (dont ask me why this is called ;-;)
-    float zoom = 0.0f, x = 0.0f, y = 1.0f, duration = 0.0f;
-    const std::string& actionIdRaw = m_commandActions[actionIdx];
-    size_t firstColon = actionIdRaw.find(":");
-    size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-    size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
-    size_t fourthColon = actionIdRaw.find(":", thirdColon + 1);
-    if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos && fourthColon != std::string::npos) {
-        std::string zoomStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-        std::string xStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
-        std::string yStr = actionIdRaw.substr(thirdColon + 1, fourthColon - thirdColon - 1);
-        std::string durStr = actionIdRaw.substr(fourthColon + 1);
-        if (!zoomStr.empty()) zoom = std::stof(zoomStr);
-        if (!xStr.empty()) x = std::stof(xStr);
-        if (!yStr.empty()) y = std::stof(yStr);
-        if (!durStr.empty()) duration = std::stof(durStr);
-    }
-    // Show the CameraSettingsPopup and update the value and label on save
-    auto popup = CameraSettingsPopup::create(zoom, x, y, duration, [this, actionIdx](float newZoom, float newX, float newY, float newDuration) {
-        char buf[128];
-        snprintf(buf, sizeof(buf), "edit_camera:%.2f:%.2f:%.2f:%.2f", newZoom, newX, newY, newDuration);
-        m_commandActions[actionIdx] = buf;
-        // Update the label in the UI
-        auto children = m_actionContent->getChildren();
-        if (children && actionIdx >= 0 && actionIdx < children->count()) {
-            auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
-            if (actionNode) {
-                std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
-                char labelBuf[128];
-                snprintf(labelBuf, sizeof(labelBuf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
-                if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
-            }
-        }
-                                             });
-    if (popup) popup->show();
+    SettingsHandler::handleEditCameraSettings(this, sender);
 }
 
 // Notification settings handler
@@ -576,7 +536,6 @@ void CommandSettingsPopup::refreshActionsList() {
             };
         };
 
-
         // Set the action node main label based on the action node id
         std::string nodeLabel;
         std::string actionIdLower = actionId;
@@ -595,8 +554,8 @@ void CommandSettingsPopup::refreshActionsList() {
             nodeLabel = "Edit Camera";
         } else if (actionIdLower.rfind("alert_popup", 0) == 0) {
             nodeLabel = "Alert Popup";
-        } else if (actionIdLower.rfind("open_levelinfo", 0) == 0) {
-            nodeLabel = "Open Level Info";
+        } else if (actionIdLower.rfind("level_info", 0) == 0) {
+            nodeLabel = "Level Info";
         } else {
             nodeLabel = eventLabel;
         }
@@ -686,13 +645,13 @@ void CommandSettingsPopup::refreshActionsList() {
         }
 
         // Open Level Info action node (unified UI)
-        if (actionIdLower.rfind("open_levelinfo", 0) == 0) {
+        if (actionIdLower.rfind("level_info", 0) == 0) {
             std::string levelId = "";
             size_t colonPos = actionIdRaw.find(":");
             if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
                 levelId = actionIdRaw.substr(colonPos + 1);
             }
-            std::string levelInfoLabelId = "open-levelinfo-action-text-label-" + std::to_string(actionIndex);
+            std::string levelInfoLabelId = "level_info-action-text-label-" + std::to_string(actionIndex);
             float labelX = 0.f;
             if (auto mainLabel = actionNode->getLabel()) {
                 labelX = mainLabel->getPositionX();
@@ -710,7 +669,7 @@ void CommandSettingsPopup::refreshActionsList() {
                 this,
                 menu_selector(CommandSettingsPopup::onOpenLevelInfoSettings)
             );
-            settingsBtn->setID("open-levelinfo-settings-btn-" + std::to_string(actionIndex));
+            settingsBtn->setID("level_info-settings-btn-" + std::to_string(actionIndex));
             settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
             auto settingsMenu = CCMenu::create();
             settingsMenu->addChild(settingsBtn);
@@ -1411,9 +1370,6 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
     onClose(nullptr);
 };
 
-void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText) {
-    updateNotificationNextTextLabel(actionIdx, nextText, NotificationIconType::Info);
-};
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType) {
     if (actionIdx >= 0 && actionIdx < as<int>(m_commandActions.size())) {

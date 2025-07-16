@@ -28,24 +28,13 @@ protected:
 public:
     static CommandSettingsPopup* create(TwitchCommand command, CommandListPopup* parent);
     static CommandSettingsPopup* create(TwitchCommand command);
-    void onAlertSettings(cocos2d::CCObject* sender);
-    void onCameraSettingsClicked(cocos2d::CCObject* sender);
+
     void onMoveActionUp(cocos2d::CCObject* sender);
     void onMoveActionDown(cocos2d::CCObject* sender);
+
+    void onAlertSettings(cocos2d::CCObject* sender);
     void onColorPlayerSettings(cocos2d::CCObject* sender);
     void onOpenLevelInfoSettings(cocos2d::CCObject* sender);
-    float m_actionSectionHeight = 0.f;
-    std::unordered_map<int, std::string> m_notificationActionTexts;
-    std::string getNotificationText() const;
-    std::vector<std::string> m_commandActions;
-    cocos2d::CCNode* m_actionContent = nullptr;
-    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText);
-    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType);
-    void updateColorPlayerLabel(int actionIdx);
-    void refreshActionsList();
-    void onEventInfoBtn(cocos2d::CCObject* sender);
-    void onAddEventAction(cocos2d::CCObject* sender);
-    void onRemoveAction(cocos2d::CCObject* sender);
     void onProfileUserSettings(cocos2d::CCObject* sender);
     void onNotificationSettings(cocos2d::CCObject* sender);
     void onJumpSettings(cocos2d::CCObject* sender);
@@ -53,6 +42,22 @@ public:
     void onProfileSettings(cocos2d::CCObject* sender);
     void onMoveSettings(cocos2d::CCObject* sender);
     void onEditCameraSettings(cocos2d::CCObject* sender);
+
+    float m_actionSectionHeight = 0.f;
+    std::unordered_map<int, std::string> m_notificationActionTexts;
+    std::string getNotificationText() const;
+    std::vector<std::string> m_commandActions;
+    cocos2d::CCNode* m_actionContent = nullptr;
+
+    void updateNotificationNextTextLabel(int actionIdx, const std::string& nextText, NotificationIconType iconType);
+    
+    void refreshActionsList();
+    
+    void onEventInfoBtn(cocos2d::CCObject* sender);
+    void onAddEventAction(cocos2d::CCObject* sender);
+    void onRemoveAction(cocos2d::CCObject* sender);
+    
+    void updateColorPlayerLabel(int actionIdx);
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string& nextKey);
 
 };

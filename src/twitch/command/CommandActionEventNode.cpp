@@ -427,7 +427,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
         {"color_player", "Color Player", "Set the player's color based on the RGB value."},
         {"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)."},
-        {"open_levelinfo", "Open Level Info", "Opens the Level Info screen for the provided Level ID."},
+        //{"level_info", "Level Info", "Opens the Level Info screen for the provided Level ID."}, // i do this later
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."},
         {"notification", "Notification", "Shows a notification message on the screen. Supports the use of identifiers."},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading."},

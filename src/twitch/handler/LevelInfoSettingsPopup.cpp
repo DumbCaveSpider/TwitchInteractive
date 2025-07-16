@@ -55,7 +55,7 @@ LevelInfoSettingsPopup* LevelInfoSettingsPopup::create(const std::string& levelI
     if (ret) {
         ret->m_callback = callback;
         ret->m_initLevelId = levelId;
-        if (ret->initAnchored(320.f, 120.f)) {
+        if (ret->initAnchored(320.f, 160.f)) {
             ret->autorelease();
             return ret;
         }

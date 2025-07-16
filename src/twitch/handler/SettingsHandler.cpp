@@ -14,6 +14,48 @@ using namespace cocos2d;
 
 namespace SettingsHandler {
 
+void SettingsHandler::handleEditCameraSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int actionIdx = 0;
+    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (!popup || actionIdx < 0 || actionIdx >= static_cast<int>(popup->m_commandActions.size())) return;
+    // Parse current values from m_commandActions[actionIdx]
+    float zoom = 0.0f, x = 0.0f, y = 1.0f, duration = 0.0f;
+    const std::string& actionIdRaw = popup->m_commandActions[actionIdx];
+    size_t firstColon = actionIdRaw.find(":");
+    size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+    size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
+    size_t fourthColon = actionIdRaw.find(":", thirdColon + 1);
+    if (firstColon != std::string::npos && secondColon != std::string::npos && thirdColon != std::string::npos && fourthColon != std::string::npos) {
+        std::string zoomStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+        std::string xStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+        std::string yStr = actionIdRaw.substr(thirdColon + 1, fourthColon - thirdColon - 1);
+        std::string durStr = actionIdRaw.substr(fourthColon + 1);
+        if (!zoomStr.empty()) zoom = std::stof(zoomStr);
+        if (!xStr.empty()) x = std::stof(xStr);
+        if (!yStr.empty()) y = std::stof(yStr);
+        if (!durStr.empty()) duration = std::stof(durStr);
+    }
+    // Show the CameraSettingsPopup and update the value and label on save
+    auto popupWindow = CameraSettingsPopup::create(zoom, x, y, duration, [popup, actionIdx](float newZoom, float newX, float newY, float newDuration) {
+        char buf[128];
+        snprintf(buf, sizeof(buf), "edit_camera:%.2f:%.2f:%.2f:%.2f", newZoom, newX, newY, newDuration);
+        popup->m_commandActions[actionIdx] = buf;
+        // Update the label in the UI
+        auto children = popup->m_actionContent->getChildren();
+        if (children && actionIdx >= 0 && actionIdx < children->count()) {
+            auto actionNode = as<CCNode*>(children->objectAtIndex(actionIdx));
+            if (actionNode) {
+                std::string camLabelId = "edit-camera-action-text-label-" + std::to_string(actionIdx);
+                char labelBuf[128];
+                snprintf(labelBuf, sizeof(labelBuf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", newZoom, newX, newY, newDuration);
+                if (auto camLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(camLabelId))) camLabel->setString(labelBuf);
+            }
+        }
+    });
+    if (popupWindow) popupWindow->show();
+}
+
 // Handler for Alert Popup settings button
 void SettingsHandler::handleAlertSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender) {
     auto btn = as<CCMenuItemSpriteExtra*>(sender);
