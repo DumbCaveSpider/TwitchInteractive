@@ -507,8 +507,8 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         },
         {
             "notification",
-             "Notification",
-              "Shows a notification message on the screen. Supports the use of identifiers."
+            "Notification",
+            "Shows a notification message on the screen. Supports the use of identifiers."
         },
         {
             "alert_popup",
