@@ -477,7 +477,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back("move:1:right");
             refreshActionsList();
         } else if (eventId == "alert_popup") {
-            m_commandActions.push_back("alert_popup:Title:Description");
+            m_commandActions.push_back("alert_popup:-:-");
             refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
@@ -1161,6 +1161,35 @@ void CommandSettingsPopup::onEventInfoBtn(cocos2d::CCObject* sender) {
 };
 
 void CommandSettingsPopup::onAlertSettings(cocos2d::CCObject* sender) {
+    // Sync the latest alert popup content from the action node label to m_commandActions before opening the settings popup
+    auto btn = as<CCMenuItemSpriteExtra*>(sender);
+    int actionIdx = 0;
+    if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+    if (actionIdx >= 0 && actionIdx < static_cast<int>(m_actionContent->getChildrenCount())) {
+        auto actionNode = as<CCNode*>(m_actionContent->getChildren()->objectAtIndex(actionIdx));
+        if (actionNode) {
+            std::string alertLabelId = "alert-popup-action-text-label-" + std::to_string(actionIdx);
+            if (auto alertLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(alertLabelId))) {
+                // Parse the label text: "Title: ...[, Content: ...]"
+                std::string labelText = alertLabel->getString();
+                std::string title, desc;
+                size_t titlePos = labelText.find("Title: ");
+                size_t descPos = labelText.find(", Content: ");
+                if (titlePos != std::string::npos) {
+                    if (descPos != std::string::npos) {
+                        title = labelText.substr(titlePos + 7, descPos - (titlePos + 7));
+                        desc = labelText.substr(descPos + 8);
+                    } else {
+                        title = labelText.substr(titlePos + 7);
+                        desc = "";
+                    }
+                    if (title.empty()) title = "-";
+                    if (desc.empty()) desc = "-";
+                    m_commandActions[actionIdx] = "alert_popup:" + title + ":" + desc;
+                }
+            }
+        }
+    }
     SettingsHandler::handleAlertSettings(this, sender);
 }
 

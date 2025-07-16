@@ -32,9 +32,9 @@ bool AlertSettingsPopup::setup() {
     m_mainLayer->addChild(m_titleInput);
 
     // Description input
-    m_descInput = geode::TextInput::create(inputWidth, "Description", "chatFont.fnt");
+    m_descInput = geode::TextInput::create(inputWidth, "Content", "chatFont.fnt");
     m_descInput->setString(m_initDesc.c_str());
-    m_descInput->setPosition(popupSize.width / 2, descY);
+    m_descInput->setPosition(popupSize.width / 2, descY + 10.f);
     m_mainLayer->addChild(m_descInput);
 
     // Save button
