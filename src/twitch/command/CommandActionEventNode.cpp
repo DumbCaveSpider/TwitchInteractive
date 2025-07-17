@@ -530,6 +530,11 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
             "Nothing",
             "Does nothing at all."
         },
+        {
+            "scale_player",
+            "Scale Player",
+            "Scales the player in-game."
+        }
     };
 
     return nodes;

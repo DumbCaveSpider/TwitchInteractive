@@ -16,4 +16,5 @@ namespace SettingsHandler
     void handleNotificationSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
     void handleCameraSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
     void handleEditCameraSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleScalePlayerSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
 }

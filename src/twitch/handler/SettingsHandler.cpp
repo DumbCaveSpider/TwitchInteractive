@@ -6,6 +6,7 @@
 #include "JumpSettingsPopup.hpp"
 #include "ColorPlayerSettingsPopup.hpp"
 #include "AlertSettingsPopup.hpp"
+#include "ScaleSettingsPopup.hpp"
 
 #include <algorithm>
 
@@ -377,4 +378,24 @@ namespace SettingsHandler {
             static_cast<NotificationIconType>(iconTypeInt))
             ->show();
     };
+
+    // Process the scale player action settings
+    void handleScalePlayerSettings(CommandSettingsPopup* parent, cocos2d::CCObject* sender) {
+        auto btn = as<CCMenuItemSpriteExtra*>(sender);
+        int actionIdx = 0;
+        if (btn && btn->getUserObject()) actionIdx = as<CCInteger*>(btn->getUserObject())->getValue();
+        if (actionIdx < 0 || actionIdx >= static_cast<int>(parent->m_commandActions.size())) return;
+        std::string& actionStr = parent->m_commandActions[actionIdx];
+        float scaleValue = 1.0f;
+        size_t colon = actionStr.find(":");
+        if (colon != std::string::npos && colon + 1 < actionStr.size()) {
+            std::string scaleStr = actionStr.substr(colon + 1);
+            if (!scaleStr.empty()) scaleValue = strtof(scaleStr.c_str(), nullptr);
+        }
+        auto popup = ScaleSettingsPopup::create(parent, actionIdx, scaleValue, [parent, actionIdx](float newScale) {
+            parent->m_commandActions[actionIdx] = "scale_player:" + fmt::format("{:.2f}", newScale);
+            parent->refreshActionsList();
+        });
+        if (popup) popup->show();
+    }
 };

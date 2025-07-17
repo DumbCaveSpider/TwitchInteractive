@@ -474,6 +474,9 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
         } else if (eventId == "wait") {
             m_commandActions.push_back("wait:");
             refreshActionsList();
+        } else if (eventId == "scale_player") {
+            m_commandActions.push_back("scale_player:1.00");
+            refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
             refreshActionsList();
@@ -609,6 +612,9 @@ void CommandSettingsPopup::refreshActionsList() {
         } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
             btnId = "edit-camera-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
+        } else if (actionIdLower.rfind("scale_player", 0) == 0) {
+            btnId = "scale-player-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
         };
 
         // Always align main label to the same x/y for all nodes
@@ -636,7 +642,6 @@ void CommandSettingsPopup::refreshActionsList() {
             if (actionIdLower.rfind("alert_popup", 0) == 0) {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-
                 if (firstColon != std::string::npos && secondColon != std::string::npos) {
                     std::string title = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string desc = actionIdRaw.substr(secondColon + 1);
@@ -645,24 +650,19 @@ void CommandSettingsPopup::refreshActionsList() {
             } else if (actionIdLower.rfind("notification", 0) == 0) {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-
                 if (firstColon != std::string::npos && secondColon != std::string::npos) {
                     std::string iconTypeStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string notifText = actionIdRaw.substr(secondColon + 1);
                     std::string iconName = "Info";
-
                     int iconTypeInt = 1;
                     bool validInt = true;
-
                     for (char c : iconTypeStr) {
                         if (!isdigit(c) && !(c == '-' && &c == &iconTypeStr[0])) {
                             validInt = false;
                             break;
                         };
                     };
-
                     if (validInt && !iconTypeStr.empty()) iconTypeInt = std::atoi(iconTypeStr.c_str());
-
                     switch (iconTypeInt) {
                     case 0:
                         iconName = "None";
@@ -686,19 +686,16 @@ void CommandSettingsPopup::refreshActionsList() {
                         iconName = "Info";
                         break;
                     };
-
                     settingsLabelText = "Icon: " + iconName + " | Text: " + notifText;
                 };
             } else if (actionIdLower.rfind("keycode", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string key = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "Key: " + key;
                 };
             } else if (actionIdLower.rfind("profile", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string user = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "User: " + user;
@@ -707,13 +704,11 @@ void CommandSettingsPopup::refreshActionsList() {
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 size_t thirdColon = std::string::npos;
-
                 if (secondColon != std::string::npos)
                     thirdColon = actionIdRaw.find(":", secondColon + 1);
                 if (firstColon != std::string::npos && secondColon != std::string::npos) {
                     std::string player = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string dir, amount;
-
                     if (thirdColon != std::string::npos) {
                         dir = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
                         amount = actionIdRaw.substr(thirdColon + 1);
@@ -721,33 +716,24 @@ void CommandSettingsPopup::refreshActionsList() {
                         dir = actionIdRaw.substr(secondColon + 1);
                         amount = "";
                     };
-
-                    // Capitalize direction
                     if (!dir.empty()) dir[0] = toupper(dir[0]);
-
-                    // Format amount to 4 decimal places if it's a number
                     std::string amountStr = amount;
                     if (!amount.empty()) {
                         char* endptr = nullptr;
                         float amt = strtof(amount.c_str(), &endptr);
-
                         if (endptr != amount.c_str() && *endptr == '\0') {
                             char buf[32];
                             snprintf(buf, sizeof(buf), "%.4f", amt);
                             amountStr = buf;
                         };
                     };
-
                     settingsLabelText = "Player " + player + " | Dir: " + dir;
                     if (!amountStr.empty()) settingsLabelText += " (" + amountStr + ")";
                 };
             } else if (actionIdLower.rfind("jump", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string rest = actionIdRaw.substr(colon + 1);
-
-                    // If rest is "3" or starts with "3:hold", show Both Players
                     if (rest == "3" || rest.rfind("3:hold", 0) == 0) {
                         settingsLabelText = "Both Players";
                     } else {
@@ -756,13 +742,11 @@ void CommandSettingsPopup::refreshActionsList() {
                 };
             } else if (actionIdLower.rfind("color_player", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
-
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string rgb = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "RGB: " + rgb;
                 };
             } else if (actionIdLower.rfind("edit_camera", 0) == 0) {
-                // Parse colon-separated values: edit_camera:skew:rot:scale:time
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 size_t thirdColon = actionIdRaw.find(":", secondColon + 1);
@@ -780,6 +764,16 @@ void CommandSettingsPopup::refreshActionsList() {
                 }
                 char buf[128];
                 snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2f", skew, rot, scale, time);
+                settingsLabelText = buf;
+            } else if (actionIdLower.rfind("scale_player", 0) == 0) {
+                size_t colon = actionIdRaw.find(":");
+                float scale = 1.f;
+                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
+                    std::string scaleStr = actionIdRaw.substr(colon + 1);
+                    if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                }
+                char buf[64];
+                snprintf(buf, sizeof(buf), "Scale: %.2f", scale);
                 settingsLabelText = buf;
             }
         };
@@ -1095,10 +1089,8 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             // Parse icon type and text: notification:<iconInt>:<text>
             int iconTypeInt = 1;
             std::string notifText;
-
             size_t firstColon = actionIdRaw.find(":");
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
-
             if (firstColon != std::string::npos && secondColon != std::string::npos) {
                 iconTypeInt = std::stoi(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1));
                 notifText = actionIdRaw.substr(secondColon + 1);
@@ -1107,10 +1099,11 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             } else {
                 notifText = "";
             };
-
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Notification, std::to_string(iconTypeInt) + ":" + notifText, 0));
         } else if (actionIdRaw.rfind("move:", 0) == 0) {
             // Save as event with arg 'move:<player>:<direction>'
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
+        } else if (actionIdRaw.rfind("scale_player:", 0) == 0) {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
         } else {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionId, 0));
@@ -1265,6 +1258,7 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject* sender) {
     if (actionStrLower.rfind("jump", 0) == 0) SettingsHandler::handleJumpSettings(this, sender);
     if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0) SettingsHandler::handleColorPlayerSettings(this, sender);
     if (actionStrLower.rfind("edit_camera", 0) == 0) SettingsHandler::handleEditCameraSettings(this, sender);
+    if (actionStrLower.rfind("scale_player", 0) == 0) SettingsHandler::handleScalePlayerSettings(this, sender);
 };
 
 // Static create function for CommandSettingsPopup with only TwitchCommand argument
