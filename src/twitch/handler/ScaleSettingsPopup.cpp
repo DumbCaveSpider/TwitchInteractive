@@ -34,32 +34,58 @@ bool ScaleSettingsPopup::setup()
     float verticalSpacing = 30.0f;
     float startY = centerY + verticalSpacing;
 
-    // Scale label
+    // Create a node for vertical stacking of input-label pairs
+    auto inputStack = CCNode::create();
+    inputStack->setContentSize({popupSize.width, 100.0f});
+    inputStack->setAnchorPoint({0.5f, 0.5f});
+    inputStack->setPosition(centerX, startY - 20.f);
+
+    float inputSpacing = 100.0f;
+    float inputY = 40.0f;
+    float labelY = 10.0f;
+
+    // Scale label above input (centered left)
     auto scaleLabel = CCLabelBMFont::create("Scale", "bigFont.fnt");
     scaleLabel->setScale(0.5f);
     scaleLabel->setAnchorPoint({0.5f, 0.5f});
-    scaleLabel->setPosition(centerX, startY);
     scaleLabel->setAlignment(kCCTextAlignmentCenter);
-    m_mainLayer->addChild(scaleLabel);
+    scaleLabel->setPosition(centerX - inputSpacing / 2, inputY + 20.0f);
+    inputStack->addChild(scaleLabel);
 
-    // Create menu for both input and button
+    m_scaleInput = TextInput::create(80, "Scale", "chatFont.fnt");
+    m_scaleInput->setString(fmt::format("{:.2f}", m_scaleValue).c_str());
+    m_scaleInput->setScale(0.7f);
+    m_scaleInput->setAnchorPoint({0.5f, 0.5f});
+    m_scaleInput->setPosition(centerX - inputSpacing / 2, inputY);
+    inputStack->addChild(m_scaleInput);
+
+    // Time label above input (centered right)
+    auto timeLabel = CCLabelBMFont::create("Time", "bigFont.fnt");
+    timeLabel->setScale(0.5f);
+    timeLabel->setAnchorPoint({0.5f, 0.5f});
+    timeLabel->setAlignment(kCCTextAlignmentCenter);
+    timeLabel->setPosition(centerX + inputSpacing / 2, inputY + 20.0f);
+    inputStack->addChild(timeLabel);
+
+    m_timeInput = TextInput::create(80, "Time", "chatFont.fnt");
+    m_timeInput->setString(fmt::format("{:.2f}", m_timeValue).c_str());
+    m_timeInput->setScale(0.7f);
+    m_timeInput->setAnchorPoint({0.5f, 0.5f});
+    m_timeInput->setPosition(centerX + inputSpacing / 2, inputY);
+    inputStack->addChild(m_timeInput);
+
+    m_mainLayer->addChild(inputStack);
+
+    // Create menu for save button
     auto menu = CCMenu::create();
     menu->setContentSize(m_mainLayer->getContentSize());
     menu->setAnchorPoint({0.5f, 0.5f});
     menu->setPosition(centerX, centerY - verticalSpacing);
 
-    // Scale input as menu item
-    m_scaleInput = TextInput::create(80, "Scale", "chatFont.fnt");
-    m_scaleInput->setString(fmt::format("{:.2f}", m_scaleValue).c_str());
-    m_scaleInput->setScale(0.7f);
-    m_scaleInput->setAnchorPoint({0.5f, 0.5f});
-    m_scaleInput->setPosition(0, 30.0f); // position relative to menu center
-    menu->addChild(m_scaleInput);
-
     // Save button
     auto saveBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f), this, menu_selector(ScaleSettingsPopup::onSaveBtn));
     saveBtn->setID("scale-settings-save-btn");
-    saveBtn->setPosition(0, -10.0f); // position relative to menu center
+    saveBtn->setPosition(0, -15.f); // position relative to menu center
     menu->addChild(saveBtn);
 
     m_mainLayer->addChild(menu);
@@ -70,18 +96,25 @@ bool ScaleSettingsPopup::setup()
 void ScaleSettingsPopup::onSaveBtn(CCObject *)
 {
     std::string scaleStr = m_scaleInput->getString();
+    std::string timeStr = m_timeInput->getString();
     float scale = strtof(scaleStr.c_str(), nullptr);
+    float time = strtof(timeStr.c_str(), nullptr);
     if (scale <= 0.0f)
     {
         Notification::create("Scale must be positive!", NotificationIcon::Error)->show();
         return;
     }
+    if (time < 0.0f)
+    {
+        Notification::create("Time must be non-negative!", NotificationIcon::Error)->show();
+        return;
+    }
     if (m_onSave)
-        m_onSave(scale);
+        m_onSave(scale, time);
     this->removeFromParentAndCleanup(true);
 }
 
-ScaleSettingsPopup *ScaleSettingsPopup::create(CommandSettingsPopup *parent, int actionIdx, float scaleValue, std::function<void(float)> onSave)
+ScaleSettingsPopup *ScaleSettingsPopup::create(CommandSettingsPopup *parent, int actionIdx, float scaleValue, float timeValue, std::function<void(float, float)> onSave)
 {
     auto ret = new ScaleSettingsPopup();
     if (ret != nullptr)
@@ -90,8 +123,10 @@ ScaleSettingsPopup *ScaleSettingsPopup::create(CommandSettingsPopup *parent, int
         ret->m_actionIdx = actionIdx;
         ret->m_onSave = onSave;
         ret->m_scaleInput = nullptr;
+        ret->m_timeInput = nullptr;
         ret->m_scaleValue = scaleValue;
-        if (ret->initAnchored(300.f, 160.f))
+        ret->m_timeValue = timeValue;
+        if (ret->initAnchored(300.f, 150.f))
         {
             ret->autorelease();
             return ret;

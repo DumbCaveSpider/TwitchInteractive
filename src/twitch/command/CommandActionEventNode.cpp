@@ -493,7 +493,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {
             "color_player",
             "Color Player",
-            "Set the player's color based on the RGB value."
+            "Set the player's color based on the RGB value. <cr>Broken on Android users at this moment.</c>"
         },
         {
             "edit_camera",
@@ -508,7 +508,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {
             "notification",
             "Notification",
-            "Shows a notification message on the screen. Supports the use of identifiers."
+            "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>"
         },
         {
             "alert_popup",
@@ -518,7 +518,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {
             "keycode",
             "Key Code",
-            "Simulates a key press or release. <cr>Does not work on mobile users</cr>"
+            "Simulates a key press or release. <cr>Does not work on mobile users</c>"
         },
         {
             "profile",
@@ -533,7 +533,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {
             "scale_player",
             "Scale Player",
-            "Scales the player in-game."
+            "Scales the player in-game. You can set the scale factor and the transition time (0 = instant)."
         }
     };
 

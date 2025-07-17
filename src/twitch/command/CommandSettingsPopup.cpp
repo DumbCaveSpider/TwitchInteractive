@@ -475,7 +475,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back("wait:");
             refreshActionsList();
         } else if (eventId == "scale_player") {
-            m_commandActions.push_back("scale_player:1.00");
+            m_commandActions.push_back("scale_player:1.00:0.00");
             refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
@@ -766,14 +766,23 @@ void CommandSettingsPopup::refreshActionsList() {
                 snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2f", skew, rot, scale, time);
                 settingsLabelText = buf;
             } else if (actionIdLower.rfind("scale_player", 0) == 0) {
-                size_t colon = actionIdRaw.find(":");
                 float scale = 1.f;
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-                    std::string scaleStr = actionIdRaw.substr(colon + 1);
-                    if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                float time = 0.f;
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                if (firstColon != std::string::npos) {
+                    if (secondColon != std::string::npos) {
+                        std::string scaleStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                        std::string timeStr = actionIdRaw.substr(secondColon + 1);
+                        if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                        if (!timeStr.empty()) time = strtof(timeStr.c_str(), nullptr);
+                    } else {
+                        std::string scaleStr = actionIdRaw.substr(firstColon + 1);
+                        if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                    }
                 }
                 char buf[64];
-                snprintf(buf, sizeof(buf), "Scale: %.2f", scale);
+                snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f", scale, time);
                 settingsLabelText = buf;
             }
         };
