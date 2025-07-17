@@ -200,7 +200,7 @@ struct ActionContext : public CCObject
             if (ctx)
                 ctx->release();
             return;
-        };
+        }
 
         // Debug log: print the full action order and current action
         std::ostringstream orderLog;
@@ -212,21 +212,70 @@ struct ActionContext : public CCObject
             if (i == ctx->index)
                 orderLog << " <-- executing";
             orderLog << "; ";
-        };
-
+        }
         log::debug("{}", orderLog.str());
 
         const auto &action = ctx->actions[ctx->index];
-        // Replace identifiers in action.arg before use
         std::string processedArg = ctx->replaceIdentifiers(action.arg);
         log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, processedArg, action.index);
+
+        // Case-insensitive matching for scale_player event
+        std::string processedArgLower = processedArg;
+        std::transform(processedArgLower.begin(), processedArgLower.end(), processedArgLower.begin(), ::tolower);
+        bool isScalePlayerEvent = processedArgLower.rfind("scale_player:", 0) == 0;
+
+        // Always check for scale_player event first
+        if (isScalePlayerEvent)
+        {
+            int playerIdx = 1;
+            float scale = 1.0f;
+            float time = 0.0f;
+            size_t firstColon = processedArg.find(":");
+            size_t secondColon = processedArg.find(":", firstColon + 1);
+            size_t thirdColon = processedArg.find(":", secondColon + 1);
+            if (firstColon != std::string::npos && secondColon != std::string::npos)
+            {
+                std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string scaleStr;
+                std::string timeStr;
+                if (thirdColon != std::string::npos)
+                {
+                    scaleStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
+                    timeStr = processedArg.substr(thirdColon + 1);
+                }
+                else
+                {
+                    scaleStr = processedArg.substr(secondColon + 1);
+                }
+                if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
+                    playerIdx = std::stoi(playerStr);
+                if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                    scale = std::stof(scaleStr);
+                if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
+                    time = std::stof(timeStr);
+            }
+            else if (firstColon != std::string::npos)
+            {
+                std::string scaleStr = processedArg.substr(firstColon + 1);
+                if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                    scale = std::stof(scaleStr);
+            }
+            log::info("[TwitchCommandManager] Triggering scale_player event for player {} scale {} time {} (command: {})", playerIdx, scale, time, ctx->commandName);
+            PlayLayerEvent::setPlayerScale(playerIdx, scale, time);
+        }
+
+        // Handle Wait type
         if (action.type == CommandActionType::Wait)
         {
-            int delay = action.index;
+            int delay = 0;
+            // Try to parse delay from arg
+            if (!processedArg.empty() && processedArg.find_first_not_of("0123456789") == std::string::npos)
+            {
+                delay = std::stoi(processedArg);
+            }
             if (delay > 0)
             {
                 log::info("[TwitchCommandManager] Waiting for {} seconds before next action (command '{}', action {})", delay, ctx->commandName, ctx->index);
-                // Countdown log for each second using CCCallFuncO, only for this wait action
                 if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                 {
                     for (int i = 1; i <= delay; ++i)
@@ -236,30 +285,28 @@ struct ActionContext : public CCObject
                             CCDelayTime::create(as<float>(i)),
                             CCCallFuncO::create(logger, callfuncO_selector(CountdownLogger::log), logger),
                             nullptr));
-                    };
-                };
-
+                    }
+                }
                 ctx->index++;
                 auto seq = CCSequence::create(
                     CCDelayTime::create(as<float>(delay)),
                     CCCallFuncO::create(ctx, callfuncO_selector(ActionContext::execute), ctx),
                     nullptr);
-
                 if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                 {
-                    ctx->retain(); // Retain for the callback
+                    ctx->retain();
                     scene->runAction(seq);
                 }
                 else
                 {
                     ctx->execute(ctx);
-                };
-
+                }
                 return;
-            };
-        };
+            }
+        }
 
-        if (action.type == CommandActionType::Event)
+        // Handle other Event types
+        if (action.type == CommandActionType::Event && !isScalePlayerEvent)
         {
             if (processedArg == "kill_player")
             {
@@ -268,13 +315,11 @@ struct ActionContext : public CCObject
             }
             else if (processedArg.rfind("edit_camera:", 0) == 0)
             {
-                // Format: edit_camera:<skew>:<rot>:<scale>:<time>
                 log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);
                 PlayLayerEvent::setCameraFromString(processedArg);
             }
             else if (processedArg.rfind("alert_popup:", 0) == 0)
             {
-                // Format: alert_popup:<title>:<desc>
                 std::string title = "-", desc = "-";
                 size_t firstColon = processedArg.find(":");
                 size_t secondColon = processedArg.find(":", firstColon + 1);
@@ -292,7 +337,6 @@ struct ActionContext : public CCObject
             }
             else if (processedArg.rfind("jump:", 0) == 0)
             {
-                // Format: jump:<playerIdx>:hold|tap
                 int playerIdx = 1;
                 bool hold = false;
                 size_t firstColon = processedArg.find(":");
@@ -302,9 +346,7 @@ struct ActionContext : public CCObject
                     std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
                     std::string typeStr = processedArg.substr(secondColon + 1);
                     if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                    {
                         playerIdx = std::stoi(playerStr);
-                    }
                     if (typeStr == "hold")
                         hold = true;
                 }
@@ -319,7 +361,6 @@ struct ActionContext : public CCObject
             }
             else if (processedArg.rfind("move:", 0) == 0)
             {
-                // Format: move:<playerIdx>:left|right:<distance>
                 int playerIdx = 1;
                 bool moveRight = true;
                 float distance = 0.f;
@@ -333,9 +374,7 @@ struct ActionContext : public CCObject
                     std::string dirStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
                     std::string distStr = processedArg.substr(thirdColon + 1);
                     if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                    {
                         playerIdx = std::stoi(playerStr);
-                    }
                     if (dirStr == "left")
                         moveRight = false;
                     if (!distStr.empty() && distStr.find_first_not_of("-.0123456789") == std::string::npos)
@@ -356,7 +395,6 @@ struct ActionContext : public CCObject
             }
             else if (processedArg.rfind("color_player:", 0) == 0)
             {
-                // Format: color_player:<playerIdx>:R,G,B
                 int playerIdx = 1;
                 std::string colorStr;
                 size_t firstColon = processedArg.find(":");
@@ -366,9 +404,7 @@ struct ActionContext : public CCObject
                     std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
                     colorStr = processedArg.substr(secondColon + 1);
                     if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                    {
                         playerIdx = std::stoi(playerStr);
-                    }
                 }
                 else if (firstColon != std::string::npos)
                 {
@@ -378,53 +414,27 @@ struct ActionContext : public CCObject
                 log::info("[TwitchCommandManager] Setting color for player {} to {} (command: {})", playerIdx, colorStr, ctx->commandName);
                 PlayLayerEvent::setPlayerColor(playerIdx, color);
             }
-            else if (processedArg.rfind("keycode:", 0) == 0)
-            {
-                // Format: keycode:<key>:<duration>
-                std::string keyStr;
-                float duration = 0.f;
-                size_t firstColon = processedArg.find(":");
-                size_t secondColon = processedArg.find(":", firstColon + 1);
-                if (firstColon != std::string::npos && secondColon != std::string::npos)
-                {
-                    keyStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
-                    std::string durStr = processedArg.substr(secondColon + 1);
-                    if (!durStr.empty() && durStr.find_first_not_of("-.0123456789") == std::string::npos)
-                    {
-                        duration = std::stof(durStr);
-                    }
-                }
-                else if (firstColon != std::string::npos)
-                {
-                    keyStr = processedArg.substr(firstColon + 1);
-                }
-                PlayLayerEvent::pressKey(keyStr, duration);
-            }
             else if (processedArg.rfind("profile:", 0) == 0)
             {
-                // Format: profile:<accountIdInt>
                 int accountIdInt = 0;
                 size_t firstColon = processedArg.find(":");
                 if (firstColon != std::string::npos)
                 {
                     std::string idStr = processedArg.substr(firstColon + 1);
                     if (!idStr.empty() && idStr.find_first_not_of("-0123456789") == std::string::npos)
-                    {
                         accountIdInt = std::stoi(idStr);
-                    }
                 }
                 if (auto page = ProfilePage::create(accountIdInt, false))
                     page->show();
             }
-        };
+        }
 
+        // Handle Notification type
         if (action.type == CommandActionType::Notification)
         {
-            // Always parse notification action as "notification:<iconInt>:<text>" (force lowercase prefix)
             int iconTypeInt = 1;
             std::string notifText;
             std::string argStr = action.arg;
-            // Always force prefix to lowercase for parsing
             if (argStr.size() >= 13)
             {
                 std::string prefix = argStr.substr(0, 13);
@@ -432,8 +442,7 @@ struct ActionContext : public CCObject
                 std::transform(prefixLower.begin(), prefixLower.end(), prefixLower.begin(), ::tolower);
                 if (prefixLower == "notification:")
                 {
-                    // Remove prefix
-                    std::string rest = argStr.substr(13); // after 'notification:'
+                    std::string rest = argStr.substr(13);
                     size_t colonPos = rest.find(":");
                     if (colonPos != std::string::npos)
                     {
@@ -455,7 +464,6 @@ struct ActionContext : public CCObject
                 }
                 else
                 {
-                    // Fallback: try to parse as <iconInt>:<text>
                     size_t colonPos = argStr.find(":");
                     if (colonPos != std::string::npos)
                     {
@@ -478,7 +486,6 @@ struct ActionContext : public CCObject
             }
             else
             {
-                // Fallback: try to parse as <iconInt>:<text>
                 size_t colonPos = argStr.find(":");
                 if (colonPos != std::string::npos)
                 {
@@ -498,9 +505,7 @@ struct ActionContext : public CCObject
                     notifText = argStr;
                 }
             }
-            // Replace identifiers in notifText
             notifText = ctx->replaceIdentifiers(notifText);
-            // Trim whitespace
             notifText.erase(0, notifText.find_first_not_of(" \t\n\r"));
             notifText.erase(notifText.find_last_not_of(" \t\n\r") + 1);
             NotificationIcon icon = NotificationIcon::Info;
@@ -532,5 +537,5 @@ struct ActionContext : public CCObject
         // Add more action types here as needed
         ctx->index++;
         ctx->execute(ctx);
-    };
+    }
 };
