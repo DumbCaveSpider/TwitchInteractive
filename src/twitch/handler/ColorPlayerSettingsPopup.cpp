@@ -179,11 +179,7 @@ void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d
 
 void ColorPlayerSettingsPopup::onSave(cocos2d::CCObject* sender) {
     if (m_callback) m_callback(m_selectedColor);
-    onClose(sender);
-};
-
-void ColorPlayerSettingsPopup::onClose(cocos2d::CCObject* sender) {
-    removeFromParentAndCleanup(true);
+    onClose(nullptr);
 };
 
 ColorPlayerSettingsPopup* ColorPlayerSettingsPopup::create(const cocos2d::ccColor3B& initialColor, std::function<void(const cocos2d::ccColor3B&)> callback) {

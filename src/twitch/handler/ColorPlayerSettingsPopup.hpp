@@ -23,7 +23,6 @@ protected:
     bool setup() override;
     void onColorChanged(cocos2d::CCObject *sender, cocos2d::extension::CCControlEvent event);
     void onSave(cocos2d::CCObject *sender);
-    void onClose(cocos2d::CCObject *sender = nullptr) override;
 
 public:
     static ColorPlayerSettingsPopup *create(const cocos2d::ccColor3B &initialColor, std::function<void(const cocos2d::ccColor3B &)> callback);
