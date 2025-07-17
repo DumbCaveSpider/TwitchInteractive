@@ -418,39 +418,40 @@ struct ActionContext : public CCObject
             }
         };
 
-        if (action.type == CommandActionType::Notification)
+        if (action.type == CommandActionType::Event)
         {
-            // Always parse notification action as "notification:<iconInt>:<text>" (force lowercase prefix)
-            int iconTypeInt = 1;
-            std::string notifText;
-            std::string argStr = action.arg;
-            // Always force prefix to lowercase for parsing
-            if (argStr.size() >= 13)
+            std::string argLower = processedArg;
+            std::transform(argLower.begin(), argLower.end(), argLower.begin(), ::tolower);
+            if (argLower == "kill_player")
             {
-                std::string prefix = argStr.substr(0, 13);
-                std::string prefixLower = prefix;
-                std::transform(prefixLower.begin(), prefixLower.end(), prefixLower.begin(), ::tolower);
-                if (prefixLower == "notification:")
-                {
-                    // Remove prefix
-                    std::string rest = argStr.substr(13); // after 'notification:'
-                    size_t colonPos = rest.find(":");
-                    if (colonPos != std::string::npos)
-                    {
-                        std::string iconPart = rest.substr(0, colonPos);
-                        if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos)
-                        {
-                            iconTypeInt = std::stoi(iconPart);
-                            notifText = rest.substr(colonPos + 1);
-                        }
-                        else
-                        {
-                            notifText = rest.substr(colonPos + 1);
-                        }
+                log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
+                PlayLayerEvent::killPlayer();
+            }
+            else if (argLower.rfind("edit_camera:", 0) == 0)
+            {…}
+            else if (argLower.rfind("scale_player:", 0) == 0)
+            {
+                // Format: scale_player:<scale>[:<time>]
+                size_t firstColon = argLower.find(":");
+                size_t secondColon = argLower.find(":", firstColon + 1);
+                float scale = 1.f;
+                float time = 0.f;
+                if (firstColon != std::string::npos) {
+                    if (secondColon != std::string::npos) {
+                        std::string scaleStr = argLower.substr(firstColon + 1, secondColon - firstColon - 1);
+                        std::string timeStr = argLower.substr(secondColon + 1);
+                        if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                        if (!timeStr.empty()) time = strtof(timeStr.c_str(), nullptr);
+                    } else {
+                        std::string scaleStr = argLower.substr(firstColon + 1);
+                        if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
                     }
-                    else
-                    {
-                        notifText = rest;
+                }
+                PlayLayerEvent::setPlayerScale(1, scale, time);
+                log::info("[TwitchCommandManager] Triggering scale player event: scale={}, time={}", scale, time);
+            }
+            else
+        };
                     }
                 }
                 else

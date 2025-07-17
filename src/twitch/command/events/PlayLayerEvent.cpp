@@ -43,6 +43,56 @@ void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B& col
         } });
 };
 
+// Set player scale (playerIdx: 1 or 2, scale, time)
+void PlayLayerEvent::setPlayerScale(int playerIdx, float scale, float time) {
+    Loader::get()->queueInMainThread([playerIdx, scale, time] {
+        auto playLayer = PlayLayer::get();
+        if (!playLayer) {
+            log::debug("[PlayLayerEvent] setPlayerScale: PlayLayer not found");
+            return;
+        }
+        auto player = (playerIdx == 2) ? playLayer->m_player2 : playLayer->m_player1;
+        if (!player) {
+            log::debug("[PlayLayerEvent] setPlayerScale: Player {} not found", playerIdx);
+            return;
+        }
+        float startScale = player->getScale();
+        if (time > 0.0f) {
+            // Animate scale over 'time' seconds
+            class PlayerScaleAnimScheduler : public cocos2d::CCNode {
+            public:
+                float elapsed = 0.f;
+                float duration;
+                float fromScale, toScale;
+                cocos2d::CCNode* target;
+                PlayerScaleAnimScheduler(float d, float fsc, float tsc, cocos2d::CCNode* tgt)
+                    : duration(d), fromScale(fsc), toScale(tsc), target(tgt) {}
+                void update(float dt) override {
+                    elapsed += dt;
+                    float t = duration > 0.f ? std::min(elapsed / duration, 1.f) : 1.f;
+                    float newScale = fromScale + (toScale - fromScale) * t;
+                    if (target) target->setScale(newScale);
+                    if (t >= 1.f) {
+                        unscheduleAllSelectors();
+                        removeFromParentAndCleanup(true);
+                    }
+                }
+                static PlayerScaleAnimScheduler* create(float d, float fsc, float tsc, cocos2d::CCNode* tgt) {
+                    auto node = new PlayerScaleAnimScheduler(d, fsc, tsc, tgt);
+                    node->autorelease();
+                    return node;
+                }
+            };
+            auto animNode = PlayerScaleAnimScheduler::create(time, startScale, scale, player);
+            cocos2d::CCDirector::sharedDirector()->getRunningScene()->addChild(animNode);
+            animNode->schedule(schedule_selector(PlayerScaleAnimScheduler::update), 0.f);
+        } else {
+            player->setScale(scale);
+        }
+        log::info("[PlayLayerEvent] Set player {} scale to {} over {}s", playerIdx, scale, time);
+    });
+}
+
 namespace {
     bool g_pendingKillPlayer = false;
 
