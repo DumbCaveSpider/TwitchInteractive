@@ -480,7 +480,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {
             "reverse_player",
             "Reverse Player",
-            "Reverses the player direction <cg>(Only works well on classic level)</c>."
+            "Reverses the player direction. <cg>Only works well on classic level</c>."
         },
         {
             "kill_player",
@@ -528,7 +528,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {
             "profile",
             "Profile",
-            "Opens the Player Profile in-game. Only accepts Account ID only!"
+            "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>"
         },
         {
             "nothing",

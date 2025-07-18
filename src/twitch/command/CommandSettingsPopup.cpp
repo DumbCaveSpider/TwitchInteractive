@@ -22,6 +22,7 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
+
 // Free function to add or update a label for an action node with uniform style
 void addOrUpdateActionLabel(CCNode* actionNode, const std::string& labelId, const std::string& text, float x, float y) {
     if (!actionNode) return;
@@ -70,6 +71,17 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     float eventSectionX = startX;
     float actionSectionX = startX + sectionWidth + gap;
+
+
+    // Search box for event nodes
+    float searchBoxWidth = sectionWidth - 10.f;
+    auto eventSearchInput = TextInput::create(static_cast<int>(searchBoxWidth), "Search events", "bigfont.fnt");
+    eventSearchInput->setID("event-search-input");
+    eventSearchInput->setPosition(eventSectionX + scrollSize.width / 2 - searchBoxWidth / 2, scrollBgY + scrollSize.height + 38.f);
+    eventSearchInput->setScale(0.5f);
+    eventSearchInput->setAnchorPoint({ 0, 0.5f });
+    eventSearchInput->setString("");
+    m_mainLayer->addChild(eventSearchInput);
 
     // label :)
     auto eventLabel = CCLabelBMFont::create("Events", "bigFont.fnt");
@@ -189,84 +201,95 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     refreshActionsList();
 
-    // Dynamically add all event nodes
-    float eventNodeGap = 8.0f;
-    float nodeHeight = 32.f;
 
-    int eventCount = static_cast<int>(CommandActionEventNode::getAllEventNodes().size());
 
-    float minContentHeight = scrollSize.height;
-    float neededHeight = eventCount * (nodeHeight + eventNodeGap);
-    float contentHeight = std::max(minContentHeight, neededHeight);
+    // Store search string as a member variable
+    m_eventSearchString = "";
 
-    eventContent->setContentSize(CCSize(scrollSize.width, contentHeight));
-
-    float eventNodeY = contentHeight - 16.f;
-
-    for (const auto& info : CommandActionEventNode::getAllEventNodes()) {
-        auto node = CCNode::create();
-        node->setContentSize(CCSize(scrollSize.width, nodeHeight));
-
-        // Label
-        auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
-        label->setID("event-" + info.id + "-label");
-        label->setScale(0.5f);
-        label->setAnchorPoint({ 0, 0.5f });
-        label->setAlignment(kCCTextAlignmentLeft);
-        label->setPosition(20.f, 16.f);
-
-        auto infoBtnSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-        infoBtnSprite->setScale(0.5f);
-
-        float infoBtnX = 20.f + label->getContentSize().width * label->getScale() + 12.f;
-
-        // Info button (FLAlertLayer)
-        auto infoBtn = CCMenuItemSpriteExtra::create(
-            infoBtnSprite,
-            this,
-            menu_selector(CommandSettingsPopup::onEventInfoBtn)
-        );
-        infoBtn->setID("event-" + info.id + "-info-btn");
-        infoBtn->setUserObject(CCString::create(info.description));
-        infoBtn->setPosition(infoBtnX, 16.f);
-
-        // Menu for add/info buttons
-        auto menu = CCMenu::create();
-        menu->setPosition(0, 0);
-
-        // Add button (always use GJ_plusBtn_001.png) at right side
-        auto addSprite = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
-        addSprite->setScale(0.5f);
-
-        auto addBtn = CCMenuItemSpriteExtra::create(
-            addSprite,
-            this,
-            menu_selector(CommandSettingsPopup::onAddEventAction)
-        );
-        addBtn->setID("event-" + info.id + "-add-btn");
-        addBtn->setPosition(scrollSize.width - 24.f, 16.f); // Place button at far right
-        addBtn->setUserObject(CCString::create(info.id));
-
-        menu->addChild(addBtn);
-        menu->addChild(infoBtn);
-
-        node->addChild(label);
-        node->addChild(menu);
-
-        // Add a background to the event node
-        auto nodeBg = CCScale9Sprite::create("square02_001.png");
-        nodeBg->setContentSize(node->getContentSize());
-        nodeBg->setOpacity(60);
-        nodeBg->setAnchorPoint({ 0, 0 });
-        nodeBg->setPosition(0, 0);
-
-        node->addChild(nodeBg, -1);
-        node->setPosition(0, eventNodeY - 16.f); // 16.f is half node height
-
-        eventContent->addChild(node);
-
-        eventNodeY -= (nodeHeight + eventNodeGap);
+    m_lastEventSearchString = "";
+    // Helper lambda to refresh event node list based on search
+    auto refreshEventNodeList = [eventContent, scrollSize, this](const std::string& searchStr) {
+        eventContent->removeAllChildren();
+        std::vector<EventNodeInfo> sortedEventNodes = CommandActionEventNode::getAllEventNodes();
+        std::sort(sortedEventNodes.begin(), sortedEventNodes.end(), [](const EventNodeInfo& a, const EventNodeInfo& b) {
+            return a.label < b.label;
+        });
+        std::vector<EventNodeInfo> filteredNodes;
+        for (const auto& info : sortedEventNodes) {
+            std::string labelLower = info.label;
+            std::string idLower = info.id;
+            std::string searchLower = searchStr;
+            std::transform(labelLower.begin(), labelLower.end(), labelLower.begin(), ::tolower);
+            std::transform(idLower.begin(), idLower.end(), idLower.begin(), ::tolower);
+            std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+            if (searchLower.empty() || labelLower.find(searchLower) != std::string::npos || idLower.find(searchLower) != std::string::npos) {
+                filteredNodes.push_back(info);
+            }
+        }
+        float eventNodeGap = 8.0f;
+        float nodeHeight = 32.f;
+        int eventCount = static_cast<int>(filteredNodes.size());
+        float minContentHeight = scrollSize.height;
+        float neededHeight = eventCount * (nodeHeight + eventNodeGap);
+        float contentHeight = std::max(minContentHeight, neededHeight);
+        eventContent->setContentSize(CCSize(scrollSize.width, contentHeight));
+        float eventNodeY = contentHeight - 16.f;
+        for (const auto& info : filteredNodes) {
+            auto node = CCNode::create();
+            node->setContentSize(CCSize(scrollSize.width, nodeHeight));
+            auto label = CCLabelBMFont::create(info.label.c_str(), "bigFont.fnt");
+            label->setID("event-" + info.id + "-label");
+            label->setScale(0.5f);
+            label->setAnchorPoint({ 0, 0.5f });
+            label->setAlignment(kCCTextAlignmentLeft);
+            label->setPosition(20.f, 16.f);
+            auto infoBtnSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+            infoBtnSprite->setScale(0.5f);
+            float infoBtnX = 20.f + label->getContentSize().width * label->getScale() + 12.f;
+            auto infoBtn = CCMenuItemSpriteExtra::create(
+                infoBtnSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onEventInfoBtn)
+            );
+            infoBtn->setID("event-" + info.id + "-info-btn");
+            infoBtn->setUserObject(CCString::create(info.description));
+            infoBtn->setPosition(infoBtnX, 16.f);
+            auto menu = CCMenu::create();
+            menu->setPosition(0, 0);
+            auto addSprite = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
+            addSprite->setScale(0.5f);
+            auto addBtn = CCMenuItemSpriteExtra::create(
+                addSprite,
+                this,
+                menu_selector(CommandSettingsPopup::onAddEventAction)
+            );
+            addBtn->setID("event-" + info.id + "-add-btn");
+            addBtn->setPosition(scrollSize.width - 24.f, 16.f);
+            addBtn->setUserObject(CCString::create(info.id));
+            menu->addChild(addBtn);
+            menu->addChild(infoBtn);
+            node->addChild(label);
+            node->addChild(menu);
+            auto nodeBg = CCScale9Sprite::create("square02_001.png");
+            nodeBg->setContentSize(node->getContentSize());
+            nodeBg->setOpacity(60);
+            nodeBg->setAnchorPoint({ 0, 0 });
+            nodeBg->setPosition(0, 0);
+            node->addChild(nodeBg, -1);
+            node->setPosition(0, eventNodeY - 16.f);
+            eventContent->addChild(node);
+            eventNodeY -= (nodeHeight + eventNodeGap);
+        }
     };
+
+    // Store search input and refresh lambda for use in scheduled function
+    m_eventSearchInput = eventSearchInput;
+    m_refreshEventNodeList = refreshEventNodeList;
+
+    // Polling approach for search input (since setTextChangedCallback is not available)
+    this->schedule(schedule_selector(CommandSettingsPopup::onEventSearchPoll), 0.1f);
+    refreshEventNodeList(m_eventSearchString);
+    m_lastEventSearchString = m_eventSearchString;
 
     // After adding all event nodes, scroll to top
     eventScrollLayer->scrollToTop();
@@ -1269,6 +1292,21 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject* sender) {
     if (actionStrLower.rfind("edit_camera", 0) == 0) SettingsHandler::handleEditCameraSettings(this, sender);
     if (actionStrLower.rfind("scale_player", 0) == 0) SettingsHandler::handleScalePlayerSettings(this, sender);
 };
+// Polling function for event search input
+void CommandSettingsPopup::onEventSearchPoll(float) {
+    if (!m_eventSearchInput || !m_refreshEventNodeList) return;
+    std::string text = m_eventSearchInput->getString();
+    if (text != m_lastEventSearchString) {
+        m_eventSearchString = text;
+        m_refreshEventNodeList(m_eventSearchString);
+        m_lastEventSearchString = text;
+        if (m_mainLayer) {
+            if (auto eventScrollLayer = dynamic_cast<ScrollLayer*>(m_mainLayer->getChildByID("events-scroll"))) {
+                eventScrollLayer->scrollToTop();
+            }
+        }
+    }
+}
 
 // Static create function for CommandSettingsPopup with only TwitchCommand argument
 CommandSettingsPopup* CommandSettingsPopup::create(TwitchCommand command) {

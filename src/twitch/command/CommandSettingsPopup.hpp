@@ -22,10 +22,15 @@ class CommandListPopup;
 class CommandSettingsPopup : public geode::Popup<TwitchCommand>
 {
 protected:
-    TextInput *m_notificationInput = nullptr;
+    geode::TextInput *m_notificationInput = nullptr;
     CCMenuItemToggler *m_killPlayerCheckbox = nullptr;
     TwitchCommand m_command = TwitchCommand("", "", 0, {});
     CommandListPopup *m_parent = nullptr;
+    std::string m_eventSearchString;
+    std::string m_lastEventSearchString;
+    geode::TextInput* m_eventSearchInput = nullptr;
+    std::function<void(const std::string&)> m_refreshEventNodeList = nullptr;
+    void onEventSearchPoll(float);
 
     bool setup(TwitchCommand command) override;
     void onSave(cocos2d::CCObject *sender);
