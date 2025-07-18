@@ -268,6 +268,11 @@ struct ActionContext : public CCObject
                 log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
                 PlayLayerEvent::killPlayer();
             }
+            else if (processedArg == "reverse_player")
+            {
+                log::info("[TwitchCommandManager] Triggering reverse player event for command: {}", ctx->commandName);
+                PlayLayerEvent::reversePlayer();
+            }
             else if (processedArg.rfind("edit_camera:", 0) == 0)
             {
                 log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);

@@ -474,6 +474,9 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
         } else if (eventId == "wait") {
             m_commandActions.push_back("wait:");
             refreshActionsList();
+        } else if (eventId == "reverse_player") {
+            m_commandActions.push_back("reverse_player");
+            refreshActionsList();
         } else if (eventId == "scale_player") {
             m_commandActions.push_back("scale_player:1.00");
             refreshActionsList();

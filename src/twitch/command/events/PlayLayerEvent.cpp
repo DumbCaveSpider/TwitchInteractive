@@ -81,11 +81,26 @@ namespace
     };
 };
 
+// Reverse both players' direction
+void PlayLayerEvent::reversePlayer()
+{
+    Loader::get()->queueInMainThread([]
+                                     {
+        auto playLayer = PlayLayer::get();
+        if (!playLayer) {
+            log::debug("[PlayLayerEvent] reversePlayer: PlayLayer not found");
+            return;
+        }
+        if (playLayer->m_player1) playLayer->m_player1->doReversePlayer(true);
+        if (playLayer->m_player2) playLayer->m_player2->doReversePlayer(true);
+        log::info("[PlayLayerEvent] Reversed both players"); });
+}
+
 // Set player scale (playerIdx: 1, 2, or 3 for both), with optional animation time
 void PlayLayerEvent::scalePlayer(int playerIdx, float scale, float time)
 {
     Loader::get()->queueInMainThread([playerIdx, scale, time]
-    {
+                                     {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] scalePlayer: PlayLayer not found");
@@ -138,8 +153,7 @@ void PlayLayerEvent::scalePlayer(int playerIdx, float scale, float time)
             }
             animateScale(player, scale, time);
             log::info("[PlayLayerEvent] Set scale for player {}: {} (time: {})", playerIdx, scale, time);
-        }
-    });
+        } });
 }
 
 // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)

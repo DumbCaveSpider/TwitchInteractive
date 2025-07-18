@@ -478,6 +478,11 @@ CommandActionEventNode* CommandActionEventNode::createEventNode(const std::strin
 std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
         {
+            "reverse_player",
+            "Reverse Player",
+            "Reverses the player direction <cg>(Only works well on classic level)</c>."
+        },
+        {
             "kill_player",
             "Destroy Player",
             "Destroy player. Self-explanatory. Don't use this while beating extremes!"},

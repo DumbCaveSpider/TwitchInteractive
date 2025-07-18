@@ -3,6 +3,8 @@
 - Removed Unnecessary/useless data stored in the Commands JSON
 - Code Cleanup on the Command Settings
 - Fixed the crash when Android users attempted to open settings for **Color Player** 
+- Added **Scale Player** Event
+- Added **Reverse Player** Event
 # v0.1.2-beta.1
 - Fixed the **Edit Camera** event having a misleading label and fixed the default value
 - Fixed the issues with Commands not saving correctly after quitting the game on Android + iOS
