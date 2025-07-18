@@ -1,5 +1,3 @@
-    // Reverse both players' direction
-    static void reversePlayer();
 #pragma once
 #include <Geode/Geode.hpp>
 #include <Geode/Bindings.hpp>
@@ -17,6 +15,7 @@ public:
     static void killPlayer();
     static void jumpPlayerHold(int playerIdx);
     static void jumpPlayerTap(int playerIdx);
+
     // Accepts key and duration (in seconds, 0 = instant press/release)
     static void pressKey(const std::string &key, float duration = 0.f);
 
@@ -29,8 +28,7 @@ public:
 
     // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
     static void setCameraFromString(const std::string &arg);
-    // Set player scale (playerIdx: 1, 2, or 3 for both), scale: float, time: duration in seconds
-    static void scalePlayer(int playerIdx, float scale, float time = 0.0f);
 
+    static void scalePlayer(int playerIdx, float scale, float time = 0.0f);
     static void reversePlayer();
 };
