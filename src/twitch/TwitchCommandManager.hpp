@@ -277,25 +277,39 @@ struct ActionContext : public CCObject
             {
                 int playerIdx = 1;
                 float scale = 1.0f;
+                float time = 0.0f;
                 size_t firstColon = processedArg.find(":");
                 size_t secondColon = processedArg.find(":", firstColon + 1);
-                if (firstColon != std::string::npos && secondColon != std::string::npos)
-                {
-                    std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
-                    std::string scaleStr = processedArg.substr(secondColon + 1);
-                    if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                        playerIdx = std::stoi(playerStr);
-                    if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
-                        scale = std::stof(scaleStr);
-                }
-                else if (firstColon != std::string::npos)
-                {
+                size_t thirdColon = (secondColon != std::string::npos) ? processedArg.find(":", secondColon + 1) : std::string::npos;
+                if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                    std::string scaleStr, timeStr;
+                    // If three colons, treat as scale_player:<player>:<scale>:<time>
+                    if (thirdColon != std::string::npos) {
+                        std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                        scaleStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
+                        timeStr = processedArg.substr(thirdColon + 1);
+                        if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
+                            playerIdx = std::stoi(playerStr);
+                        if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                            scale = std::stof(scaleStr);
+                        if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
+                            time = std::stof(timeStr);
+                    } else {
+                        // scale_player:<scale>:<time> (no player index)
+                        scaleStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                        timeStr = processedArg.substr(secondColon + 1);
+                        if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                            scale = std::stof(scaleStr);
+                        if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
+                            time = std::stof(timeStr);
+                    }
+                } else if (firstColon != std::string::npos) {
                     std::string scaleStr = processedArg.substr(firstColon + 1);
                     if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
                         scale = std::stof(scaleStr);
                 }
-                log::info("[TwitchCommandManager] Setting scale for player {} to {} (command: {})", playerIdx, scale, ctx->commandName);
-                PlayLayerEvent::scalePlayer(playerIdx, scale);
+                log::info("[TwitchCommandManager] Setting scale for player {} to {} (time: {}, command: {})", playerIdx, scale, time, ctx->commandName);
+                PlayLayerEvent::scalePlayer(playerIdx, scale, time);
             }
             else if (processedArg.rfind("alert_popup:", 0) == 0)
             {
