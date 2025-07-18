@@ -170,7 +170,7 @@ void HandbookPopup::onCommandsBtn(CCObject*) {
         "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
 
         "## Example\n"
-        "- If you create a command named `!cmd`, viewers can type `!cmd` in chat to trigger the associated action added to that command.\n"
+        "- If you create a command named `!jump`, viewers can type `!jump` in chat to trigger the associated action added to that command.\n"
         "- You can use identifiers like `${arg}` to allow users to pass arguments (e.g., `!say Hello`).\n\n"
 
         "**Tip:** Use commands to make your stream interactive and fun!";
@@ -243,9 +243,10 @@ void HandbookPopup::onEventsBtn(CCObject*) {
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
         "- Some events accept arguments, such as which player to affect.\n"
+        "- You can search for specific events using the search box\n"
 
         "## Got an Events Suggestions?\n"
-        "- Consider contacting ArcticWoof via Discord (@arcticwoof) or join my server for events suggestions.\n\n";
+        "- Consider contacting ArcticWoof via Discord (@arcticwoof) on my server for events suggestions.\n\n";
 
     MDPopup::create("Events Help", md, "OK", nullptr, [](bool) {})->show();
 };

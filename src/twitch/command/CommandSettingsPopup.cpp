@@ -73,23 +73,25 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
     float actionSectionX = startX + sectionWidth + gap;
 
 
-    // Search box for event nodes
-    float searchBoxWidth = sectionWidth - 10.f;
-    auto eventSearchInput = TextInput::create(static_cast<int>(searchBoxWidth), "Search events", "bigfont.fnt");
-    eventSearchInput->setID("event-search-input");
-    eventSearchInput->setPosition(eventSectionX + scrollSize.width / 2 - searchBoxWidth / 2, scrollBgY + scrollSize.height + 38.f);
-    eventSearchInput->setScale(0.5f);
-    eventSearchInput->setAnchorPoint({ 0, 0.5f });
-    eventSearchInput->setString("");
-    m_mainLayer->addChild(eventSearchInput);
 
     // label :)
     auto eventLabel = CCLabelBMFont::create("Events", "bigFont.fnt");
     eventLabel->setScale(0.6f);
     eventLabel->setAnchorPoint({ 0.5f, 0.5f });
-    eventLabel->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 22.f);
+    eventLabel->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 38.f);
     eventLabel->setID("events-section-label");
     m_mainLayer->addChild(eventLabel);
+
+    // Search box for event nodes (centered underneath the label)
+    float searchBoxWidth = sectionWidth - 10.f;
+    auto eventSearchInput = TextInput::create(static_cast<int>(searchBoxWidth), "Search events", "bigfont.fnt");
+    eventSearchInput->setID("event-search-input");
+    // Center horizontally under the label
+    eventSearchInput->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 18.f);
+    eventSearchInput->setScale(0.5f);
+    eventSearchInput->setAnchorPoint({ 0.5f, 0.5f });
+    eventSearchInput->setString("");
+    m_mainLayer->addChild(eventSearchInput);
 
     auto actionLabel = CCLabelBMFont::create("Actions", "bigFont.fnt");
     actionLabel->setScale(0.6f);
