@@ -387,18 +387,28 @@ namespace SettingsHandler {
         if (actionIdx < 0 || actionIdx >= static_cast<int>(parent->m_commandActions.size())) return;
         std::string& actionStr = parent->m_commandActions[actionIdx];
         float scaleValue = 1.0f;
+        float timeValue = 0.5f;
         size_t firstColon = actionStr.find(":");
+        size_t secondColon = actionStr.find(":", firstColon + 1);
         if (firstColon != std::string::npos) {
-            std::string scaleStr = actionStr.substr(firstColon + 1);
+            std::string scaleStr = actionStr.substr(firstColon + 1, (secondColon != std::string::npos ? secondColon - firstColon - 1 : std::string::npos));
             if (!scaleStr.empty()) {
                 float parsed = strtof(scaleStr.c_str(), nullptr);
                 if (parsed > 0.0f) scaleValue = parsed;
             }
+            if (secondColon != std::string::npos) {
+                std::string timeStr = actionStr.substr(secondColon + 1);
+                if (!timeStr.empty()) {
+                    float parsedTime = strtof(timeStr.c_str(), nullptr);
+                    if (parsedTime >= 0.0f) timeValue = parsedTime;
+                }
+            }
         }
-        auto popup = ScaleSettingsPopup::create(parent, actionIdx, scaleValue, 0.0f, [parent, actionIdx](float newScale, float) {
+        auto popup = ScaleSettingsPopup::create(parent, actionIdx, scaleValue, timeValue, [parent, actionIdx](float newScale, float newTime) {
             // Only allow positive, non-zero scale values
             float safeScale = (newScale > 0.0f) ? newScale : 1.0f;
-            parent->m_commandActions[actionIdx] = "scale_player:" + fmt::format("{:.2f}", safeScale);
+            float safeTime = (newTime >= 0.0f) ? newTime : 0.5f;
+            parent->m_commandActions[actionIdx] = "scale_player:" + fmt::format("{:.2f}", safeScale) + ":" + fmt::format("{:.2f}", safeTime);
             parent->refreshActionsList();
         });
         if (popup) popup->show();

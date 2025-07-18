@@ -44,7 +44,8 @@ bool ScaleSettingsPopup::setup()
     float inputY = 40.0f;
     float labelY = 10.0f;
 
-    // Scale label above input (centered left)
+
+    // Scale label and input
     auto scaleLabel = CCLabelBMFont::create("Scale", "bigFont.fnt");
     scaleLabel->setScale(0.5f);
     scaleLabel->setAnchorPoint({0.5f, 0.5f});
@@ -59,7 +60,20 @@ bool ScaleSettingsPopup::setup()
     m_scaleInput->setPosition(centerX - inputSpacing / 2, inputY);
     inputStack->addChild(m_scaleInput);
 
-    // Remove time label and input for scale_player
+    // Time label and input
+    auto timeLabel = CCLabelBMFont::create("Time", "bigFont.fnt");
+    timeLabel->setScale(0.5f);
+    timeLabel->setAnchorPoint({0.5f, 0.5f});
+    timeLabel->setAlignment(kCCTextAlignmentCenter);
+    timeLabel->setPosition(centerX + inputSpacing / 2, inputY + 20.0f);
+    inputStack->addChild(timeLabel);
+
+    m_timeInput = TextInput::create(80, "Time (secs)", "chatFont.fnt");
+    m_timeInput->setString(fmt::format("{:.2f}", m_timeValue).c_str());
+    m_timeInput->setScale(0.7f);
+    m_timeInput->setAnchorPoint({0.5f, 0.5f});
+    m_timeInput->setPosition(centerX + inputSpacing / 2, inputY);
+    inputStack->addChild(m_timeInput);
 
     m_mainLayer->addChild(inputStack);
 
@@ -83,14 +97,21 @@ bool ScaleSettingsPopup::setup()
 void ScaleSettingsPopup::onSaveBtn(CCObject *)
 {
     std::string scaleStr = m_scaleInput->getString();
+    std::string timeStr = m_timeInput ? m_timeInput->getString() : "0.5";
     float scale = strtof(scaleStr.c_str(), nullptr);
+    float duration = strtof(timeStr.c_str(), nullptr);
     if (scale <= 0.0f)
     {
         Notification::create("Scale must be positive!", NotificationIcon::Error)->show();
         return;
     }
+    if (duration < 0.0f)
+    {
+        Notification::create("Time must be non-negative!", NotificationIcon::Error)->show();
+        return;
+    }
     if (m_onSave)
-        m_onSave(scale, 0.0f);
+        m_onSave(scale, duration);
     this->removeFromParentAndCleanup(true);
 }
 
@@ -105,7 +126,7 @@ ScaleSettingsPopup *ScaleSettingsPopup::create(CommandSettingsPopup *parent, int
         ret->m_scaleInput = nullptr;
         ret->m_timeInput = nullptr;
         ret->m_scaleValue = scaleValue;
-        ret->m_timeValue = 0.0f;
+        ret->m_timeValue = timeValue;
         if (ret->initAnchored(300.f, 150.f))
         {
             ret->autorelease();

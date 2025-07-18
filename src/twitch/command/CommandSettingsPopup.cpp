@@ -767,13 +767,19 @@ void CommandSettingsPopup::refreshActionsList() {
                 settingsLabelText = buf;
             } else if (actionIdLower.rfind("scale_player", 0) == 0) {
                 float scale = 1.f;
+                float time = 0.5f;
                 size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 if (firstColon != std::string::npos) {
-                    std::string scaleStr = actionIdRaw.substr(firstColon + 1);
+                    std::string scaleStr = actionIdRaw.substr(firstColon + 1, (secondColon != std::string::npos ? secondColon - firstColon - 1 : std::string::npos));
                     if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
+                    if (secondColon != std::string::npos) {
+                        std::string timeStr = actionIdRaw.substr(secondColon + 1);
+                        if (!timeStr.empty()) time = strtof(timeStr.c_str(), nullptr);
+                    }
                 }
-                char buf[32];
-                snprintf(buf, sizeof(buf), "Scale: %.2f", scale);
+                char buf[64];
+                snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f s", scale, time);
                 settingsLabelText = buf;
             }
         };
