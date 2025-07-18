@@ -5,7 +5,7 @@ TODO:
 - Fix the crash on android32 whenever the user clicked the settings on the color player
 (instead of doing it manually (i tried to do it and broke the entire mod lol))
 [Minor]
-- add scale player event
+- add scale player event (currently fixing it)
 - add player control event (reverse player, invert player)
 - add Open Level Info (allows users/viewers to directly open a level xd "LevelInfo" (broken atm cuz forgor how to do it properly))
 - custom global prefix command

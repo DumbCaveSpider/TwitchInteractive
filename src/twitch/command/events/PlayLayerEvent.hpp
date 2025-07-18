@@ -27,7 +27,4 @@ public:
 
     // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
     static void setCameraFromString(const std::string &arg);
-
-    // Set player scale (playerIdx: 1 or 2, scale, time)
-    static void setPlayerScale(int playerIdx, float scale, float time = 0.f);
 };
