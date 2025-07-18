@@ -219,51 +219,6 @@ struct ActionContext : public CCObject
         std::string processedArg = ctx->replaceIdentifiers(action.arg);
         log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, processedArg, action.index);
 
-        // Case-insensitive matching for scale_player event
-        std::string processedArgLower = processedArg;
-        std::transform(processedArgLower.begin(), processedArgLower.end(), processedArgLower.begin(), ::tolower);
-        bool isScalePlayerEvent = processedArgLower.rfind("scale_player:", 0) == 0;
-
-        // Always check for scale_player event first
-        if (isScalePlayerEvent)
-        {
-            int playerIdx = 1;
-            float scale = 1.0f;
-            float time = 0.0f;
-            size_t firstColon = processedArg.find(":");
-            size_t secondColon = processedArg.find(":", firstColon + 1);
-            size_t thirdColon = processedArg.find(":", secondColon + 1);
-            if (firstColon != std::string::npos && secondColon != std::string::npos)
-            {
-                std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string scaleStr;
-                std::string timeStr;
-                if (thirdColon != std::string::npos)
-                {
-                    scaleStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
-                    timeStr = processedArg.substr(thirdColon + 1);
-                }
-                else
-                {
-                    scaleStr = processedArg.substr(secondColon + 1);
-                }
-                if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                    playerIdx = std::stoi(playerStr);
-                if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
-                    scale = std::stof(scaleStr);
-                if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
-                    time = std::stof(timeStr);
-            }
-            else if (firstColon != std::string::npos)
-            {
-                std::string scaleStr = processedArg.substr(firstColon + 1);
-                if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
-                    scale = std::stof(scaleStr);
-            }
-            log::info("[TwitchCommandManager] Triggering scale_player event for player {} scale {} time {} (command: {})", playerIdx, scale, time, ctx->commandName);
-            PlayLayerEvent::setPlayerScale(playerIdx, scale, time);
-        }
-
         // Handle Wait type
         if (action.type == CommandActionType::Wait)
         {
@@ -306,7 +261,7 @@ struct ActionContext : public CCObject
         }
 
         // Handle other Event types
-        if (action.type == CommandActionType::Event && !isScalePlayerEvent)
+        if (action.type == CommandActionType::Event)
         {
             if (processedArg == "kill_player")
             {
