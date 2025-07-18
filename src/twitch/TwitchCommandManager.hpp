@@ -273,6 +273,30 @@ struct ActionContext : public CCObject
                 log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);
                 PlayLayerEvent::setCameraFromString(processedArg);
             }
+            else if (processedArg.rfind("scale_player:", 0) == 0)
+            {
+                int playerIdx = 1;
+                float scale = 1.0f;
+                size_t firstColon = processedArg.find(":");
+                size_t secondColon = processedArg.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos)
+                {
+                    std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string scaleStr = processedArg.substr(secondColon + 1);
+                    if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
+                        playerIdx = std::stoi(playerStr);
+                    if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                        scale = std::stof(scaleStr);
+                }
+                else if (firstColon != std::string::npos)
+                {
+                    std::string scaleStr = processedArg.substr(firstColon + 1);
+                    if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                        scale = std::stof(scaleStr);
+                }
+                log::info("[TwitchCommandManager] Setting scale for player {} to {} (command: {})", playerIdx, scale, ctx->commandName);
+                PlayLayerEvent::scalePlayer(playerIdx, scale);
+            }
             else if (processedArg.rfind("alert_popup:", 0) == 0)
             {
                 std::string title = "-", desc = "-";

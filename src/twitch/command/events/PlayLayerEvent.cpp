@@ -74,6 +74,33 @@ namespace {
     };
 };
 
+// Set player scale (playerIdx: 1, 2, or 3 for both)
+void PlayLayerEvent::scalePlayer(int playerIdx, float scale) {
+    Loader::get()->queueInMainThread([playerIdx, scale] {
+        auto playLayer = PlayLayer::get();
+        if (!playLayer) {
+            log::debug("[PlayLayerEvent] scalePlayer: PlayLayer not found");
+            return;
+        }
+        auto setScale = [&](auto* player) {
+            if (player) player->setScale(scale);
+        };
+        if (playerIdx == 3) {
+            setScale(playLayer->m_player1);
+            setScale(playLayer->m_player2);
+            log::info("[PlayLayerEvent] Set scale for both players: {}", scale);
+        } else {
+            auto player = (playerIdx == 2) ? playLayer->m_player2 : playLayer->m_player1;
+            if (!player) {
+                log::debug("[PlayLayerEvent] Player {} not found", playerIdx);
+                return;
+            }
+            setScale(player);
+            log::info("[PlayLayerEvent] Set scale for player {}: {}", playerIdx, scale);
+        }
+    });
+}
+
 // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
 void PlayLayerEvent::setCameraFromString(const std::string& arg) {
     Loader::get()->queueInMainThread([arg] {

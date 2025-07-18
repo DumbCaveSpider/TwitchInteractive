@@ -475,7 +475,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject* sender) {
             m_commandActions.push_back("wait:");
             refreshActionsList();
         } else if (eventId == "scale_player") {
-            m_commandActions.push_back("scale_player:1.00:0.00");
+            m_commandActions.push_back("scale_player:1.00");
             refreshActionsList();
         } else {
             m_commandActions.push_back(eventId);
@@ -767,22 +767,13 @@ void CommandSettingsPopup::refreshActionsList() {
                 settingsLabelText = buf;
             } else if (actionIdLower.rfind("scale_player", 0) == 0) {
                 float scale = 1.f;
-                float time = 0.f;
                 size_t firstColon = actionIdRaw.find(":");
-                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 if (firstColon != std::string::npos) {
-                    if (secondColon != std::string::npos) {
-                        std::string scaleStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                        std::string timeStr = actionIdRaw.substr(secondColon + 1);
-                        if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
-                        if (!timeStr.empty()) time = strtof(timeStr.c_str(), nullptr);
-                    } else {
-                        std::string scaleStr = actionIdRaw.substr(firstColon + 1);
-                        if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
-                    }
+                    std::string scaleStr = actionIdRaw.substr(firstColon + 1);
+                    if (!scaleStr.empty()) scale = strtof(scaleStr.c_str(), nullptr);
                 }
-                char buf[64];
-                snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f", scale, time);
+                char buf[32];
+                snprintf(buf, sizeof(buf), "Scale: %.2f", scale);
                 settingsLabelText = buf;
             }
         };
