@@ -16,5 +16,6 @@ If you need assistances on how to use this mod, suggestions on a new event and b
 
 If you think my work on this mod deserve a donation, you can donate to me via [PayPal](https://www.paypal.com/donate/?business=payment%40arcticwoof.com.au&item_name=Project+Donation%2FFunds&currency_code=AUD) but this is optional :)
 ## Credits
-Huge Thanks to [Alphalaneous](user:1139015) for adding [Twitch Chat API](https://geode-sdk.org/mods/alphalaneous.twitch_chat_api) to make this mod possible!
+- Huge Thanks to [Alphalaneous](user:1139015) for adding [Twitch Chat API](https://geode-sdk.org/mods/alphalaneous.twitch_chat_api) to make this mod possible!
+- Inspired by [CrowdControl Geode Mod](https://github.com/WarpWorld/CCPack-PC-GeometryDash), I created this mod purely because CC's codebase was... questionable...
 - [Cheeseworks](user:6408873) - For cleaning up my horrible messy code
