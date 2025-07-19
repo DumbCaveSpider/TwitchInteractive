@@ -84,7 +84,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command) {
 
     // Search box for event nodes (centered underneath the label)
     float searchBoxWidth = sectionWidth - 10.f;
-    auto eventSearchInput = TextInput::create(static_cast<int>(searchBoxWidth), "Search events", "bigfont.fnt");
+    auto eventSearchInput = TextInput::create(static_cast<int>(searchBoxWidth), "Search events", "bigFont.fnt");
     eventSearchInput->setID("event-search-input");
     // Center horizontally under the label
     eventSearchInput->setPosition(eventSectionX + scrollSize.width / 2, scrollBgY + scrollSize.height + 18.f);
