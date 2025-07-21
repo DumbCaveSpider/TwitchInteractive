@@ -74,7 +74,6 @@ static std::vector<std::string> getAvailableSounds()
         "playSound_01.ogg",
         "quitSound_01.ogg",
         "reward01.ogg",
-        "secretKey.ogg",
     };
 }
 
@@ -116,6 +115,7 @@ bool SoundSettingsPopup::setup()
 
     // Add sound nodes to the scroll layer
     auto sounds = getAvailableSounds();
+    std::sort(sounds.begin(), sounds.end());
     float nodeHeight = 36.f;
     float nodeGap = 8.f;
     float contentHeight = std::max(scrollSize.height, (nodeHeight + nodeGap) * sounds.size());
