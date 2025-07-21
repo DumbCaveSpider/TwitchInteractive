@@ -95,7 +95,6 @@ bool SoundSettingsPopup::setup()
     this->m_noElasticity = true;
     addChild(m_mainLayer);
 
-    
     std::vector<std::string> filteredSounds = getAvailableSounds();
     std::sort(filteredSounds.begin(), filteredSounds.end());
     setTitle("Sound Effect Settings");
@@ -104,13 +103,17 @@ bool SoundSettingsPopup::setup()
     // Add search box above the scroll layer
     auto searchBox = TextInput::create(320, "Search sounds");
     searchBox->setID("sound-search-box");
-    searchBox->setPosition(popupSize.width / 2, popupSize.height - 80.f);
+    searchBox->setPosition(popupSize.width / 2, popupSize.height - 70.f);
     m_mainLayer->addChild(searchBox);
+
+    // Store search input and last search string for polling
+    m_soundSearchInput = searchBox;
+    m_lastSoundSearchString = "";
 
     // Scroll area setup
     auto scrollSize = CCSize(320, 150);
     auto scrollLayer = ScrollLayer::create(scrollSize);
-    scrollLayer->setPosition(popupSize.width / 2 - scrollSize.width / 2, popupSize.height / 2 - scrollSize.height / 2 - 20.f);
+    scrollLayer->setPosition(popupSize.width / 2 - scrollSize.width / 2, popupSize.height / 2 - scrollSize.height / 2 - 10.f);
     scrollLayer->setID("sound-scroll");
     scrollLayer->setTouchPriority(-100);
 
@@ -126,7 +129,8 @@ bool SoundSettingsPopup::setup()
     m_mainLayer->addChild(scrollLayer);
 
     // Add sound nodes to the scroll layer
-    auto updateSoundList = [this, scrollLayer, scrollSize](const std::vector<std::string>& sounds) {
+    auto updateSoundList = [this, scrollLayer, scrollSize](const std::vector<std::string> &sounds)
+    {
         float nodeHeight = 36.f;
         float nodeGap = 8.f;
         float contentHeight = std::max(scrollSize.height, (nodeHeight + nodeGap) * sounds.size());
@@ -198,6 +202,10 @@ bool SoundSettingsPopup::setup()
     // Store update function for later use
     this->updateSoundList = updateSoundList;
 
+    // Polling approach for search input
+    this->schedule(schedule_selector(SoundSettingsPopup::onSoundSearchPoll), 0.1f);
+    m_lastSoundSearchString = "";
+
     // Add save button below the scroll layer
     auto saveBtnSprite = ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f);
     auto saveBtn = CCMenuItemSpriteExtra::create(saveBtnSprite, this, menu_selector(SoundSettingsPopup::onSaveBtn));
@@ -209,7 +217,7 @@ bool SoundSettingsPopup::setup()
     btnMenu->addChild(saveBtn);
 
     // Position the btnMenu centered horizontally, below the scroll layer
-    float btnY = scrollLayer->getPositionY() - 30.f;
+    float btnY = scrollLayer->getPositionY() - 25.f;
     btnMenu->setPosition(popupSize.width / 2, btnY);
 
     m_mainLayer->addChild(btnMenu);
@@ -217,23 +225,35 @@ bool SoundSettingsPopup::setup()
     return true;
 }
 
-void SoundSettingsPopup::onTextInput(geode::TextInput* input, const std::string& searchText) {
-    auto allSounds = getAvailableSounds();
-    std::sort(allSounds.begin(), allSounds.end());
-    std::vector<std::string> filtered;
-    if (searchText.empty()) {
-        filtered = allSounds;
-    } else {
-        std::string searchLower = searchText;
-        std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
-        for (const auto& s : allSounds) {
-            std::string sLower = s;
-            std::transform(sLower.begin(), sLower.end(), sLower.begin(), ::tolower);
-            if (sLower.find(searchLower) != std::string::npos)
-                filtered.push_back(s);
+void SoundSettingsPopup::onSoundSearchPoll(float)
+{
+    if (!m_soundSearchInput || !updateSoundList)
+        return;
+    std::string text = m_soundSearchInput->getString();
+    if (text != m_lastSoundSearchString)
+    {
+        auto allSounds = getAvailableSounds();
+        std::sort(allSounds.begin(), allSounds.end());
+        std::vector<std::string> filtered;
+        if (text.empty())
+        {
+            filtered = allSounds;
         }
+        else
+        {
+            std::string searchLower = text;
+            std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+            for (const auto &s : allSounds)
+            {
+                std::string sLower = s;
+                std::transform(sLower.begin(), sLower.end(), sLower.begin(), ::tolower);
+                if (sLower.find(searchLower) != std::string::npos)
+                    filtered.push_back(s);
+            }
+        }
+        updateSoundList(filtered);
+        m_lastSoundSearchString = text;
     }
-    if (updateSoundList) updateSoundList(filtered);
 }
 
 void SoundSettingsPopup::onSaveBtn(CCObject *)
@@ -269,7 +289,8 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
     }
     // Stop the audio pls
     auto audioEngine = FMODAudioEngine::sharedEngine();
-    if (audioEngine != nullptr) {
+    if (audioEngine != nullptr)
+    {
         audioEngine->stopAllEffects();
     }
     onClose(nullptr);

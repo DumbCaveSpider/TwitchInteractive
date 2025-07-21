@@ -2,22 +2,27 @@
 <img alt="Mod Downloads" src="https://img.shields.io/github/downloads/DumbCaveSpider/TwitchInteractive/total?logo=geode&logoColor=ffffff&label=Downloads">
 
 > [!WARNING]
-> This is still in Beta and not all features are currently present at this build. Expect a lot of bugs and do let me know!
+> This is still in Beta and not all features are currently present at this build. Expect bugs!
 
-Twitch Interactive is a mod that provides both Twitch Streamers and Viewers have an intergreted experience with the game.
+Twitch Interactive is a mod that allows both Twitch Streamers and Viewers to interact directly in game.
 
-This mod was heavily inspired by **ArcticWoof's Interactive Level Request** streams and made it to work seemlessly in game.
+This mod was heavily inspired by **ArcticWoof's Interactive Level Request** streams and works seemlessly between the game and Twitch.
 
-It provides a lot of quality of life and ease of use that makes your interactive streaming more fun for both you and your viewers!
+It provides a lot of quality of life and ease of use that makes your interactive streaming more fun or chaotic!
+
+
 ## Usage
-- To use this mod, you can open the **Twitch Dashboard** which is located both at the Game Pause Menu and Creator Tab. You will find a Twitch Button *(wrench button)* and which will ask you to link your Twitch Account to the dashboard.
+- Open the **Twitch Dashboard** button which is located at the bottom left of the **Creator Page** or top right at the **Pause Menu**
 
-- If you need to know how everything this mod has to offer, please refer to the handbook which is located at the **Dashboard** or at the **Commands Settings**.
+- Read the Handbook which is located at the **Dashboard** or at the **Commands Settings** to learn more about the mod.
 
-- This is a very complex and in-depth mod so please take your time to read over everything on this mod.
+- This is a very complex and in-depth mod so please take your time to read over everything this mod has to offer.
 
+## Disclaimer
+- The mod doesn't use chatbots to work!
+- The mod doesn't support sending messages to your stream chat due to the API only limited to **Read-only**.
 ## Support
-If you need assistances on how to use this mod, suggestions on a new event and bugs and issues, contact [ArcticWoof via Discord](https://discord.gg/gXcppxTNxC) for a direct contact with me!
+If you need help, suggestions? Contact [ArcticWoof via Discord](https://discord.gg/gXcppxTNxC) for a direct support!
 
 If you think my work on this mod deserve a donation, you can donate to me via [PayPal](https://www.paypal.com/donate/?business=payment%40arcticwoof.com.au&item_name=Project+Donation%2FFunds&currency_code=AUD) but this is optional :)
 

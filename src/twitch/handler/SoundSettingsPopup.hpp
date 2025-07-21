@@ -12,16 +12,19 @@ protected:
     int m_actionIdx = 0;
     std::string m_selectedSound;
     std::function<void(const std::string &)> m_onSave;
-    std::function<void(const std::vector<std::string>&)> updateSoundList;
+    std::function<void(const std::vector<std::string> &)> updateSoundList;
+    geode::TextInput *m_soundSearchInput = nullptr;
+    std::string m_lastSoundSearchString;
 
     bool setup() override;
     void onSaveBtn(CCObject *);
     void onSoundSelect(CCObject *);
-    void onPlaySound(CCObject* sender);
+    void onPlaySound(CCObject *sender);
     void onClose(CCObject *);
 
 public:
     static SoundSettingsPopup *create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave);
-    void onSelectSound(CCObject* sender);
-    void onTextInput(geode::TextInput* input, const std::string& text);
+    void onSelectSound(CCObject *sender);
+    void onTextInput(geode::TextInput *input, const std::string &text);
+    void onSoundSearchPoll(float);
 };

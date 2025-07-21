@@ -1574,7 +1574,7 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleEditCameraSettings(this, sender);
     else if (actionStrLower.rfind("scale_player", 0) == 0)
         SettingsHandler::handleScalePlayerSettings(this, sender);
-    else if (actionStrLower.rfind("sound_effect", 0) == 0 || actionStrLower.rfind("sound:", 0) == 0)
+    else if (actionStrLower.rfind("sound", 0) == 0)
         SettingsHandler::handleSoundEffectSettings(this, sender);
 }
 // Polling function for event search input
