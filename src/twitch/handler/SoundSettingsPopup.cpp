@@ -140,6 +140,27 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
 {
     if (m_onSave)
         m_onSave(m_selectedSound);
+
+    // Update parent CommandSettingsPopup action node and settings label
+    if (m_parent && m_actionIdx >= 0) {
+        // Save selected sound to the action node
+        if (m_parent->m_commandActions.size() > static_cast<size_t>(m_actionIdx)) {
+            m_parent->m_commandActions[m_actionIdx] = "sound:" + m_selectedSound;
+        }
+        // Update the settings text label in the action node
+        if (m_parent->m_actionContent) {
+            auto children = m_parent->m_actionContent->getChildren();
+            if (children && m_actionIdx >= 0 && m_actionIdx < children->count()) {
+                auto actionNode = dynamic_cast<CCNode *>(children->objectAtIndex(m_actionIdx));
+                if (actionNode) {
+                    std::string settingsLabelId = "action-settings-label-" + std::to_string(m_actionIdx);
+                    if (auto settingsLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId))) {
+                        settingsLabel->setString(m_selectedSound.c_str());
+                    }
+                }
+            }
+        }
+    }
     onClose(nullptr);
 }
 

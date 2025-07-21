@@ -663,20 +663,18 @@ void CommandSettingsPopup::refreshActionsList()
 
         actionNode->addChild(indexLabel);
 
-        // Main label for the action node (ensure always present)
+        // Main label for the action node (always use Event Label if available)
         std::string mainLabelId = "action-main-label-" + std::to_string(i);
         std::string mainLabelText = actionIdRaw;
-
-        // Use the event name from CommandActionEventNode::getAllEventNodes if available
+        // Always use the event label from CommandActionEventNode::getAllEventNodes if available
         for (const auto &info : CommandActionEventNode::getAllEventNodes())
         {
-            // Match by prefix (e.g., "jump:", "move:", etc.)
-            if (actionIdLower.rfind(info.id, 0) == 0)
+            if (actionIdLower.rfind(info.id, 0) == 0 || (info.id == "sound_effect" && (actionIdLower.rfind("sound:", 0) == 0 || actionIdLower.rfind("sound_effect", 0) == 0)))
             {
                 mainLabelText = info.label;
                 break;
-            };
-        };
+            }
+        }
 
         //
         std::string btnId;
@@ -727,11 +725,11 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "scale-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
-        else if (actionIdLower.rfind("sound_effect", 0) == 0)
+        else if (actionIdLower.rfind("sound_effect", 0) == 0 || actionIdLower.rfind("sound:", 0) == 0)
         {
             btnId = "sound-effect-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
-        };
+        }
 
         // Always align main label to the same x/y for all nodes
         float mainLabelX = 25.f;
@@ -958,6 +956,24 @@ void CommandSettingsPopup::refreshActionsList()
                 char buf[64];
                 snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f", scale, time);
                 settingsLabelText = buf;
+            }
+            else if (actionIdLower.rfind("sound_effect", 0) == 0 || actionIdLower.rfind("sound:", 0) == 0)
+            {
+                // For sound effect actions, show the selected sound name or a placeholder
+                std::string soundName = "";
+                size_t colonPos = actionIdRaw.find(":");
+                if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size())
+                {
+                    soundName = actionIdRaw.substr(colonPos + 1);
+                }
+                if (soundName.empty())
+                {
+                    settingsLabelText = "No sound selected";
+                }
+                else
+                {
+                    settingsLabelText = soundName;
+                }
             }
         };
 
@@ -1558,7 +1574,7 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleEditCameraSettings(this, sender);
     else if (actionStrLower.rfind("scale_player", 0) == 0)
         SettingsHandler::handleScalePlayerSettings(this, sender);
-    else if (actionStrLower.rfind("sound_effect", 0) == 0)
+    else if (actionStrLower.rfind("sound_effect", 0) == 0 || actionStrLower.rfind("sound:", 0) == 0)
         SettingsHandler::handleSoundEffectSettings(this, sender);
 }
 // Polling function for event search input
