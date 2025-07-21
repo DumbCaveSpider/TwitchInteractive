@@ -1,6 +1,6 @@
 # v0.1.5-beta.1
-- Added **Sound Effects** Event
-- Made the **Wait** Action value to use Float value instead of just integer.
+- Added **Sound Effect** Event 
+- Changed the **Wait** Action value to use float value instead of just integer.
 # v0.1.4-beta.1
 - Added **Search Event** and sorted the events in an alphabetical order
 - Added **Scale Player** Event
