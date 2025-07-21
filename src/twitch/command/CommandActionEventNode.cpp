@@ -477,69 +477,20 @@ CommandActionEventNode* CommandActionEventNode::createEventNode(const std::strin
 
 std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
     std::vector<EventNodeInfo> nodes = {
-        {
-            "reverse_player",
-            "Reverse Player",
-            "Reverses the player direction. <cg>Only works well on classic level</c>."
-        },
-        {
-            "kill_player",
-            "Destroy Player",
-            "Destroy player. Self-explanatory. Don't use this while beating extremes!"},
-        {
-            "jump",
-            "Jump",
-            "Force the player to jump. You can set it to also hold jump."},
-        {
-            "move",
-            "Move Player",
-            "Move the player left or right. Lets you pick the player, direction and the distance to move."
-        },
-        {
-            "color_player",
-            "Color Player",
-            "Set the player's color based on the RGB value. <cr>Broken on Android users at this moment.</c>"
-        },
-        {
-            "edit_camera",
-            "Edit Camera",
-            "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)."
-        },
-        {
-            "wait",
-            "Wait",
-            "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions."
-        },
-        {
-            "notification",
-            "Notification",
-            "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>"
-        },
-        {
-            "alert_popup",
-            "Alert Popup",
-            "Shows an alert popup like this one you reading."
-        },
-        {
-            "keycode",
-            "Key Code",
-            "Simulates a key press or release. <cr>Does not work on mobile users</c>"
-        },
-        {
-            "profile",
-            "Profile",
-            "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>"
-        },
-        {
-            "nothing",
-            "Nothing",
-            "Does nothing at all."
-        },
-        {
-            "scale_player",
-            "Scale Player",
-            "Scales the player in-game. You can set the scale factor and the transition time (0 = instant)."
-        }
+        { "reverse_player", "Reverse Player", "Reverses the player direction. <cg>Only works well on classic level</c>." },
+        { "kill_player", "Destroy Player", "Destroy player. Self-explanatory. Don't use this while beating extremes!" },
+        { "jump", "Jump", "Force the player to jump. You can set it to also hold jump." },
+        { "move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move." },
+        { "color_player", "Color Player", "Set the player's color based on the RGB value. <cr>Broken on Android users at this moment.</c>" },
+        { "edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale. You can set the transition time (0 = instant)." },
+        { "wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). Use as a delay between actions." },
+        { "notification", "Notification", "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>" },
+        { "alert_popup", "Alert Popup", "Shows an alert popup like this one you reading." },
+        { "keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users</c>" },
+        { "profile", "Profile", "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>" },
+        { "nothing", "Nothing", "Does nothing at all." },
+        { "scale_player", "Scale Player", "Scales the player in-game. You can set the scale factor and the transition time (0 = instant)." },
+        { "sound_effect", "Sound Effect", "Plays a sound effect from the game. Lets you pick from a list of available sound effects." }
     };
 
     return nodes;

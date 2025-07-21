@@ -37,6 +37,7 @@ protected:
     void onCloseBtn(cocos2d::CCObject *sender);
     void onHandbookBtn(cocos2d::CCObject *sender);
     void onSettingsButtonUnified(cocos2d::CCObject *sender);
+    void onSoundEffectSettings(cocos2d::CCObject *sender);
 
     void onEventInfoBtn(cocos2d::CCObject *sender);
     void onAddEventAction(cocos2d::CCObject *sender);

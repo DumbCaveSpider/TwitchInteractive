@@ -1,0 +1,197 @@
+
+#include "SoundSettingsPopup.hpp"
+#include <Geode/Geode.hpp>
+
+using namespace geode::prelude;
+using namespace cocos2d;
+
+// Unified sound list for settings
+static std::vector<std::string> getAvailableSounds()
+{
+    return {
+        "chestLand.ogg",
+        "secretKey.ogg",
+    };
+}
+
+bool SoundSettingsPopup::setup()
+{
+    setTitle("Sound Effect Settings");
+    setID("sound-effect-settings-popup");
+
+    // Unified popup centering and main layer creation
+    auto popupSize = getContentSize();
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    setPosition(CCPoint(winSize.width / 2 - popupSize.width / 2, winSize.height / 2 - popupSize.height / 2));
+
+    m_mainLayer = CCLayer::create();
+    m_mainLayer->setContentSize(popupSize);
+    m_mainLayer->setAnchorPoint({0, 0});
+    m_mainLayer->setPosition(0, 0);
+
+    this->m_noElasticity = true;
+    addChild(m_mainLayer);
+
+    // Scroll area setup
+    auto scrollSize = CCSize(320, 180);
+    auto scrollLayer = ScrollLayer::create(scrollSize);
+    scrollLayer->setPosition(popupSize.width / 2 - scrollSize.width / 2, popupSize.height / 2 - scrollSize.height / 2 + 10.f);
+    scrollLayer->setID("sound-scroll");
+    scrollLayer->setTouchPriority(-100);
+
+    auto scrollBg = CCScale9Sprite::create("square02_001.png");
+    scrollBg->setID("sound-scroll-background");
+    scrollBg->setContentSize(scrollSize);
+    scrollBg->setOpacity(50);
+    scrollBg->setScale(1.05f);
+    scrollBg->setAnchorPoint({0.5f, 0.5f});
+    scrollBg->setPosition(scrollLayer->getPositionX() + scrollSize.width / 2, scrollLayer->getPositionY() + scrollSize.height / 2);
+    m_mainLayer->addChild(scrollBg, -1);
+
+    m_mainLayer->addChild(scrollLayer);
+
+    // Add sound nodes to the scroll layer
+    auto sounds = getAvailableSounds();
+    float nodeHeight = 36.f;
+    float nodeGap = 8.f;
+    float contentHeight = std::max(scrollSize.height, (nodeHeight + nodeGap) * sounds.size());
+    auto contentLayer = CCLayer::create();
+    contentLayer->setContentSize(CCSize(scrollSize.width, contentHeight));
+    contentLayer->setAnchorPoint({0, 0});
+    contentLayer->setPosition(0, 0);
+
+    float y = contentHeight - nodeHeight / 2;
+    float centerX = scrollSize.width / 2;
+    for (size_t i = 0; i < sounds.size(); ++i)
+    {
+        auto node = CCNode::create();
+        node->setContentSize(CCSize(scrollSize.width, nodeHeight));
+        node->setAnchorPoint({0.5f, 0.5f});
+        node->setPosition(centerX, y);
+
+        // Background
+        auto bg = CCScale9Sprite::create("square02_001.png");
+        bg->setContentSize(CCSize(scrollSize.width, nodeHeight));
+        bg->setOpacity(60);
+        bg->setAnchorPoint({0, 0});
+        bg->setPosition(0, 0);
+        node->addChild(bg, -1);
+
+        auto labelBtn = CCMenuItemSpriteExtra::create(
+            CCLabelBMFont::create(sounds[i].c_str(), "bigFont.fnt"),
+            this,
+            menu_selector(SoundSettingsPopup::onSelectSound));
+        labelBtn->setID("sound-label-btn-" + std::to_string(i));
+        labelBtn->setUserObject(CCString::create(sounds[i]));
+        labelBtn->setScale(0.5f);
+        labelBtn->setAnchorPoint({0, 0.5f});
+        labelBtn->setPosition(18.f, nodeHeight / 2);
+
+        auto btnMenu = CCMenu::create();
+        btnMenu->addChild(labelBtn);
+        btnMenu->setPosition(0, 0);
+        btnMenu->setContentSize(node->getContentSize());
+        node->addChild(btnMenu);
+
+        contentLayer->addChild(node);
+        y -= (nodeHeight + nodeGap);
+    }
+
+    scrollLayer->m_contentLayer->removeAllChildren();
+    scrollLayer->m_contentLayer->addChild(contentLayer);
+    scrollLayer->m_contentLayer->setContentSize(contentLayer->getContentSize());
+
+    // Add save button below the scroll layer
+    auto saveBtnSprite = ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f);
+    auto saveBtn = CCMenuItemSpriteExtra::create(saveBtnSprite, this, menu_selector(SoundSettingsPopup::onSaveBtn));
+    saveBtn->setID("sound-settings-save-btn");
+
+    // Create a btnMenu for the button
+    auto btnMenu = CCMenu::create();
+    btnMenu->setID("sound-settings-btn-btnMenu");
+    btnMenu->addChild(saveBtn);
+
+    // Position the btnMenu centered horizontally, below the scroll layer
+    float btnY = scrollLayer->getPositionY() - 30.f;
+    btnMenu->setPosition(popupSize.width / 2, btnY);
+
+    m_mainLayer->addChild(btnMenu);
+
+    return true;
+}
+
+void SoundSettingsPopup::onSaveBtn(CCObject *)
+{
+    if (m_onSave)
+        m_onSave(m_selectedSound);
+    onClose(nullptr);
+}
+
+// Select sound button handler
+void SoundSettingsPopup::onSelectSound(CCObject *sender)
+{
+    auto btn = dynamic_cast<CCMenuItemSpriteExtra *>(sender);
+    if (!btn || !btn->getUserObject())
+        return;
+    std::string sound = static_cast<CCString *>(btn->getUserObject())->getCString();
+    m_selectedSound = sound;
+
+    // Visual feedback: highlight selected button and scale it up
+    // Find parent content layer and update all buttons
+    if (btn->getParent() && btn->getParent()->getParent())
+    {
+        auto contentLayer = btn->getParent()->getParent()->getParent();
+        if (contentLayer)
+        {
+            auto children = contentLayer->getChildren();
+            if (children)
+            {
+                for (int i = 0; i < children->count(); ++i)
+                {
+                    auto node = dynamic_cast<CCNode *>(children->objectAtIndex(i));
+                    if (!node)
+                        continue;
+                    CCMenu *btnMenu = nullptr;
+                    // Try to find btnMenu by iterating children
+                    for (int j = 0; j < node->getChildren()->count(); ++j)
+                    {
+                        auto child = node->getChildren()->objectAtIndex(j);
+                        btnMenu = dynamic_cast<CCMenu *>(child);
+                        if (btnMenu)
+                            break;
+                    }
+                    if (btnMenu && btnMenu->getChildren())
+                    {
+                        for (int j = 0; j < btnMenu->getChildren()->count(); ++j)
+                        {
+                            auto btnChild = dynamic_cast<CCMenuItemSpriteExtra *>(btnMenu->getChildren()->objectAtIndex(j));
+                            if (btnChild)
+                            {
+                                auto btnSound = btnChild->getUserObject() ? static_cast<CCString *>(btnChild->getUserObject())->getCString() : "";
+                                // Scale up selected, scale down others
+                                btnChild->setScale(btnSound == sound ? 0.6f : 0.5f);
+                                btnChild->setColor(btnSound == sound ? ccColor3B{0, 255, 0} : ccColor3B{255, 255, 255});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+SoundSettingsPopup *SoundSettingsPopup::create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave)
+{
+    auto ret = new SoundSettingsPopup();
+    ret->m_parent = parent;
+    ret->m_actionIdx = actionIdx;
+    ret->m_selectedSound = selectedSound;
+    ret->m_onSave = onSave;
+    if (ret && ret->initAnchored(400.f, 280.f))
+    {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
