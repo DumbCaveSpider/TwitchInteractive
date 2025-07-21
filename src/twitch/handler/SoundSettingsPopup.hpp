@@ -17,6 +17,7 @@ protected:
     void onSaveBtn(CCObject *);
     void onSoundSelect(CCObject *);
     void onPlaySound(CCObject* sender);
+    void onClose(CCObject *);
 
 public:
     static SoundSettingsPopup *create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave);

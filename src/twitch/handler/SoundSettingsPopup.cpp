@@ -9,8 +9,41 @@ using namespace cocos2d;
 static std::vector<std::string> getAvailableSounds()
 {
     return {
+        "BackOnTrack.mp3",
+        "BaseAfterBase.mp3",
+        "BlastProcessing.mp3",
+        "CantLetGo.mp3",
+        "chestClick.ogg",
         "chestLand.ogg",
+        "Clubstep.mp3",
+        "Clutterfunk.mp3",
+        "Cycles.mp3",
+        "dangerLoop.mp3",
+        "Dash.mp3",
+        "Deadlocked.mp3",
+        "DJRubRub.mp3",
+        "DryOut.mp3",
+        "Electrodynamix.mp3",
+        "Electroman.mp3",
+        "Fingerdash.mp3",
+        "GeometricalDominator.mp3",
+        "HexagonForce.mp3",
+        "Jumper.mp3",
+        "jumpscareAudio.mp3",
+        "magicExplosion.ogg",
+        "menuLoop.mp3",
+        "Polargeist.mp3",
+        "PowerTrip.mp3",
         "secretKey.ogg",
+        "secretLoop.mp3",
+        "secretShop.mp3",
+        "shop.mp3",
+        "StayInsideMe.mp3",
+        "StereoMadness.mp3",
+        "TheoryOfEverything.mp3",
+        "TimeMachine.mp3",
+        "unlockPath.ogg",
+        "xStep.mp3",
     };
 }
 
@@ -116,6 +149,7 @@ bool SoundSettingsPopup::setup()
     scrollLayer->m_contentLayer->removeAllChildren();
     scrollLayer->m_contentLayer->addChild(contentLayer);
     scrollLayer->m_contentLayer->setContentSize(contentLayer->getContentSize());
+    scrollLayer->scrollToTop();
 
     // Add save button below the scroll layer
     auto saveBtnSprite = ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f);
@@ -142,26 +176,48 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
         m_onSave(m_selectedSound);
 
     // Update parent CommandSettingsPopup action node and settings label
-    if (m_parent && m_actionIdx >= 0) {
+    if (m_parent && m_actionIdx >= 0)
+    {
         // Save selected sound to the action node
-        if (m_parent->m_commandActions.size() > static_cast<size_t>(m_actionIdx)) {
+        if (m_parent->m_commandActions.size() > static_cast<size_t>(m_actionIdx))
+        {
             m_parent->m_commandActions[m_actionIdx] = "sound:" + m_selectedSound;
         }
         // Update the settings text label in the action node
-        if (m_parent->m_actionContent) {
+        if (m_parent->m_actionContent)
+        {
             auto children = m_parent->m_actionContent->getChildren();
-            if (children && m_actionIdx >= 0 && m_actionIdx < children->count()) {
+            if (children && m_actionIdx >= 0 && m_actionIdx < children->count())
+            {
                 auto actionNode = dynamic_cast<CCNode *>(children->objectAtIndex(m_actionIdx));
-                if (actionNode) {
+                if (actionNode)
+                {
                     std::string settingsLabelId = "action-settings-label-" + std::to_string(m_actionIdx);
-                    if (auto settingsLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId))) {
+                    if (auto settingsLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId)))
+                    {
                         settingsLabel->setString(m_selectedSound.c_str());
                     }
                 }
             }
         }
     }
+    // Stop the audio pls
+    auto audioEngine = FMODAudioEngine::sharedEngine();
+    if (audioEngine != nullptr) {
+        audioEngine->stopAllEffects();
+    }
     onClose(nullptr);
+}
+
+void SoundSettingsPopup::onClose(CCObject *)
+{
+    // Stop the audio if playing
+    auto audioEngine = FMODAudioEngine::sharedEngine();
+    if (audioEngine != nullptr)
+    {
+        audioEngine->stopAllEffects();
+    }
+    removeFromParentAndCleanup(true);
 }
 
 // Select sound button handler
@@ -206,13 +262,17 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
                             {
                                 auto btnSound = btnChild->getUserObject() ? static_cast<CCString *>(btnChild->getUserObject())->getCString() : "";
                                 // Scale up selected, scale down others
-                                if (btnChild->getID().find("sound-play-btn-") == 0) {
+                                if (btnChild->getID().find("sound-play-btn-") == 0)
+                                {
                                     // Only scale the play button's sprite
-                                    auto playSprite = dynamic_cast<CCSprite*>(btnChild->getNormalImage());
-                                } else if (btnChild->getID().find("sound-label-btn-") == 0) {
+                                    auto playSprite = dynamic_cast<CCSprite *>(btnChild->getNormalImage());
+                                }
+                                else if (btnChild->getID().find("sound-label-btn-") == 0)
+                                {
                                     // Only scale the label sprite
-                                    auto labelSprite = dynamic_cast<CCLabelBMFont*>(btnChild->getNormalImage());
-                                    if (labelSprite) {
+                                    auto labelSprite = dynamic_cast<CCLabelBMFont *>(btnChild->getNormalImage());
+                                    if (labelSprite)
+                                    {
                                         labelSprite->setColor(btnSound == sound ? ccColor3B{0, 255, 0} : ccColor3B{255, 255, 255});
                                     }
                                 }
@@ -235,6 +295,7 @@ void SoundSettingsPopup::onPlaySound(CCObject *sender)
     auto audioEngine = FMODAudioEngine::sharedEngine();
     if (audioEngine != nullptr)
     {
+        audioEngine->stopAllEffects();
         audioEngine->playEffect(sound);
     }
 }
