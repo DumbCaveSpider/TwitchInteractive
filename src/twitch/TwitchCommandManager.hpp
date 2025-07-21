@@ -279,6 +279,24 @@ struct ActionContext : public CCObject
                 log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);
                 PlayLayerEvent::setCameraFromString(processedArg);
             }
+            else if (processedArg.rfind("sound_effect:", 0) == 0 || processedArg.rfind("sound:", 0) == 0)
+            {
+                std::string soundName = "";
+                size_t colonPos = processedArg.find(":");
+                if (colonPos != std::string::npos && colonPos + 1 < processedArg.size())
+                    soundName = processedArg.substr(colonPos + 1);
+                if (!soundName.empty())
+                {
+                    log::info("[TwitchCommandManager] Playing sound effect '{}' (command: {})", soundName, ctx->commandName);
+                    auto audioEngine = FMODAudioEngine::sharedEngine();
+                    if (audioEngine != nullptr)
+                        audioEngine->playEffect(soundName);
+                }
+                else
+                {
+                    log::warn("[TwitchCommandManager] Sound effect action triggered but no sound name set (command: {})", ctx->commandName);
+                }
+            }
             else if (processedArg.rfind("scale_player:", 0) == 0)
             {
                 int playerIdx = 1;
@@ -287,10 +305,12 @@ struct ActionContext : public CCObject
                 size_t firstColon = processedArg.find(":");
                 size_t secondColon = processedArg.find(":", firstColon + 1);
                 size_t thirdColon = (secondColon != std::string::npos) ? processedArg.find(":", secondColon + 1) : std::string::npos;
-                if (firstColon != std::string::npos && secondColon != std::string::npos) {
+                if (firstColon != std::string::npos && secondColon != std::string::npos)
+                {
                     std::string scaleStr, timeStr;
                     // If three colons, treat as scale_player:<player>:<scale>:<time>
-                    if (thirdColon != std::string::npos) {
+                    if (thirdColon != std::string::npos)
+                    {
                         std::string playerStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
                         scaleStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
                         timeStr = processedArg.substr(thirdColon + 1);
@@ -300,7 +320,9 @@ struct ActionContext : public CCObject
                             scale = std::stof(scaleStr);
                         if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
                             time = std::stof(timeStr);
-                    } else {
+                    }
+                    else
+                    {
                         // scale_player:<scale>:<time> (no player index)
                         scaleStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
                         timeStr = processedArg.substr(secondColon + 1);
@@ -309,7 +331,9 @@ struct ActionContext : public CCObject
                         if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
                             time = std::stof(timeStr);
                     }
-                } else if (firstColon != std::string::npos) {
+                }
+                else if (firstColon != std::string::npos)
+                {
                     std::string scaleStr = processedArg.substr(firstColon + 1);
                     if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
                         scale = std::stof(scaleStr);
