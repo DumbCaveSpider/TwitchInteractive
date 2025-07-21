@@ -762,12 +762,20 @@ void CommandSettingsPopup::refreshActionsList() {
                 size_t colon = actionIdRaw.find(":");
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
                     std::string rest = actionIdRaw.substr(colon + 1);
-                    if (rest == "3" || rest.rfind("3:hold", 0) == 0) {
+                    if (rest == "3") {
                         settingsLabelText = "Both Players";
+                    } else if (rest.rfind("3:hold", 0) == 0) {
+                        settingsLabelText = "Both Players (Hold)";
                     } else {
-                        settingsLabelText = "Player: " + rest;
-                    };
-                };
+                        size_t holdPos = rest.find(":hold");
+                        if (holdPos != std::string::npos) {
+                            std::string playerNum = rest.substr(0, holdPos);
+                            settingsLabelText = "Player " + playerNum + " (Hold)";
+                        } else {
+                            settingsLabelText = "Player " + rest;
+                        }
+                    }
+                }
             } else if (actionIdLower.rfind("color_player", 0) == 0) {
                 size_t colon = actionIdRaw.find(":");
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
@@ -807,7 +815,7 @@ void CommandSettingsPopup::refreshActionsList() {
                     }
                 }
                 char buf[64];
-                snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f s", scale, time);
+                snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f", scale, time);
                 settingsLabelText = buf;
             }
         };
