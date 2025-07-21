@@ -669,7 +669,7 @@ void CommandSettingsPopup::refreshActionsList()
         // Always use the event label from CommandActionEventNode::getAllEventNodes if available
         for (const auto &info : CommandActionEventNode::getAllEventNodes())
         {
-            if (actionIdLower.rfind(info.id, 0) == 0 || (info.id == "sound_effect" && (actionIdLower.rfind("sound:", 0) == 0 || actionIdLower.rfind("sound_effect", 0) == 0)))
+            if (actionIdLower.rfind(info.id, 0) == 0)
             {
                 mainLabelText = info.label;
                 break;
@@ -725,7 +725,7 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "scale-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
-        else if (actionIdLower.rfind("sound_effect", 0) == 0 || actionIdLower.rfind("sound:", 0) == 0)
+        else if (actionIdLower.rfind("sound", 0) == 0)
         {
             btnId = "sound-effect-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
@@ -957,7 +957,7 @@ void CommandSettingsPopup::refreshActionsList()
                 snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f", scale, time);
                 settingsLabelText = buf;
             }
-            else if (actionIdLower.rfind("sound_effect", 0) == 0 || actionIdLower.rfind("sound:", 0) == 0)
+            else if (actionIdLower.rfind("sound", 0) == 0)
             {
                 // For sound effect actions, show the selected sound name or a placeholder
                 std::string soundName = "";

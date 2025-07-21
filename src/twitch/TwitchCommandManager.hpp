@@ -358,6 +358,13 @@ struct ActionContext : public CCObject
                 log::info("[TwitchCommandManager] Showing alert popup: title='{}', desc='{}' (command: {})", title, desc, ctx->commandName);
                 FLAlertLayer::create(title.c_str(), desc.c_str(), "OK")->show();
             }
+            else if (processedArg == "stop_all_sounds")
+            {
+                log::info("[TwitchCommandManager] Stopping all sound effects (command: {})", ctx->commandName);
+                auto audioEngine = FMODAudioEngine::sharedEngine();
+                if (audioEngine != nullptr)
+                    audioEngine->stopAllEffects();
+            }
             else if (processedArg.rfind("jump:", 0) == 0)
             {
                 int playerIdx = 1;

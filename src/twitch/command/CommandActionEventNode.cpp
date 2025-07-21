@@ -1,4 +1,5 @@
 #include <Geode/Geode.hpp>
+#include <Geode/binding/FMODAudioEngine.hpp>
 #include "CommandActionEventNode.hpp"
 #include "CommandSettingsPopup.hpp"
 #include "../handler/SettingsHandler.hpp"
@@ -535,7 +536,9 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"profile", "Profile", "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>"},
         {"nothing", "Nothing", "Does nothing at all."},
         {"scale_player", "Scale Player", "Scales the player in-game. <cr>Does not affect the player hitbox.</c>"},
-        {"sound", "Sound Effect", "Plays a sound effect. <cg>Only uses the provided sound effect included in game.</c>"}};
+        {"sound", "Sound Effect", "Plays a sound effect. <cg>Only uses the provided sound effect included in game.</c>"},
+        {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately."}
+    };
 
     return nodes;
 };
