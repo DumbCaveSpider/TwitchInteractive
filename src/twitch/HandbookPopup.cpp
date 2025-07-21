@@ -144,6 +144,7 @@ void HandbookPopup::onUserRoleBtn(CCObject*) {
     std::string md =
         "# Command User/Role Restrictions\n\n"
         "Command User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
+
         "## Available Restrictions\n"
         "- **User**: Only the specified username can use the command.\n"
         "- **Everyone**: No restrictions, anyone can use the command *(Have all checkbox unticked)*.\n"
@@ -151,6 +152,7 @@ void HandbookPopup::onUserRoleBtn(CCObject*) {
         "- **Mod**: Users with Twitch Mod role can use the command.\n"
         "- **Subscriber**: Users with Twitch Subscriber role can use the command.\n"
         "- **Streamer**: User logged in on this dashboard can use the command.\n\n"
+
         "You can combine multiple restrictions. If any are set, the user must match at least one to use the command.\n\n"
         "**Tip:** Use role restrictions to protect important or powerful commands!";
 
@@ -183,13 +185,7 @@ void HandbookPopup::onDashboardBtn(CCObject*) {
         "# Dashboard\n\n"
         "The Dashboard is your main control center for the Twitch Interactive mod.\n\n"
 
-        "## Features\n"
-        "- View and manage all Twitch chat commands.\n"
-        "- See real-time command triggers.\n"
-        "- Enable or disable command listening.\n"
-        "- Monitor cooldowns and command usage.\n"
-
-        "## How it works\n"
+        "## How to Use\n"
         "- By default, all commands are disabled upon game bootup and only starts listening when you open the Dashboard.\n"
         "- You can change each commands you created in the Dashboard with the buttons on the right.\n"
         "- If you want to pause all commands in the chat, you can toggle the 'Listen' button in the Dashboard.\n"
@@ -240,6 +236,7 @@ void HandbookPopup::onEventsBtn(CCObject*) {
     std::string md =
         "# Events\n\n"
         "Events are actions that can be added to the command.\n\n"
+        
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
         "- Some events accept arguments, such as which player to affect.\n"

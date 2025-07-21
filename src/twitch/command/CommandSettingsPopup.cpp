@@ -911,7 +911,13 @@ void CommandSettingsPopup::refreshActionsList() {
             size_t colon = actionIdRaw.find(":");
 
             if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) waitValue = actionIdRaw.substr(colon + 1);
-            if (!waitValue.empty()) waitInput->setString(waitValue.c_str());
+            if (!waitValue.empty()) {
+                float waitFloat = std::stof(waitValue);
+                waitFloat = std::round(waitFloat * 1000.0f) / 1000.0f;
+                char buf[16];
+                snprintf(buf, sizeof(buf), "%.2f", waitFloat);
+                waitInput->setString(buf);
+            }
 
             waitInput->setID(waitInputId);
             waitInput->setPosition(btnMenuRight - btnSpacing, 16.f);
@@ -1100,13 +1106,15 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             };
 
             // check if string is valid
-            if (!delayStr.empty() && (delayStr.find_first_not_of("-0123456789") == std::string::npos)) {
-                int delay = std::stoi(delayStr);
-
+            if (!delayStr.empty() && (delayStr.find_first_not_of("-.0123456789") == std::string::npos)) {
+                float delay = std::stof(delayStr);
+                delay = std::round(delay * 1000.0f) / 1000.0f;
                 actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
-                actionIdRaw = "wait:" + std::to_string(delay);
+                char buf[32];
+                snprintf(buf, sizeof(buf), "%.3f", delay);
+                actionIdRaw = std::string("wait:") + buf;
             } else {
-                Notification::create("Wait delay must be an integer!", NotificationIcon::Error)->show();
+                Notification::create("Wait delay must be a number!", NotificationIcon::Error)->show();
                 return;
             };
         } else if (actionId == "jump") {
@@ -1162,7 +1170,9 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
         if (action.type == CommandActionType::Notification) {
             m_commandActions.push_back("notification:" + action.arg);
         } else if (action.type == CommandActionType::Wait) {
-            m_commandActions.push_back("wait:" + std::to_string(action.index));
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%.2f", action.index);
+            m_commandActions.push_back("wait:" + std::string(buf));
         } else if (action.type == CommandActionType::Event && action.arg.rfind("alert_popup:", 0) == 0) {
             m_commandActions.push_back(action.arg);
         } else if (action.type == CommandActionType::Event) {

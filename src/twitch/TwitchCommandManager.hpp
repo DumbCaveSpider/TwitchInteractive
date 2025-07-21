@@ -58,12 +58,12 @@ struct TwitchCommandAction
     static TwitchCommandAction fromJson(const matjson::Value &v);
     CommandActionType type = CommandActionType::Notification; // Type of callback
     std::string arg = "";                                     // A string to pass to the callback
-    int index = 0;                                            // Priority order
+    float index = 0.f;                                        // Priority order
 
     TwitchCommandAction(
         CommandActionType actType = CommandActionType::Notification,
         const std::string &actArg = "",
-        int actIndex = 0) : type(actType), arg(actArg), index(actIndex) {};
+        float actIndex = 0.f) : type(actType), arg(actArg), index(actIndex) {};
 };
 
 // Template for a command
@@ -222,29 +222,30 @@ struct ActionContext : public CCObject
         // Handle Wait type
         if (action.type == CommandActionType::Wait)
         {
-            int delay = 0;
-            // Try to parse delay from arg
-            if (!processedArg.empty() && processedArg.find_first_not_of("0123456789") == std::string::npos)
+            float delay = action.index;
+            if (delay <= 0.f && !processedArg.empty() && processedArg.find_first_not_of("-.0123456789") == std::string::npos)
             {
-                delay = std::stoi(processedArg);
+                delay = std::stof(processedArg);
             }
-            if (delay > 0)
+            delay = std::round(delay * 1000.0f) / 1000.0f;
+            if (delay > 0.f)
             {
-                log::info("[TwitchCommandManager] Waiting for {} seconds before next action (command '{}', action {})", delay, ctx->commandName, ctx->index);
+                log::info("[TwitchCommandManager] Waiting for {:.2f} seconds before next action (command '{}', action {})", delay, ctx->commandName, ctx->index);
                 if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                 {
-                    for (int i = 1; i <= delay; ++i)
+                    int intDelay = static_cast<int>(delay);
+                    for (int i = 1; i <= intDelay; ++i)
                     {
-                        auto logger = new CountdownLogger(delay - i + 1, ctx->commandName, ctx->index);
+                        auto logger = new CountdownLogger(intDelay - i + 1, ctx->commandName, ctx->index);
                         scene->runAction(CCSequence::create(
-                            CCDelayTime::create(as<float>(i)),
+                            CCDelayTime::create(static_cast<float>(i)),
                             CCCallFuncO::create(logger, callfuncO_selector(CountdownLogger::log), logger),
                             nullptr));
                     }
                 }
                 ctx->index++;
                 auto seq = CCSequence::create(
-                    CCDelayTime::create(as<float>(delay)),
+                    CCDelayTime::create(delay),
                     CCCallFuncO::create(ctx, callfuncO_selector(ActionContext::execute), ctx),
                     nullptr);
                 if (auto scene = CCDirector::sharedDirector()->getRunningScene())

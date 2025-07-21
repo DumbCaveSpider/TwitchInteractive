@@ -23,11 +23,15 @@ matjson::Value TwitchCommandAction::toJson() const {
 TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     CommandActionType type = CommandActionType::Notification;
     std::string arg = "";
-    int index = 0;
+    float index = 0.f;
 
     if (v.contains("type") && v["type"].asInt().ok()) type = as<CommandActionType>(v["type"].asInt().unwrap());
     if (v.contains("arg") && v["arg"].asString().ok()) arg = v["arg"].asString().unwrap();
-    if (v.contains("index") && v["index"].asInt().ok()) index = as<int>(v["index"].asInt().unwrap());
+    if (v.contains("index") && v["index"].isNumber()) {
+        auto result = v["index"].asDouble();
+        if (result.ok()) index = static_cast<float>(result.unwrap());
+        else index = 0.f;
+    }
 
     return TwitchCommandAction(type, arg, index);
 };
