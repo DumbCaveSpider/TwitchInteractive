@@ -12,6 +12,7 @@ protected:
     int m_actionIdx = 0;
     std::string m_selectedSound;
     std::function<void(const std::string &)> m_onSave;
+    std::function<void(const std::vector<std::string>&)> updateSoundList;
 
     bool setup() override;
     void onSaveBtn(CCObject *);
@@ -22,4 +23,5 @@ protected:
 public:
     static SoundSettingsPopup *create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave);
     void onSelectSound(CCObject* sender);
+    void onTextInput(geode::TextInput* input, const std::string& text);
 };

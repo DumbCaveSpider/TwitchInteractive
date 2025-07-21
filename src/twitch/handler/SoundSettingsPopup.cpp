@@ -47,7 +47,7 @@ static std::vector<std::string> getAvailableSounds()
         "StayInsideMe.mp3",
         "StereoMadness.mp3",
         "TheoryOfEverything.mp3",
-        "TheroryOfEverything2.mp3",
+        "TheoryOfEverything2.mp3",
         "TimeMachine.mp3",
         "tower01.mp3",
         "unlockPath.ogg",
@@ -95,10 +95,22 @@ bool SoundSettingsPopup::setup()
     this->m_noElasticity = true;
     addChild(m_mainLayer);
 
+    
+    std::vector<std::string> filteredSounds = getAvailableSounds();
+    std::sort(filteredSounds.begin(), filteredSounds.end());
+    setTitle("Sound Effect Settings");
+    setID("sound-effect-settings-popup");
+
+    // Add search box above the scroll layer
+    auto searchBox = TextInput::create(320, "Search sounds");
+    searchBox->setID("sound-search-box");
+    searchBox->setPosition(popupSize.width / 2, popupSize.height - 80.f);
+    m_mainLayer->addChild(searchBox);
+
     // Scroll area setup
-    auto scrollSize = CCSize(320, 180);
+    auto scrollSize = CCSize(320, 150);
     auto scrollLayer = ScrollLayer::create(scrollSize);
-    scrollLayer->setPosition(popupSize.width / 2 - scrollSize.width / 2, popupSize.height / 2 - scrollSize.height / 2 + 10.f);
+    scrollLayer->setPosition(popupSize.width / 2 - scrollSize.width / 2, popupSize.height / 2 - scrollSize.height / 2 - 20.f);
     scrollLayer->setID("sound-scroll");
     scrollLayer->setTouchPriority(-100);
 
@@ -114,73 +126,77 @@ bool SoundSettingsPopup::setup()
     m_mainLayer->addChild(scrollLayer);
 
     // Add sound nodes to the scroll layer
-    auto sounds = getAvailableSounds();
-    std::sort(sounds.begin(), sounds.end());
-    float nodeHeight = 36.f;
-    float nodeGap = 8.f;
-    float contentHeight = std::max(scrollSize.height, (nodeHeight + nodeGap) * sounds.size());
-    auto contentLayer = CCLayer::create();
-    contentLayer->setContentSize(CCSize(scrollSize.width, contentHeight));
-    contentLayer->setAnchorPoint({0, 0});
-    contentLayer->setPosition(0, 0);
+    auto updateSoundList = [this, scrollLayer, scrollSize](const std::vector<std::string>& sounds) {
+        float nodeHeight = 36.f;
+        float nodeGap = 8.f;
+        float contentHeight = std::max(scrollSize.height, (nodeHeight + nodeGap) * sounds.size());
+        auto contentLayer = CCLayer::create();
+        contentLayer->setContentSize(CCSize(scrollSize.width, contentHeight));
+        contentLayer->setAnchorPoint({0, 0});
+        contentLayer->setPosition(0, 0);
 
-    float y = contentHeight - nodeHeight / 2;
-    float centerX = scrollSize.width / 2;
-    for (size_t i = 0; i < sounds.size(); ++i)
-    {
-        auto node = CCNode::create();
-        node->setContentSize(CCSize(scrollSize.width, nodeHeight));
-        node->setAnchorPoint({0.5f, 0.5f});
-        node->setPosition(centerX, y);
+        float y = contentHeight - nodeHeight / 2;
+        float centerX = scrollSize.width / 2;
+        for (size_t i = 0; i < sounds.size(); ++i)
+        {
+            auto node = CCNode::create();
+            node->setContentSize(CCSize(scrollSize.width, nodeHeight));
+            node->setAnchorPoint({0.5f, 0.5f});
+            node->setPosition(centerX, y);
 
-        // Background
-        auto bg = CCScale9Sprite::create("square02_001.png");
-        bg->setContentSize(CCSize(scrollSize.width, nodeHeight));
-        bg->setOpacity(60);
-        bg->setAnchorPoint({0, 0});
-        bg->setPosition(0, 0);
-        node->addChild(bg, -1);
+            // Background
+            auto bg = CCScale9Sprite::create("square02_001.png");
+            bg->setContentSize(CCSize(scrollSize.width, nodeHeight));
+            bg->setOpacity(60);
+            bg->setAnchorPoint({0, 0});
+            bg->setPosition(0, 0);
+            node->addChild(bg, -1);
 
-        auto labelSprite = CCLabelBMFont::create(sounds[i].c_str(), "bigFont.fnt");
-        labelSprite->setScale(0.5f); // Initial scale
-        auto labelBtn = CCMenuItemSpriteExtra::create(
-            labelSprite,
-            this,
-            menu_selector(SoundSettingsPopup::onSelectSound));
-        labelBtn->setID("sound-label-btn-" + std::to_string(i));
-        labelBtn->setUserObject(CCString::create(sounds[i]));
-        labelBtn->setAnchorPoint({0, 0.5f});
-        labelBtn->setPosition(18.f, nodeHeight / 2);
+            auto labelSprite = CCLabelBMFont::create(sounds[i].c_str(), "bigFont.fnt");
+            labelSprite->setScale(0.5f); // Initial scale
+            auto labelBtn = CCMenuItemSpriteExtra::create(
+                labelSprite,
+                this,
+                menu_selector(SoundSettingsPopup::onSelectSound));
+            labelBtn->setID("sound-label-btn-" + std::to_string(i));
+            labelBtn->setUserObject(CCString::create(sounds[i]));
+            labelBtn->setAnchorPoint({0, 0.5f});
+            labelBtn->setPosition(18.f, nodeHeight / 2);
 
-        // Play button for preview
-        auto playSprite = CCSprite::createWithSpriteFrameName("GJ_musicOnBtn_001.png");
-        if (!playSprite)
-            playSprite = CCSprite::create("GJ_musicOnBtn_001.png");
-        playSprite->setScale(0.7f); // Initial scale
-        auto playBtn = CCMenuItemSpriteExtra::create(
-            playSprite,
-            this,
-            menu_selector(SoundSettingsPopup::onPlaySound));
-        playBtn->setID("sound-play-btn-" + std::to_string(i));
-        playBtn->setUserObject(CCString::create(sounds[i]));
-        playBtn->setAnchorPoint({1, 0.5f});
-        playBtn->setPosition(scrollSize.width - 30.f, nodeHeight / 2);
+            // Play button for preview
+            auto playSprite = CCSprite::createWithSpriteFrameName("GJ_musicOnBtn_001.png");
+            if (!playSprite)
+                playSprite = CCSprite::create("GJ_musicOnBtn_001.png");
+            playSprite->setScale(0.7f); // Initial scale
+            auto playBtn = CCMenuItemSpriteExtra::create(
+                playSprite,
+                this,
+                menu_selector(SoundSettingsPopup::onPlaySound));
+            playBtn->setID("sound-play-btn-" + std::to_string(i));
+            playBtn->setUserObject(CCString::create(sounds[i]));
+            playBtn->setAnchorPoint({1, 0.5f});
+            playBtn->setPosition(scrollSize.width - 30.f, nodeHeight / 2);
 
-        auto btnMenu = CCMenu::create();
-        btnMenu->addChild(labelBtn);
-        btnMenu->addChild(playBtn);
-        btnMenu->setPosition(0, 0);
-        btnMenu->setContentSize(node->getContentSize());
-        node->addChild(btnMenu);
+            auto btnMenu = CCMenu::create();
+            btnMenu->addChild(labelBtn);
+            btnMenu->addChild(playBtn);
+            btnMenu->setPosition(0, 0);
+            btnMenu->setContentSize(node->getContentSize());
+            node->addChild(btnMenu);
 
-        contentLayer->addChild(node);
-        y -= (nodeHeight + nodeGap);
-    }
+            contentLayer->addChild(node);
+            y -= (nodeHeight + nodeGap);
+        }
 
-    scrollLayer->m_contentLayer->removeAllChildren();
-    scrollLayer->m_contentLayer->addChild(contentLayer);
-    scrollLayer->m_contentLayer->setContentSize(contentLayer->getContentSize());
-    scrollLayer->scrollToTop();
+        scrollLayer->m_contentLayer->removeAllChildren();
+        scrollLayer->m_contentLayer->addChild(contentLayer);
+        scrollLayer->m_contentLayer->setContentSize(contentLayer->getContentSize());
+        scrollLayer->scrollToTop();
+    };
+    updateSoundList(filteredSounds);
+
+    // Store update function for later use
+    this->updateSoundList = updateSoundList;
 
     // Add save button below the scroll layer
     auto saveBtnSprite = ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f);
@@ -199,6 +215,25 @@ bool SoundSettingsPopup::setup()
     m_mainLayer->addChild(btnMenu);
 
     return true;
+}
+
+void SoundSettingsPopup::onTextInput(geode::TextInput* input, const std::string& searchText) {
+    auto allSounds = getAvailableSounds();
+    std::sort(allSounds.begin(), allSounds.end());
+    std::vector<std::string> filtered;
+    if (searchText.empty()) {
+        filtered = allSounds;
+    } else {
+        std::string searchLower = searchText;
+        std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+        for (const auto& s : allSounds) {
+            std::string sLower = s;
+            std::transform(sLower.begin(), sLower.end(), sLower.begin(), ::tolower);
+            if (sLower.find(searchLower) != std::string::npos)
+                filtered.push_back(s);
+        }
+    }
+    if (updateSoundList) updateSoundList(filtered);
 }
 
 void SoundSettingsPopup::onSaveBtn(CCObject *)
