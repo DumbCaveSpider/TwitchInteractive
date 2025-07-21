@@ -1,6 +1,6 @@
-
 #include "SoundSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
+#include <Geode/binding/FMODAudioEngine.hpp>
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -77,18 +77,34 @@ bool SoundSettingsPopup::setup()
         bg->setPosition(0, 0);
         node->addChild(bg, -1);
 
+        auto labelSprite = CCLabelBMFont::create(sounds[i].c_str(), "bigFont.fnt");
+        labelSprite->setScale(0.5f); // Initial scale
         auto labelBtn = CCMenuItemSpriteExtra::create(
-            CCLabelBMFont::create(sounds[i].c_str(), "bigFont.fnt"),
+            labelSprite,
             this,
             menu_selector(SoundSettingsPopup::onSelectSound));
         labelBtn->setID("sound-label-btn-" + std::to_string(i));
         labelBtn->setUserObject(CCString::create(sounds[i]));
-        labelBtn->setScale(0.5f);
         labelBtn->setAnchorPoint({0, 0.5f});
         labelBtn->setPosition(18.f, nodeHeight / 2);
 
+        // Play button for preview
+        auto playSprite = CCSprite::createWithSpriteFrameName("GJ_musicOnBtn_001.png");
+        if (!playSprite)
+            playSprite = CCSprite::create("GJ_musicOnBtn_001.png");
+        playSprite->setScale(0.7f); // Initial scale
+        auto playBtn = CCMenuItemSpriteExtra::create(
+            playSprite,
+            this,
+            menu_selector(SoundSettingsPopup::onPlaySound));
+        playBtn->setID("sound-play-btn-" + std::to_string(i));
+        playBtn->setUserObject(CCString::create(sounds[i]));
+        playBtn->setAnchorPoint({1, 0.5f});
+        playBtn->setPosition(scrollSize.width - 30.f, nodeHeight / 2);
+
         auto btnMenu = CCMenu::create();
         btnMenu->addChild(labelBtn);
+        btnMenu->addChild(playBtn);
         btnMenu->setPosition(0, 0);
         btnMenu->setContentSize(node->getContentSize());
         node->addChild(btnMenu);
@@ -169,14 +185,36 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
                             {
                                 auto btnSound = btnChild->getUserObject() ? static_cast<CCString *>(btnChild->getUserObject())->getCString() : "";
                                 // Scale up selected, scale down others
-                                btnChild->setScale(btnSound == sound ? 0.6f : 0.5f);
-                                btnChild->setColor(btnSound == sound ? ccColor3B{0, 255, 0} : ccColor3B{255, 255, 255});
+                                if (btnChild->getID().find("sound-play-btn-") == 0) {
+                                    // Only scale the play button's sprite
+                                    auto playSprite = dynamic_cast<CCSprite*>(btnChild->getNormalImage());
+                                } else if (btnChild->getID().find("sound-label-btn-") == 0) {
+                                    // Only scale the label sprite
+                                    auto labelSprite = dynamic_cast<CCLabelBMFont*>(btnChild->getNormalImage());
+                                    if (labelSprite) {
+                                        labelSprite->setColor(btnSound == sound ? ccColor3B{0, 255, 0} : ccColor3B{255, 255, 255});
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+// Play sound preview handler
+void SoundSettingsPopup::onPlaySound(CCObject *sender)
+{
+    auto btn = dynamic_cast<CCMenuItemSpriteExtra *>(sender);
+    if (!btn || !btn->getUserObject())
+        return;
+    std::string sound = static_cast<CCString *>(btn->getUserObject())->getCString();
+    auto audioEngine = FMODAudioEngine::sharedEngine();
+    if (audioEngine != nullptr)
+    {
+        audioEngine->playEffect(sound);
     }
 }
 

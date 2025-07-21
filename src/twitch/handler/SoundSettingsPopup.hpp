@@ -16,6 +16,7 @@ protected:
     bool setup() override;
     void onSaveBtn(CCObject *);
     void onSoundSelect(CCObject *);
+    void onPlaySound(CCObject* sender);
 
 public:
     static SoundSettingsPopup *create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave);
