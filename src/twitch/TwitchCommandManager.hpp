@@ -39,15 +39,15 @@ enum class CommandActionType
 // Helper for countdown logging
 struct CountdownLogger : public CCObject
 {
-    int remaining;
+    float remaining;
     std::string commandName;
     size_t actionIndex;
 
-    CountdownLogger(int rem, const std::string &cmd, size_t idx) : remaining(rem), commandName(cmd), actionIndex(idx) {};
+    CountdownLogger(float rem, const std::string &cmd, size_t idx) : remaining(rem), commandName(cmd), actionIndex(idx) {};
 
     void log(CCObject *)
     {
-        log::info("[TwitchCommandManager] Wait countdown for command '{}', action {}: {} second(s) remaining", commandName, actionIndex, remaining);
+        log::info("Wait countdown for command '{}', action {}: {:.2f} second(s) remaining", commandName, actionIndex, remaining);
     };
 };
 
@@ -204,7 +204,7 @@ struct ActionContext : public CCObject
 
         // Debug log: print the full action order and current action
         std::ostringstream orderLog;
-        orderLog << "[TwitchCommandManager] Action order for command '" << ctx->commandName << "': ";
+        orderLog << "Action order for command '" << ctx->commandName << "': ";
         for (size_t i = 0; i < ctx->actions.size(); ++i)
         {
             const auto &a = ctx->actions[i];
@@ -217,7 +217,7 @@ struct ActionContext : public CCObject
 
         const auto &action = ctx->actions[ctx->index];
         std::string processedArg = ctx->replaceIdentifiers(action.arg);
-        log::info("[TwitchCommandManager] Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, processedArg, action.index);
+        log::info("Executing action {}: type={}, arg={}, index={}", ctx->index, (int)action.type, processedArg, action.index);
 
         // Handle Wait type
         if (action.type == CommandActionType::Wait)
@@ -230,7 +230,7 @@ struct ActionContext : public CCObject
             delay = std::round(delay * 1000.0f) / 1000.0f;
             if (delay > 0.f)
             {
-                log::info("[TwitchCommandManager] Waiting for {:.2f} seconds before next action (command '{}', action {})", delay, ctx->commandName, ctx->index);
+                log::info("Waiting for {:.2f} seconds before next action (command '{}', action {})", delay, ctx->commandName, ctx->index);
                 if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                 {
                     int intDelay = static_cast<int>(delay);
@@ -266,17 +266,17 @@ struct ActionContext : public CCObject
         {
             if (processedArg == "kill_player")
             {
-                log::info("[TwitchCommandManager] Triggering kill player event for command: {}", ctx->commandName);
+                log::info("Triggering kill player event for command: {}", ctx->commandName);
                 PlayLayerEvent::killPlayer();
             }
             else if (processedArg == "reverse_player")
             {
-                log::info("[TwitchCommandManager] Triggering reverse player event for command: {}", ctx->commandName);
+                log::info("Triggering reverse player event for command: {}", ctx->commandName);
                 PlayLayerEvent::reversePlayer();
             }
             else if (processedArg.rfind("edit_camera:", 0) == 0)
             {
-                log::info("[TwitchCommandManager] Triggering edit camera event: {}", processedArg);
+                log::info("Triggering edit camera event: {}", processedArg);
                 PlayLayerEvent::setCameraFromString(processedArg);
             }
             else if (processedArg.rfind("sound_effect:", 0) == 0 || processedArg.rfind("sound:", 0) == 0)
@@ -287,14 +287,14 @@ struct ActionContext : public CCObject
                     soundName = processedArg.substr(colonPos + 1);
                 if (!soundName.empty())
                 {
-                    log::info("[TwitchCommandManager] Playing sound effect '{}' (command: {})", soundName, ctx->commandName);
+                    log::info("Playing sound effect '{}' (command: {})", soundName, ctx->commandName);
                     auto audioEngine = FMODAudioEngine::sharedEngine();
                     if (audioEngine != nullptr)
                         audioEngine->playEffect(soundName);
                 }
                 else
                 {
-                    log::warn("[TwitchCommandManager] Sound effect action triggered but no sound name set (command: {})", ctx->commandName);
+                    log::warn("Sound effect action triggered but no sound name set (command: {})", ctx->commandName);
                 }
             }
             else if (processedArg.rfind("scale_player:", 0) == 0)
@@ -338,7 +338,7 @@ struct ActionContext : public CCObject
                     if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
                         scale = std::stof(scaleStr);
                 }
-                log::info("[TwitchCommandManager] Setting scale for player {} to {} (time: {}, command: {})", playerIdx, scale, time, ctx->commandName);
+                log::info("Setting scale for player {} to {} (time: {}, command: {})", playerIdx, scale, time, ctx->commandName);
                 PlayLayerEvent::scalePlayer(playerIdx, scale, time);
             }
             else if (processedArg.rfind("alert_popup:", 0) == 0)
@@ -355,12 +355,12 @@ struct ActionContext : public CCObject
                     if (desc.empty())
                         desc = "-";
                 }
-                log::info("[TwitchCommandManager] Showing alert popup: title='{}', desc='{}' (command: {})", title, desc, ctx->commandName);
+                log::info("Showing alert popup: title='{}', desc='{}' (command: {})", title, desc, ctx->commandName);
                 FLAlertLayer::create(title.c_str(), desc.c_str(), "OK")->show();
             }
             else if (processedArg == "stop_all_sounds")
             {
-                log::info("[TwitchCommandManager] Stopping all sound effects (command: {})", ctx->commandName);
+                log::info("Stopping all sound effects (command: {})", ctx->commandName);
                 auto audioEngine = FMODAudioEngine::sharedEngine();
                 if (audioEngine != nullptr)
                     audioEngine->stopAllEffects();
@@ -415,11 +415,11 @@ struct ActionContext : public CCObject
                 }
                 if (!validDistance)
                 {
-                    log::warn("[TwitchCommandManager] Ignoring move action: invalid distance value (command: {})", ctx->commandName);
+                    log::warn("Ignoring move action: invalid distance value (command: {})", ctx->commandName);
                 }
                 else
                 {
-                    log::info("[TwitchCommandManager] Triggering move event for player {} direction {} distance {} (command: {})", playerIdx, moveRight ? "right" : "left", distance, ctx->commandName);
+                    log::info("Triggering move event for player {} direction {} distance {} (command: {})", playerIdx, moveRight ? "right" : "left", distance, ctx->commandName);
                     PlayLayerEvent::movePlayer(playerIdx, moveRight, distance);
                 }
             }
@@ -441,7 +441,7 @@ struct ActionContext : public CCObject
                     colorStr = processedArg.substr(firstColon + 1);
                 }
                 cocos2d::ccColor3B color = parseColorString(colorStr);
-                log::info("[TwitchCommandManager] Setting color for player {} to {} (command: {})", playerIdx, colorStr, ctx->commandName);
+                log::info("Setting color for player {} to {} (command: {})", playerIdx, colorStr, ctx->commandName);
                 PlayLayerEvent::setPlayerColor(playerIdx, color);
             }
             else if (processedArg.rfind("profile:", 0) == 0)
@@ -560,7 +560,7 @@ struct ActionContext : public CCObject
                 icon = NotificationIcon::Loading;
                 break;
             }
-            log::info("[TwitchCommandManager] Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
+            log::info("Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
             Notification::create(notifText, icon)->show();
         }
 
