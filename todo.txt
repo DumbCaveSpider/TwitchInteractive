@@ -1,9 +1,9 @@
 TODO:
 [Important]
-- FREAKING CLEAN THE TwitchCommandManger.hpp OML I CRAP MYSELF 
-(i want it to move the functions and logic to the main file without breaking the entire code)
 - Fix the crash on android32 whenever the user clicked the settings on the color player
 (instead of doing it manually (i tried to do it and broke the entire mod lol))
 [Minor]
 - add Open Level Info (allows users/viewers to directly open a level xd "LevelInfo" (broken atm cuz forgor how to do it properly))
 - custom global prefix command
+- add crappy thumbnail integretion (idk)
+- 
