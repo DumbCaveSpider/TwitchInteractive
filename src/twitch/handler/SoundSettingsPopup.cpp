@@ -29,7 +29,7 @@ static std::vector<std::string> getAvailableSounds()
         "GeometricalDominator.mp3",
         "HexagonForce.mp3",
         "Jumper.mp3",
-        "jumpscareAudio.mp3",
+        "jumpscareAudio.mp3", // Funny jumpscare sound
         "magicExplosion.ogg",
         "menuLoop.mp3",
         "Polargeist.mp3",
