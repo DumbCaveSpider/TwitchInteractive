@@ -23,6 +23,3 @@ If you think my work on this mod deserve a donation, you can donate to me via [P
 - Huge Thanks to [Alphalaneous](user:1139015) for adding [Twitch Chat API](mod:alphalaneous.twitch_chat_api) to make this mod possible!
 - Inspired by [CrowdControl Geode Mod](https://github.com/WarpWorld/CCPack-PC-GeometryDash), I created this mod purely because CC's codebase was... questionable...
 - [Cheeseworks](user:6408873) - For cleaning up my horrible messy code
-## Preview
-![Dashboard](arcticwoof:twitch_interactive/preview1.png)
-![Command Settings](arcticwoof:twitch_interactive/preview2.png)
