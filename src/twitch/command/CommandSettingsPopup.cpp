@@ -105,22 +105,34 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 
     m_mainLayer->addChild(actionLabel);
 
+    // Profile button (top right corner)
     auto profileMenu = CCMenu::create();
-    profileMenu->setPosition(m_mainLayer->getContentSize().width - 150.f, m_mainLayer->getContentSize().height - 30.f);
-
-    m_mainLayer->addChild(profileMenu);
+    profileMenu->setID("command-profile-menu");
+    float profileBtnMarginX = 10.f;
+    float profileBtnMarginY = 10.f;
+    float profileBtnWidth = 0.f;
+    float profileBtnHeight = 0.f;
 
     auto profileBtnSprite = CCSprite::createWithSpriteFrameName("GJ_profileButton_001.png");
     profileBtnSprite->setScale(0.7f);
+    profileBtnWidth = profileBtnSprite->getContentSize().width * profileBtnSprite->getScale();
+    profileBtnHeight = profileBtnSprite->getContentSize().height * profileBtnSprite->getScale();
 
-    // Profile button (top right)
     auto profileBtn = CCMenuItemSpriteExtra::create(
         profileBtnSprite,
         this,
         menu_selector(CommandSettingsPopup::onProfileUserSettings));
-    profileBtn->setID("command-profile-user-btn");
 
+    profileBtn->setID("command-profile-user-btn");
     profileMenu->addChild(profileBtn);
+
+    // Position at top right corner (inside the popup, with margin)
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    float menuX = winSize.width - profileBtnWidth / 2 + profileBtnMarginX;
+    float menuY = winSize.height - profileBtnHeight / 2 - profileBtnMarginY;
+
+    profileMenu->setPosition(menuX, menuY);
+    m_mainLayer->addChild(profileMenu);
 
     // Background for the event scroll layer
     auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
@@ -1602,9 +1614,10 @@ void CommandSettingsPopup::onEventSearchPoll(float)
 CommandSettingsPopup *CommandSettingsPopup::create(TwitchCommand command)
 {
     auto ret = new CommandSettingsPopup();
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (ret && ret->initAnchored(800.f, 325.f, command))
-    { // 620
+    if (ret && ret->initAnchored(winSize.width + 50.f, winSize.height, command))
+    {
         ret->autorelease();
         return ret;
     };

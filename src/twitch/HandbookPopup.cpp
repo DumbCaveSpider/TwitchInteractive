@@ -7,8 +7,8 @@ bool HandbookPopup::setup() {
     setTitle("Twitch Interactive Handbook");
     setID("handbook-popup");
 
-    float width = 480.f;
-    float height = 290.f;
+    float width = m_mainLayer->getContentSize().width;
+    float height = m_mainLayer->getContentSize().height;
 
     float sectionSpacing = 70.f;
     float btnX = width / 2;
@@ -250,8 +250,9 @@ void HandbookPopup::onEventsBtn(CCObject*) {
 
 HandbookPopup* HandbookPopup::create() {
     auto ret = new HandbookPopup();
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    if (ret && ret->initAnchored(480.f, 290.f)) {
+    if (ret && ret->initAnchored(winSize.width - 100.f, winSize.height - 40.f)) {
         ret->autorelease();
         return ret;
     };

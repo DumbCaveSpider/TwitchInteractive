@@ -17,7 +17,7 @@ class MyPauseLayer;
 
 extern void resetCommandCooldown(const std::string &commandName);
 
-static bool s_listening = true;
+static bool s_listening = false;
 
 static geode::Mod *getThisMod()
 {
@@ -456,8 +456,8 @@ TwitchDashboard *TwitchDashboard::create()
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     // Start with base size
-    float baseWidth = 800.f;
-    float baseHeight = 500.f;
+    float baseWidth = winSize.width;
+    float baseHeight = winSize.height;
 
     // Calculate scale factor to fit within window
     float scaleX = winSize.width / baseWidth;
@@ -471,8 +471,8 @@ TwitchDashboard *TwitchDashboard::create()
     float height = baseHeight * scaleFactor;
 
     // Ensure minimum size
-    width = std::max(width, 525.f);
-    height = std::max(height, 280.f);
+    width = std::max(width, baseWidth - 40.f);
+    height = std::max(height, baseHeight - 40.f);
 
     if (ret && ret->initAnchored(width, height))
     {
