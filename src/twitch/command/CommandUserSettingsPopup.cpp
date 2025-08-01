@@ -50,43 +50,51 @@ bool CommandUserSettingsPopup::setup() {
 
     m_mainLayer->addChild(togglerMenu);
 
+    auto menu = CCMenu::create();
+    menu->setPosition(x, y - 80.f);
+
     // Save button
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
         menu_selector(CommandUserSettingsPopup::onSave));
-    auto menu = CCMenu::create();
     saveBtn->setPosition(0, 0);
+
     menu->addChild(saveBtn);
-    menu->setPosition(x, y - 80.f);
+
     m_mainLayer->addChild(menu);
 
     return true;
-}
+};
 
 void CommandUserSettingsPopup::onSave(CCObject* sender) {
     std::string user = m_userInput ? m_userInput->getString() : "";
+
     bool vip = m_vipToggler ? m_vipToggler->isToggled() : false;
     bool mod = m_modToggler ? m_modToggler->isToggled() : false;
     bool subscriber = m_subscriberToggler ? m_subscriberToggler->isToggled() : false;
     bool streamer = m_streamerToggler ? m_streamerToggler->isToggled() : false;
-    if (m_callback)
-        m_callback(user, vip, mod, subscriber, streamer);
+
+    if (m_callback) m_callback(user, vip, mod, subscriber, streamer);
+
     onClose(sender);
-}
+};
 
 CommandUserSettingsPopup* CommandUserSettingsPopup::create(const std::string& allowedUser, bool allowVip, bool allowMod, bool allowSubscriber, bool allowStreamer, std::function<void(const std::string&, bool, bool, bool, bool)> callback) {
     auto ret = new CommandUserSettingsPopup();
+
     ret->m_allowedUser = allowedUser;
     ret->m_allowVip = allowVip;
     ret->m_allowMod = allowMod;
     ret->m_allowSubscriber = allowSubscriber;
     ret->m_allowStreamer = allowStreamer;
     ret->m_callback = callback;
+
     if (ret && ret->initAnchored(320.f, 220.f)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};

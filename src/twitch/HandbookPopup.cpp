@@ -236,7 +236,7 @@ void HandbookPopup::onEventsBtn(CCObject*) {
     std::string md =
         "# Events\n\n"
         "Events are actions that can be added to the command.\n\n"
-        
+
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
         "- Some events accept arguments, such as which player to affect.\n"
