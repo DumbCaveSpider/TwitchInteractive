@@ -136,4 +136,4 @@ CameraSettingsPopup* CameraSettingsPopup::create(float skew, float rot, float sc
     };
 
     return nullptr;
-}
+};

@@ -67,19 +67,22 @@ void ProfileSettingsPopup::onOpenProfile(CCObject* sender) {
 
 void ProfileSettingsPopup::onSave(CCObject* sender) {
     std::string newId = m_accountIdInput ? m_accountIdInput->getString() : m_accountId;
-    if (m_callback)
-        m_callback(newId);
+    if (m_callback) m_callback(newId);
+
     onClose(sender);
-}
+};
 
 ProfileSettingsPopup* ProfileSettingsPopup::create(const std::string& accountId, std::function<void(const std::string&)> callback) {
     auto ret = new ProfileSettingsPopup();
+
     ret->m_accountId = accountId;
     ret->m_callback = callback;
+
     if (ret && ret->initAnchored(220.f, 120.f)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};

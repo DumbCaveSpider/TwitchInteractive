@@ -5,9 +5,10 @@
 using namespace geode::prelude;
 using namespace cocos2d;
 
+// @geode-ignore-all(unknown-resource)
+
 // Unified sound list for settings
-static std::vector<std::string> getAvailableSounds()
-{
+static std::vector<std::string> getAvailableSounds() {
     return {
         "BackOnTrack.mp3",
         "BaseAfterBase.mp3",
@@ -77,8 +78,7 @@ static std::vector<std::string> getAvailableSounds()
     };
 }
 
-bool SoundSettingsPopup::setup()
-{
+bool SoundSettingsPopup::setup() {
     setTitle("Sound Effect Settings");
     setID("sound-effect-settings-popup");
 
@@ -89,7 +89,7 @@ bool SoundSettingsPopup::setup()
 
     m_mainLayer = CCLayer::create();
     m_mainLayer->setContentSize(popupSize);
-    m_mainLayer->setAnchorPoint({0, 0});
+    m_mainLayer->setAnchorPoint({ 0, 0 });
     m_mainLayer->setPosition(0, 0);
 
     this->m_noElasticity = true;
@@ -122,37 +122,35 @@ bool SoundSettingsPopup::setup()
     scrollBg->setContentSize(scrollSize);
     scrollBg->setOpacity(50);
     scrollBg->setScale(1.05f);
-    scrollBg->setAnchorPoint({0.5f, 0.5f});
+    scrollBg->setAnchorPoint({ 0.5f, 0.5f });
     scrollBg->setPosition(scrollLayer->getPositionX() + scrollSize.width / 2, scrollLayer->getPositionY() + scrollSize.height / 2);
     m_mainLayer->addChild(scrollBg, -1);
 
     m_mainLayer->addChild(scrollLayer);
 
     // Add sound nodes to the scroll layer
-    auto updateSoundList = [this, scrollLayer, scrollSize](const std::vector<std::string> &sounds)
-    {
+    auto updateSoundList = [this, scrollLayer, scrollSize](const std::vector<std::string>& sounds) {
         float nodeHeight = 36.f;
         float nodeGap = 8.f;
         float contentHeight = std::max(scrollSize.height, (nodeHeight + nodeGap) * sounds.size());
         auto contentLayer = CCLayer::create();
         contentLayer->setContentSize(CCSize(scrollSize.width, contentHeight));
-        contentLayer->setAnchorPoint({0, 0});
+        contentLayer->setAnchorPoint({ 0, 0 });
         contentLayer->setPosition(0, 0);
 
         float y = contentHeight - nodeHeight / 2;
         float centerX = scrollSize.width / 2;
-        for (size_t i = 0; i < sounds.size(); ++i)
-        {
+        for (size_t i = 0; i < sounds.size(); ++i) {
             auto node = CCNode::create();
             node->setContentSize(CCSize(scrollSize.width, nodeHeight));
-            node->setAnchorPoint({0.5f, 0.5f});
+            node->setAnchorPoint({ 0.5f, 0.5f });
             node->setPosition(centerX, y);
 
             // Background
             auto bg = CCScale9Sprite::create("square02_001.png");
             bg->setContentSize(CCSize(scrollSize.width, nodeHeight));
             bg->setOpacity(60);
-            bg->setAnchorPoint({0, 0});
+            bg->setAnchorPoint({ 0, 0 });
             bg->setPosition(0, 0);
             node->addChild(bg, -1);
 
@@ -164,7 +162,7 @@ bool SoundSettingsPopup::setup()
                 menu_selector(SoundSettingsPopup::onSelectSound));
             labelBtn->setID("sound-label-btn-" + std::to_string(i));
             labelBtn->setUserObject(CCString::create(sounds[i]));
-            labelBtn->setAnchorPoint({0, 0.5f});
+            labelBtn->setAnchorPoint({ 0, 0.5f });
             labelBtn->setPosition(18.f, nodeHeight / 2);
 
             // Play button for preview
@@ -178,7 +176,7 @@ bool SoundSettingsPopup::setup()
                 menu_selector(SoundSettingsPopup::onPlaySound));
             playBtn->setID("sound-play-btn-" + std::to_string(i));
             playBtn->setUserObject(CCString::create(sounds[i]));
-            playBtn->setAnchorPoint({1, 0.5f});
+            playBtn->setAnchorPoint({ 1, 0.5f });
             playBtn->setPosition(scrollSize.width - 30.f, nodeHeight / 2);
 
             auto btnMenu = CCMenu::create();
@@ -196,7 +194,7 @@ bool SoundSettingsPopup::setup()
         scrollLayer->m_contentLayer->addChild(contentLayer);
         scrollLayer->m_contentLayer->setContentSize(contentLayer->getContentSize());
         scrollLayer->scrollToTop();
-    };
+        };
     updateSoundList(filteredSounds);
 
     // Store update function for later use
@@ -225,26 +223,20 @@ bool SoundSettingsPopup::setup()
     return true;
 }
 
-void SoundSettingsPopup::onSoundSearchPoll(float)
-{
+void SoundSettingsPopup::onSoundSearchPoll(float) {
     if (!m_soundSearchInput || !updateSoundList)
         return;
     std::string text = m_soundSearchInput->getString();
-    if (text != m_lastSoundSearchString)
-    {
+    if (text != m_lastSoundSearchString) {
         auto allSounds = getAvailableSounds();
         std::sort(allSounds.begin(), allSounds.end());
         std::vector<std::string> filtered;
-        if (text.empty())
-        {
+        if (text.empty()) {
             filtered = allSounds;
-        }
-        else
-        {
+        } else {
             std::string searchLower = text;
             std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
-            for (const auto &s : allSounds)
-            {
+            for (const auto& s : allSounds) {
                 std::string sLower = s;
                 std::transform(sLower.begin(), sLower.end(), sLower.begin(), ::tolower);
                 if (sLower.find(searchLower) != std::string::npos)
@@ -256,31 +248,24 @@ void SoundSettingsPopup::onSoundSearchPoll(float)
     }
 }
 
-void SoundSettingsPopup::onSaveBtn(CCObject *)
-{
+void SoundSettingsPopup::onSaveBtn(CCObject*) {
     if (m_onSave)
         m_onSave(m_selectedSound);
 
     // Update parent CommandSettingsPopup action node and settings label
-    if (m_parent && m_actionIdx >= 0)
-    {
+    if (m_parent && m_actionIdx >= 0) {
         // Save selected sound to the action node
-        if (m_parent->m_commandActions.size() > static_cast<size_t>(m_actionIdx))
-        {
+        if (m_parent->m_commandActions.size() > static_cast<size_t>(m_actionIdx)) {
             m_parent->m_commandActions[m_actionIdx] = "sound:" + m_selectedSound;
         }
         // Update the settings text label in the action node
-        if (m_parent->m_actionContent)
-        {
+        if (m_parent->m_actionContent) {
             auto children = m_parent->m_actionContent->getChildren();
-            if (children && m_actionIdx >= 0 && m_actionIdx < children->count())
-            {
-                auto actionNode = dynamic_cast<CCNode *>(children->objectAtIndex(m_actionIdx));
-                if (actionNode)
-                {
+            if (children && m_actionIdx >= 0 && m_actionIdx < children->count()) {
+                auto actionNode = dynamic_cast<CCNode*>(children->objectAtIndex(m_actionIdx));
+                if (actionNode) {
                     std::string settingsLabelId = "action-settings-label-" + std::to_string(m_actionIdx);
-                    if (auto settingsLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId)))
-                    {
+                    if (auto settingsLabel = dynamic_cast<CCLabelBMFont*>(actionNode->getChildByID(settingsLabelId))) {
                         settingsLabel->setString(m_selectedSound.c_str());
                     }
                 }
@@ -289,116 +274,98 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
     }
     // Stop the audio pls
     auto audioEngine = FMODAudioEngine::sharedEngine();
-    if (audioEngine != nullptr)
-    {
+    if (audioEngine != nullptr) {
         audioEngine->stopAllEffects();
     }
     onClose(nullptr);
 }
 
-void SoundSettingsPopup::onClose(CCObject *)
-{
+void SoundSettingsPopup::onClose(CCObject*) {
     // Stop the audio if playing
     auto audioEngine = FMODAudioEngine::sharedEngine();
-    if (audioEngine != nullptr)
-    {
+    if (audioEngine != nullptr) {
         audioEngine->stopAllEffects();
     }
     removeFromParentAndCleanup(true);
 }
 
 // Select sound button handler
-void SoundSettingsPopup::onSelectSound(CCObject *sender)
-{
-    auto btn = dynamic_cast<CCMenuItemSpriteExtra *>(sender);
+void SoundSettingsPopup::onSelectSound(CCObject* sender) {
+    auto btn = dynamic_cast<CCMenuItemSpriteExtra*>(sender);
     if (!btn || !btn->getUserObject())
         return;
-    std::string sound = static_cast<CCString *>(btn->getUserObject())->getCString();
+    std::string sound = static_cast<CCString*>(btn->getUserObject())->getCString();
     m_selectedSound = sound;
 
     // Visual feedback: highlight selected button and scale it up
     // Find parent content layer and update all buttons
-    if (btn->getParent() && btn->getParent()->getParent())
-    {
+    if (btn->getParent() && btn->getParent()->getParent()) {
         auto contentLayer = btn->getParent()->getParent()->getParent();
-        if (contentLayer)
-        {
+        if (contentLayer) {
             auto children = contentLayer->getChildren();
-            if (children)
-            {
-                for (int i = 0; i < children->count(); ++i)
-                {
-                    auto node = dynamic_cast<CCNode *>(children->objectAtIndex(i));
+            if (children) {
+                for (int i = 0; i < children->count(); ++i) {
+                    auto node = dynamic_cast<CCNode*>(children->objectAtIndex(i));
                     if (!node)
                         continue;
-                    CCMenu *btnMenu = nullptr;
+                    CCMenu* btnMenu = nullptr;
                     // Try to find btnMenu by iterating children
-                    for (int j = 0; j < node->getChildren()->count(); ++j)
-                    {
+                    for (int j = 0; j < node->getChildren()->count(); ++j) {
                         auto child = node->getChildren()->objectAtIndex(j);
-                        btnMenu = dynamic_cast<CCMenu *>(child);
-                        if (btnMenu)
-                            break;
-                    }
-                    if (btnMenu && btnMenu->getChildren())
-                    {
-                        for (int j = 0; j < btnMenu->getChildren()->count(); ++j)
-                        {
-                            auto btnChild = dynamic_cast<CCMenuItemSpriteExtra *>(btnMenu->getChildren()->objectAtIndex(j));
-                            if (btnChild)
-                            {
-                                auto btnSound = btnChild->getUserObject() ? static_cast<CCString *>(btnChild->getUserObject())->getCString() : "";
+                        btnMenu = dynamic_cast<CCMenu*>(child);
+                        if (btnMenu) break;
+                    };
+
+                    if (btnMenu && btnMenu->getChildren()) {
+                        for (int j = 0; j < btnMenu->getChildren()->count(); ++j) {
+                            auto btnChild = dynamic_cast<CCMenuItemSpriteExtra*>(btnMenu->getChildren()->objectAtIndex(j));
+                            if (btnChild) {
+                                auto btnSound = btnChild->getUserObject() ? static_cast<CCString*>(btnChild->getUserObject())->getCString() : "";
                                 // Scale up selected, scale down others
-                                if (btnChild->getID().find("sound-play-btn-") == 0)
-                                {
+                                if (btnChild->getID().find("sound-play-btn-") == 0) {
                                     // Only scale the play button's sprite
-                                    auto playSprite = dynamic_cast<CCSprite *>(btnChild->getNormalImage());
-                                }
-                                else if (btnChild->getID().find("sound-label-btn-") == 0)
-                                {
+                                    auto playSprite = dynamic_cast<CCSprite*>(btnChild->getNormalImage());
+                                } else if (btnChild->getID().find("sound-label-btn-") == 0) {
                                     // Only scale the label sprite
-                                    auto labelSprite = dynamic_cast<CCLabelBMFont *>(btnChild->getNormalImage());
-                                    if (labelSprite)
-                                    {
-                                        labelSprite->setColor(btnSound == sound ? ccColor3B{0, 255, 0} : ccColor3B{255, 255, 255});
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+                                    auto labelSprite = dynamic_cast<CCLabelBMFont*>(btnChild->getNormalImage());
+                                    if (labelSprite) labelSprite->setColor(btnSound == sound ? ccColor3B{ 0, 255, 0 } : ccColor3B{ 255, 255, 255 });
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+};
 
 // Play sound preview handler
-void SoundSettingsPopup::onPlaySound(CCObject *sender)
-{
-    auto btn = dynamic_cast<CCMenuItemSpriteExtra *>(sender);
-    if (!btn || !btn->getUserObject())
-        return;
-    std::string sound = static_cast<CCString *>(btn->getUserObject())->getCString();
+void SoundSettingsPopup::onPlaySound(CCObject* sender) {
+    auto btn = dynamic_cast<CCMenuItemSpriteExtra*>(sender);
+    if (!btn || !btn->getUserObject()) return;
+
+    std::string sound = static_cast<CCString*>(btn->getUserObject())->getCString();
     auto audioEngine = FMODAudioEngine::sharedEngine();
-    if (audioEngine != nullptr)
-    {
+
+    if (audioEngine != nullptr) {
         audioEngine->stopAllEffects();
         audioEngine->playEffect(sound);
-    }
-}
+    };
+};
 
-SoundSettingsPopup *SoundSettingsPopup::create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave)
-{
+SoundSettingsPopup* SoundSettingsPopup::create(CommandSettingsPopup* parent, int actionIdx, const std::string& selectedSound, std::function<void(const std::string&)> onSave) {
     auto ret = new SoundSettingsPopup();
+
     ret->m_parent = parent;
     ret->m_actionIdx = actionIdx;
     ret->m_selectedSound = selectedSound;
     ret->m_onSave = onSave;
-    if (ret && ret->initAnchored(400.f, 280.f))
-    {
+
+    if (ret && ret->initAnchored(400.f, 280.f)) {
         ret->autorelease();
         return ret;
-    }
+    };
+
     CC_SAFE_DELETE(ret);
     return nullptr;
-}
+};
