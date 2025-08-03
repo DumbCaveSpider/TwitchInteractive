@@ -60,6 +60,7 @@ public:
     void onProfileSettings(cocos2d::CCObject *sender);
     void onMoveSettings(cocos2d::CCObject *sender);
     void onEditCameraSettings(cocos2d::CCObject *sender);
+    void onGravitySettings(CCObject *sender);
 
     float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;

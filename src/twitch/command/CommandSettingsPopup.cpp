@@ -460,6 +460,12 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject *sender)
     refreshActionsList();
 };
 
+// Gravity settings handler
+void CommandSettingsPopup::onGravitySettings(CCObject *sender)
+{
+    SettingsHandler::handleGravitySettings(this, sender);
+}
+
 // Handler for color player settings button
 void CommandSettingsPopup::onColorPlayerSettings(CCObject *sender)
 {
@@ -742,6 +748,11 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "sound-effect-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
+        else if (actionIdLower.rfind("gravity", 0) == 0)
+        {
+            btnId = "gravity-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
 
         // Always align main label to the same x/y for all nodes
         float mainLabelX = 25.f;
@@ -987,6 +998,22 @@ void CommandSettingsPopup::refreshActionsList()
                     settingsLabelText = soundName;
                 }
             }
+            else if (actionIdLower.rfind("gravity", 0) == 0)
+            {
+                // Format: gravity:<gravity>:<duration>
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos)
+                {
+                    std::string gravityStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string durationStr = actionIdRaw.substr(secondColon + 1);
+                    settingsLabelText = "Gravity: " + gravityStr + " | Duration: " + durationStr;
+                }
+                else
+                {
+                    settingsLabelText = "Gravity: - | Duration: -";
+                }
+            }
         };
 
         if (!textLabelText.empty())
@@ -1051,7 +1078,6 @@ void CommandSettingsPopup::refreshActionsList()
         {
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
-
             settingsBtn = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(CommandSettingsPopup::onSettingsButtonUnified));
             settingsBtn->setID(btnId);
             settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
@@ -1589,6 +1615,8 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleScalePlayerSettings(this, sender);
     else if (actionStrLower.rfind("sound", 0) == 0)
         SettingsHandler::handleSoundEffectSettings(this, sender);
+    else if (actionStrLower.rfind("gravity", 0) == 0)
+        SettingsHandler::handleGravitySettings(this, sender);
 }
 // Polling function for event search input
 void CommandSettingsPopup::onEventSearchPoll(float)

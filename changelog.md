@@ -1,7 +1,8 @@
 # v0.1.6-beta.1
 - Fixed the popup to fit based on your screen resolution
-- Removed **Edit Camera** due to issues with crashes on levels and compliances with the guidelines
-- Fixed TextBox inputs not allowing user to set an decimal point
+- Removed **Edit Camera** due to issues with crashes on levels and compliances with the Geode Index guidelines. sorry :(
+- Fixed TextBox inputs not allowing user to set an decimal point on certain actions
+- Added **Set Gravity** Event
 # v0.1.5-beta.1
 - Added **Sound Effect** & **Stop All Sounds** Events
 - Changed the **Wait** Action value to use float value instead of just integer.
