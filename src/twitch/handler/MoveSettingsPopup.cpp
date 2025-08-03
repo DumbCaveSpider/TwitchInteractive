@@ -50,6 +50,7 @@ bool MoveSettingsPopup::setup() {
     float distanceBoxY = startY - (btnGapY + rowSpacing) / 2.0f;
 
     distanceInput = TextInput::create(80, "Distance", "chatFont.fnt");
+    distanceInput->setCommonFilter(CommonFilter::Float);
     distanceInput->setID("move-distance-input");
     distanceInput->setPosition(centerX, distanceBoxY);
     distanceInput->setScale(0.6f);

@@ -8,6 +8,7 @@ bool ProfileSettingsPopup::setup() {
     float x = m_mainLayer->getContentSize().width / 2;
 
     m_accountIdInput = TextInput::create(120, "Account ID (leave blank for default)", "chatFont.fnt");
+    m_accountIdInput->setCommonFilter(CommonFilter::Int);
     m_accountIdInput->setID("account-id-input");
     m_accountIdInput->setString(m_accountId.c_str());
     m_accountIdInput->setPosition(x - 20, y + 10);

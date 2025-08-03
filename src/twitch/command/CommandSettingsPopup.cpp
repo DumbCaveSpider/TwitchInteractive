@@ -1076,6 +1076,7 @@ void CommandSettingsPopup::refreshActionsList()
         {
             std::string waitInputId = "wait-delay-input-" + std::to_string(i); // Use i for consistent indexing
             auto waitInput = TextInput::create(50, "Sec", "bigFont.fnt");
+            waitInput->setCommonFilter(CommonFilter::Float);
 
             // If there is a value in the action string, set it
             std::string waitValue = "";
@@ -1097,7 +1098,7 @@ void CommandSettingsPopup::refreshActionsList()
             waitInput->setScale(0.5f);
 
             actionNode->addChild(waitInput);
-        };
+        }
 
         // Menu for all buttons, positioned at the right side of the node
         auto menu = CCMenu::create();

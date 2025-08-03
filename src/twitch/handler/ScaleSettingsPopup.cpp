@@ -54,6 +54,7 @@ bool ScaleSettingsPopup::setup()
     inputStack->addChild(scaleLabel);
 
     m_scaleInput = TextInput::create(80, "Scale", "chatFont.fnt");
+    m_scaleInput->setCommonFilter(CommonFilter::Float);
     m_scaleInput->setString(fmt::format("{:.2f}", m_scaleValue).c_str());
     m_scaleInput->setScale(0.7f);
     m_scaleInput->setAnchorPoint({0.5f, 0.5f});
@@ -69,6 +70,7 @@ bool ScaleSettingsPopup::setup()
     inputStack->addChild(timeLabel);
 
     m_timeInput = TextInput::create(80, "Time (secs)", "chatFont.fnt");
+    m_timeInput->setCommonFilter(CommonFilter::Float);
     m_timeInput->setString(fmt::format("{:.2f}", m_timeValue).c_str());
     m_timeInput->setScale(0.7f);
     m_timeInput->setAnchorPoint({0.5f, 0.5f});
