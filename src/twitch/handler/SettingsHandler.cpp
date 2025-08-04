@@ -45,7 +45,6 @@ namespace SettingsHandler
         }
 
         auto popupWindow = GravitySettingsPopup::create(
-            popup,
             idx,
             gravity,
             duration,

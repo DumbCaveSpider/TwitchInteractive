@@ -77,7 +77,7 @@ bool GravitySettingsPopup::setup() {
     menu->setAnchorPoint({0.5f, 0.5f});
     menu->setPosition(centerX, centerY - verticalSpacing);
 
-    auto applyBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("Apply", "bigFont.fnt", "GJ_button_01.png", 0.6f), this, menu_selector(GravitySettingsPopup::onApplyBtn));
+    auto applyBtn = CCMenuItemSpriteExtra::create(ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f), this, menu_selector(GravitySettingsPopup::onApplyBtn));
     applyBtn->setID("gravity-settings-apply-btn");
     applyBtn->setPosition(0, -15.f);
     menu->addChild(applyBtn);
@@ -107,10 +107,9 @@ void GravitySettingsPopup::onApplyBtn(CCObject*) {
     this->removeFromParentAndCleanup(true);
 }
 
-GravitySettingsPopup* GravitySettingsPopup::create(CommandSettingsPopup* parent, int actionIdx, float defaultGravity, float defaultDuration, std::function<void(float, float)> onSave) {
+GravitySettingsPopup* GravitySettingsPopup::create(int actionIdx, float defaultGravity, float defaultDuration, std::function<void(float, float)> onSave) {
     auto ret = new GravitySettingsPopup();
     if (ret != nullptr) {
-        ret->m_parent = parent;
         ret->m_actionIdx = actionIdx;
         ret->m_onSave = onSave;
         ret->m_gravityInput = nullptr;

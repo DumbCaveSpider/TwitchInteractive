@@ -485,7 +485,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
         {"color_player", "Color Player", "Set the player's color based on the RGB value. <cr>Broken on Android users at this moment.</c>."},
-        //{"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale."},
+        //{"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale."}, // mod that moves/rotates PlayLayer is instant reject imo - prevter
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). <cg>Use as a delay between actions.</c>."},
         {"notification", "Notification", "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>."},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading. <cg>Supports the use of identifiers.</c>."},

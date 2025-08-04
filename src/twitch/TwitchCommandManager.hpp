@@ -1,6 +1,7 @@
 #pragma once
 
 #include "command/events/PlayLayerEvent.hpp"
+#include "command/events/PlayerObjectEvent.hpp"
 
 #include <string>
 #include <array>
@@ -264,7 +265,45 @@ struct ActionContext : public CCObject
         // Handle other Event types
         if (action.type == CommandActionType::Event)
         {
-            if (processedArg == "kill_player")
+
+            // Gravity event: gravity:<gravity>:<duration>
+            if (processedArg.rfind("gravity:", 0) == 0)
+            {
+                float gravity = 1.0f;
+                float duration = 0.5f;
+                size_t firstColon = processedArg.find(":");
+                size_t secondColon = processedArg.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos)
+                {
+                    std::string gravityStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string durationStr = processedArg.substr(secondColon + 1);
+                    if (!gravityStr.empty() && gravityStr.find_first_not_of("-.0123456789") == std::string::npos)
+                        gravity = std::stof(gravityStr);
+                    if (!durationStr.empty() && durationStr.find_first_not_of("-.0123456789") == std::string::npos)
+                        duration = std::stof(durationStr);
+                }
+                log::info("Triggering gravity event: gravity={} duration={} (command: {})", gravity, duration, ctx->commandName);
+                auto playLayer = PlayLayer::get();
+                if (playLayer && playLayer->m_player1)
+                {
+                    auto event = PlayerObjectEvent::create(playLayer->m_player1, gravity, duration);
+                    if (event)
+                    {
+                        playLayer->addChild(event);
+                        event->applyGravity();
+                    }
+                    else
+                    {
+                        log::warn("[GravityEvent] Failed to create PlayerObjectEvent");
+                    }
+                }
+                else
+                {
+                    log::warn("[GravityEvent] PlayLayer or player not found");
+                }
+            }
+
+            else if (processedArg == "kill_player")
             {
                 log::info("Triggering kill player event for command: {}", ctx->commandName);
                 PlayLayerEvent::killPlayer();

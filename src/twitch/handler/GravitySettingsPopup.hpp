@@ -1,13 +1,13 @@
-
 #pragma once
 #include <Geode/Geode.hpp>
-#include "../command/CommandSettingsPopup.hpp"
+#include <cocos2d.h>
+#include <cocos-ext.h>
+#include <functional>
 
 using namespace geode::prelude;
 
 class GravitySettingsPopup : public geode::Popup<> {
 protected:
-    CommandSettingsPopup* m_parent = nullptr;
     int m_actionIdx = 0;
     TextInput* m_gravityInput = nullptr;
     TextInput* m_durationInput = nullptr;
@@ -20,7 +20,7 @@ protected:
     void onApplyBtn(CCObject*);
 
 public:
-    static GravitySettingsPopup* create(CommandSettingsPopup* parent, int actionIdx, float defaultGravity, float defaultDuration, std::function<void(float, float)> onSave);
+    static GravitySettingsPopup* create(int actionIdx, float defaultGravity, float defaultDuration, std::function<void(float, float)> onSave);
     float getGravity() const { return m_gravity; }
     float getDuration() const { return m_duration; }
 };
