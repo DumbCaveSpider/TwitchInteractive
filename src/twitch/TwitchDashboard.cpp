@@ -386,21 +386,26 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
 };
 
 void TwitchDashboard::handleCommandDelete(const std::string& commandName) {
-    // Delete the command
-    auto commandManager = TwitchCommandManager::getInstance();
-    commandManager->removeCommand(commandName);
-
-    log::info("Command deleted: {}", commandName);
-
-    // Schedule a refresh with a slightly longer delay to ensure all events are processed
-    schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
-
-    // Show success message
-    FLAlertLayer::create(
-        "Success",
-        ("Command '!" + commandName + "' deleted successfully!").c_str(),
-        "OK")
-        ->show();
+    // Show confirmation popup before deleting
+    geode::createQuickPopup(
+        "Delete Command",
+        "Are you sure you want to <cr>delete command</c> '!" + commandName + "'? This action cannot be undone.",
+        "No",
+        "Yes",
+        [this, commandName](auto, bool confirmed) {
+            if (confirmed) {
+                auto commandManager = TwitchCommandManager::getInstance();
+                commandManager->removeCommand(commandName);
+                log::info("Command deleted: {}", commandName);
+                schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
+                FLAlertLayer::create(
+                    "Delete Success",
+                    "Command '!" + commandName + "' deleted successfully!",
+                    "OK"
+                )->show();
+            }
+        }
+    );
 };
 
 void TwitchDashboard::delayedRefreshCommandsList(float dt) {
