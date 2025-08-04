@@ -43,7 +43,7 @@ bool CommandInputPopup::setup() {
 
     // Create text input for command name
     m_nameInput = TextInput::create(200, "Command name", "bigFont.fnt");
-    m_nameInput->setCommonFilter(CommonFilter::Any);
+    m_nameInput->setCommonFilter(CommonFilter::Alphanumeric);
     m_nameInput->setPosition(layerSize.width / 2, layerSize.height - 55);
     m_nameInput->setScale(0.8f);
     m_nameInput->setID("command-input-name-field");

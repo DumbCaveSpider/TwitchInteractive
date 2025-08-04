@@ -12,6 +12,7 @@ bool CommandUserSettingsPopup::setup() {
 
     // Username input
     m_userInput = geode::TextInput::create(160, "Twitch Username (leave blank for any)", "chatFont.fnt");
+    m_userInput->setCommonFilter(CommonFilter::Any);
     m_userInput->setString(m_allowedUser.c_str());
     m_userInput->setPosition(x, y);
     m_mainLayer->addChild(m_userInput);
