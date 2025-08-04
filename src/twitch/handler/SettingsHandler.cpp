@@ -9,6 +9,7 @@
 #include "ScaleSettingsPopup.hpp"
 #include "SoundSettingsPopup.hpp"
 #include "GravitySettingsPopup.hpp"
+#include "SpeedSettingsPopup.hpp"
 
 #include <algorithm>
 
@@ -48,13 +49,13 @@ namespace SettingsHandler
             idx,
             gravity,
             duration,
-            [popup, idx](float newGravity, float newDuration) {
+            [popup, idx](float newGravity, float newDuration)
+            {
                 char buf[64];
                 snprintf(buf, sizeof(buf), "gravity:%.2f:%.2f", newGravity, newDuration);
                 popup->m_commandActions[idx] = buf;
                 popup->refreshActionsList();
-            }
-        );
+            });
         if (popupWindow)
         {
             popupWindow->show();
@@ -115,6 +116,46 @@ namespace SettingsHandler
             popupWindow->show();
     };
 
+    void handleSpeedSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender)
+    {
+        auto btn = as<CCMenuItemSpriteExtra *>(sender);
+        int idx = 0;
+        if (btn && btn->getUserObject())
+            idx = as<CCInteger *>(btn->getUserObject())->getValue();
+        if (!popup || idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
+            return;
+
+        std::string &actionStr = popup->m_commandActions[idx];
+        float speed = 1.0f, duration = 0.5f;
+        size_t firstColon = actionStr.find(":");
+        size_t secondColon = actionStr.find(":", firstColon + 1);
+        if (firstColon != std::string::npos && secondColon != std::string::npos)
+        {
+            std::string speedStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+            std::string durationStr = actionStr.substr(secondColon + 1);
+            if (!speedStr.empty())
+                speed = std::stof(speedStr);
+            if (!durationStr.empty())
+                duration = std::stof(durationStr);
+        }
+
+        auto popupWindow = SpeedSettingsPopup::create(
+            idx,
+            speed,
+            duration,
+            [popup, idx](float newSpeed, float newDuration)
+            {
+                char buf[64];
+                snprintf(buf, sizeof(buf), "speed_player:%.2f:%.2f", newSpeed, newDuration);
+                popup->m_commandActions[idx] = buf;
+                popup->refreshActionsList();
+            });
+        if (popupWindow)
+        {
+            popupWindow->show();
+        }
+    }
+    
     // Process the alert popup action settings
     void handleAlertSettings(CommandSettingsPopup *parent, cocos2d::CCObject *sender)
     {

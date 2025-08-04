@@ -6,10 +6,11 @@
 
 using namespace geode::prelude;
 
-PlayerObjectEvent *PlayerObjectEvent::create(PlayerObject *player, float gravity, float duration)
+
+PlayerObjectEvent *PlayerObjectEvent::create(PlayerObject *player, float gravity, float duration, float speed, float speedDuration)
 {
     auto ret = new PlayerObjectEvent();
-    if (ret && ret->init(player, gravity, duration))
+    if (ret && ret->init(player, gravity, duration, speed, speedDuration))
     {
         ret->autorelease();
         return ret;
@@ -18,11 +19,13 @@ PlayerObjectEvent *PlayerObjectEvent::create(PlayerObject *player, float gravity
     return nullptr;
 }
 
-bool PlayerObjectEvent::init(PlayerObject *player, float gravity, float duration)
+bool PlayerObjectEvent::init(PlayerObject *player, float gravity, float duration, float speed, float speedDuration)
 {
     m_player = player;
     m_gravity = gravity;
     m_duration = duration;
+    m_speed = speed;
+    m_speedDuration = speedDuration;
     return true;
 }
 
@@ -40,6 +43,24 @@ void PlayerObjectEvent::applyGravity()
     this->schedule(schedule_selector(PlayerObjectEvent::resetGravityCallback), m_duration, 0, 0);
 }
 
+void PlayerObjectEvent::applySpeed()
+{
+    if (!m_player)
+    {
+        log::warn("[PlayerObjectEvent] m_player is nullptr, cannot apply speed.");
+        return;
+    }
+    if (m_speed <= 0.0f) {
+        log::warn("[PlayerObjectEvent] Speed value not set or invalid, skipping speed change.");
+        return;
+    }
+    float originalSpeed = m_player->m_playerSpeed;
+    log::info("[PlayerObjectEvent] Applying speed {:.2f} to player (was {:.2f})", m_speed, originalSpeed);
+    m_player->m_playerSpeed = m_speed;
+    m_resetSpeed = originalSpeed;
+    this->schedule(schedule_selector(PlayerObjectEvent::resetSpeedCallback), m_speedDuration, 0, 0);
+}
+
 void PlayerObjectEvent::resetGravityCallback(float)
 {
     if (m_player)
@@ -50,6 +71,20 @@ void PlayerObjectEvent::resetGravityCallback(float)
     else
     {
         log::warn("[PlayerObjectEvent] m_player is nullptr, cannot reset gravity.");
+    }
+    this->removeFromParent();
+}
+
+void PlayerObjectEvent::resetSpeedCallback(float)
+{
+    if (m_player)
+    {
+        log::info("[PlayerObjectEvent] Resetting speed to {:.2f}", m_resetSpeed);
+        m_player->m_playerSpeed = m_resetSpeed;
+    }
+    else
+    {
+        log::warn("[PlayerObjectEvent] m_player is nullptr, cannot reset speed.");
     }
     this->removeFromParent();
 }

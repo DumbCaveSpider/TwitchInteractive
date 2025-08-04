@@ -31,4 +31,5 @@ public:
 
     static void scalePlayer(int playerIdx, float scale, float time = 0.0f);
     static void reversePlayer();
+    static void restartLevel();
 };

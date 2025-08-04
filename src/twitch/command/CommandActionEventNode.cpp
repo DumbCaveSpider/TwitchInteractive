@@ -485,8 +485,8 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move."},
         {"color_player", "Color Player", "Set the player's color based on the RGB value. <cr>Broken on Android users at this moment.</c>."},
-        //{"edit_camera", "Edit Camera", "Edit the PlayLayer camera's Skew, Rotation, and Scale."}, // mod that moves/rotates PlayLayer is instant reject imo - prevter
-        {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). <cg>Use as a delay between actions.</c>."},
+        //{"edit_camera", "Edit Camera", "Edit Camera's Skew, Rotation, and Scale."},
+        {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). <cg>Use as a delay between actions.</c>"},
         {"notification", "Notification", "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>."},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading. <cg>Supports the use of identifiers.</c>."},
         {"keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users</c>."},
@@ -495,7 +495,9 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"scale_player", "Scale Player", "Scales the player in-game. <cr>Does not affect the player hitbox.</c>."},
         {"sound", "Sound Effect", "Plays a sound effect. <cg>Only uses the provided sound effect included in game.</c>."},
         {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately."},
-        {"gravity", "Set Gravity", "Sets the player's gravity to a specified value for a duration. <cg>Use to modify gravity temporarily.</c>."}
+        {"gravity", "Set Gravity", "Sets the player's gravity to a specified value for a duration. <cg>Use to modify gravity temporarily.</c>."},
+        {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration. <cg>Use to modify speed temporarily.</c>."},
+        {"restart_level", "Restart Level", "Restarts the entire level."}
     };
 
     return nodes;

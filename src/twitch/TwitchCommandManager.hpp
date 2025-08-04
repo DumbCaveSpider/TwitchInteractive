@@ -303,6 +303,43 @@ struct ActionContext : public CCObject
                 }
             }
 
+            // Speed event: speed_player:<speed>:<duration>
+            else if (processedArg.rfind("speed_player:", 0) == 0)
+            {
+                float speed = 1.0f;
+                float duration = 0.5f;
+                size_t firstColon = processedArg.find(":");
+                size_t secondColon = processedArg.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos)
+                {
+                    std::string speedStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string durationStr = processedArg.substr(secondColon + 1);
+                    if (!speedStr.empty() && speedStr.find_first_not_of("-.0123456789") == std::string::npos)
+                        speed = std::stof(speedStr);
+                    if (!durationStr.empty() && durationStr.find_first_not_of("-.0123456789") == std::string::npos)
+                        duration = std::stof(durationStr);
+                }
+                log::info("Triggering speed event: speed={} duration={} (command: {})", speed, duration, ctx->commandName);
+                auto playLayer = PlayLayer::get();
+                if (playLayer && playLayer->m_player1)
+                {
+                    auto event = PlayerObjectEvent::create(playLayer->m_player1, 1.0f, 0.0f, speed, duration);
+                    if (event)
+                    {
+                        playLayer->addChild(event);
+                        event->applySpeed();
+                    }
+                    else
+                    {
+                        log::warn("[SpeedEvent] Failed to create PlayerObjectEvent");
+                    }
+                }
+                else
+                {
+                    log::warn("[SpeedEvent] PlayLayer or player not found");
+                }
+            }
+
             else if (processedArg == "kill_player")
             {
                 log::info("Triggering kill player event for command: {}", ctx->commandName);
@@ -312,6 +349,11 @@ struct ActionContext : public CCObject
             {
                 log::info("Triggering reverse player event for command: {}", ctx->commandName);
                 PlayLayerEvent::reversePlayer();
+            }
+            else if (processedArg == "restart_level")
+            {
+                log::info("Triggering restart level event for command: {}", ctx->commandName);
+                PlayLayerEvent::restartLevel();
             }
             else if (processedArg.rfind("edit_camera:", 0) == 0)
             {

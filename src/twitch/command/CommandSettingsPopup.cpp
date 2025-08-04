@@ -464,7 +464,12 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject *sender)
 void CommandSettingsPopup::onGravitySettings(CCObject *sender)
 {
     SettingsHandler::handleGravitySettings(this, sender);
-}
+};
+
+void CommandSettingsPopup::onSpeedSettings(CCObject *sender)
+{
+    SettingsHandler::handleSpeedSettings(this, sender);
+};
 
 // Handler for color player settings button
 void CommandSettingsPopup::onColorPlayerSettings(CCObject *sender)
@@ -574,6 +579,11 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
         else if (eventId == "scale_player")
         {
             m_commandActions.push_back("scale_player:1.00");
+            refreshActionsList();
+        }
+        else if (eventId == "speed_player")
+        {
+            m_commandActions.push_back("speed_player:1.00:0.50");
             refreshActionsList();
         }
         else
@@ -736,6 +746,16 @@ void CommandSettingsPopup::refreshActionsList()
         else if (actionIdLower.rfind("edit_camera", 0) == 0)
         {
             btnId = "edit-camera-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
+        else if (actionIdLower.rfind("scale_player", 0) == 0)
+        {
+            btnId = "scale-player-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
+        else if (actionIdLower.rfind("speed_player", 0) == 0)
+        {
+            btnId = "speed-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
         else if (actionIdLower.rfind("scale_player", 0) == 0)
@@ -930,7 +950,11 @@ void CommandSettingsPopup::refreshActionsList()
                 {
                     std::string rgb = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "RGB: " + rgb;
-                };
+                }
+                else 
+                {
+                    settingsLabelText = "No color selected";
+                }
             }
             else if (actionIdLower.rfind("edit_camera", 0) == 0)
             {
@@ -1012,6 +1036,22 @@ void CommandSettingsPopup::refreshActionsList()
                 else
                 {
                     settingsLabelText = "Gravity: - | Duration: -";
+                }
+            }
+            else if (actionIdLower.rfind("speed_player", 0) == 0)
+            {
+                // Format: speed_player:<speed>:<duration>
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                if (firstColon != std::string::npos && secondColon != std::string::npos)
+                {
+                    std::string speedStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    std::string durationStr = actionIdRaw.substr(secondColon + 1);
+                    settingsLabelText = "Speed: " + speedStr + " | Duration: " + durationStr;
+                }
+                else
+                {
+                    settingsLabelText = "Speed: - | Duration: -";
                 }
             }
         };
@@ -1198,7 +1238,7 @@ void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx)
         std::string actionStrLower = actionStr;
         std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
 
-        if (actionStrLower.rfind("color_player", 0) == 0 || actionStrLower.rfind("color player", 0) == 0)
+        if (actionStrLower.rfind("color_player", 0) == 0)
         {
             auto children = m_actionContent->getChildren();
 
@@ -1613,6 +1653,8 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleEditCameraSettings(this, sender);
     else if (actionStrLower.rfind("scale_player", 0) == 0)
         SettingsHandler::handleScalePlayerSettings(this, sender);
+    else if (actionStrLower.rfind("speed_player", 0) == 0)
+        SettingsHandler::handleSpeedSettings(this, sender);
     else if (actionStrLower.rfind("sound", 0) == 0)
         SettingsHandler::handleSoundEffectSettings(this, sender);
     else if (actionStrLower.rfind("gravity", 0) == 0)
