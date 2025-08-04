@@ -28,6 +28,9 @@ public:
 
     // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
     static void setCameraFromString(const std::string &arg);
+   
+    // Set noclip state
+    static void setNoclip(bool enabled);
 
     static void scalePlayer(int playerIdx, float scale, float time = 0.0f);
     static void reversePlayer();

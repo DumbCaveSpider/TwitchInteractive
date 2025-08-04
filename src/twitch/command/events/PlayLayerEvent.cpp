@@ -1,10 +1,26 @@
 #include "KeyReleaseScheduler.hpp"
 #include "PlayLayerEvent.hpp"
+#include <Geode/modify/PlayLayer.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/Bindings.hpp>
 #include <Geode/Geode.hpp>
 #include <cocos2d.h>
 using namespace geode::prelude;
+
+namespace {
+    bool g_noclipEnabled = false;
+}
+
+class $modify(PlayLayer) {
+    void destroyPlayer(PlayerObject* player, GameObject* obj) {
+        if (g_noclipEnabled) {
+            // Noclip enabled: prevent player death
+            log::debug("[PlayLayerEvent] Noclip enabled: destroyPlayer ignored");
+            return;
+        }
+        PlayLayer::destroyPlayer(player, obj);
+    }
+};
 
 // Helper to parse color from string (format: "R,G,B")
 cocos2d::ccColor3B parseColorString(const std::string &str)
@@ -290,18 +306,21 @@ void PlayLayerEvent::killPlayer()
     g_pendingKillPlayer = true;
 
     Loader::get()->queueInMainThread([]
-                                     {
+    {
         auto playLayer = PlayLayer::get();
-
         if (playLayer && g_pendingKillPlayer) {
             log::debug("[PlayLayerEvent] destroyPlayer: Executing now");
-
-            playLayer->destroyPlayer(playLayer->m_player1, nullptr);
+            if (!g_noclipEnabled) {
+                playLayer->destroyPlayer(playLayer->m_player1, nullptr);
+            } else {
+                log::debug("[PlayLayerEvent] Noclip enabled: killPlayer ignored");
+            }
             g_pendingKillPlayer = false;
         } else if (g_pendingKillPlayer) {
             KillPlayerScheduler::start();
-        }; });
-};
+        }
+    });
+}
 
 void PlayLayerEvent::jumpPlayerHold(int playerIdx)
 {
@@ -375,6 +394,12 @@ void PlayLayerEvent::pressKey(const std::string &key, float duration)
 };
 
 // Move player left or right by a distance
+// Set noclip state
+void PlayLayerEvent::setNoclip(bool enabled)
+{
+    g_noclipEnabled = enabled;
+    log::info("[PlayLayerEvent] Noclip set to {}", enabled ? "true" : "false");
+}
 void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance)
 {
     Loader::get()->queueInMainThread([playerIdx, moveRight, distance]

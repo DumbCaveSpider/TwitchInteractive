@@ -266,6 +266,19 @@ struct ActionContext : public CCObject
         if (action.type == CommandActionType::Event)
         {
 
+            // Noclip event: noclip:true or noclip:false
+            if (processedArg.rfind("noclip:", 0) == 0)
+            {
+                bool enableNoclip = false;
+                std::string value = processedArg.substr(7);
+                if (value == "true")
+                    enableNoclip = true;
+                else if (value == "false")
+                    enableNoclip = false;
+                log::info("Setting noclip to {} (command: {})", enableNoclip ? "true" : "false", ctx->commandName);
+                PlayLayerEvent::setNoclip(enableNoclip);
+            }
+
             // Gravity event: gravity:<gravity>:<duration>
             if (processedArg.rfind("gravity:", 0) == 0)
             {
