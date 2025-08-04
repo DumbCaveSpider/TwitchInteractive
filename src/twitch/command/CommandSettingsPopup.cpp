@@ -1114,15 +1114,33 @@ void CommandSettingsPopup::refreshActionsList()
         // Settings button (if applicable)
         CCMenuItemSpriteExtra *settingsBtn = nullptr;
 
-        if (hasSettingsHandler)
-        {
+        if (hasSettingsHandler) {
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
             settingsBtn = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(CommandSettingsPopup::onSettingsButtonUnified));
             settingsBtn->setID(btnId);
             settingsBtn->setUserObject(CCInteger::create(static_cast<int>(i)));
             settingsBtn->setPosition(btnSpacing, 0);
-        };
+        }
+
+        // handle checkboxes for specific actions
+        CCMenuItemToggler* noclipCheckbox = nullptr;
+        if (actionIdLower.rfind("noclip", 0) == 0) {
+            auto noclipOn = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
+            auto noclipOff = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
+            noclipCheckbox = CCMenuItemToggler::create(noclipOff, noclipOn, nullptr, nullptr);
+            noclipCheckbox->setID("noclip-checkbox-" + std::to_string(i));
+            noclipCheckbox->setPosition(btnSpacing, 0);
+            noclipCheckbox->setScale(0.75f);
+            // Set initial state from actionIdRaw ("noclip:true" or "noclip:false")
+            bool checked = false;
+            size_t colonPos = actionIdRaw.find(":");
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+                std::string val = actionIdRaw.substr(colonPos + 1);
+                checked = (val == "true");
+            }
+            noclipCheckbox->toggle(checked);
+        }
 
         // Remove button
         auto removeSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
@@ -1166,16 +1184,17 @@ void CommandSettingsPopup::refreshActionsList()
             actionNode->addChild(waitInput);
         }
 
+
         // Menu for all buttons, positioned at the right side of the node
         auto menu = CCMenu::create();
         menu->setPosition(btnMenuRight - btnSpacing * 2, btnMenuY);
 
         menu->addChild(upBtn);
         menu->addChild(downBtn);
-
         if (settingsBtn)
             menu->addChild(settingsBtn);
-
+        if (noclipCheckbox)
+            menu->addChild(noclipCheckbox);
         menu->addChild(removeBtn);
 
         actionNode->addChild(menu);
@@ -1423,6 +1442,35 @@ void CommandSettingsPopup::onSave(CCObject *sender)
         else if (actionId == "kill_player")
         {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, "kill_player", 0));
+        }
+        else if (actionIdRaw.rfind("noclip", 0) == 0)
+        {
+            // Always get the current state from the visible checkbox, not from actionIdRaw
+            bool checked = false;
+            auto children = m_actionContent->getChildren();
+            if (children && idx < children->count()) {
+                if (auto node = as<CCNode *>(children->objectAtIndex(idx))) {
+                    // Find the noclip checkbox in the menu
+                    CCMenu* menu = nullptr;
+                    for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
+                        if ((menu = dynamic_cast<CCMenu*>(child))) break;
+                    }
+                    if (menu) {
+                        for (auto btn : CCArrayExt<CCNode*>(menu->getChildren())) {
+                            if (auto toggler = dynamic_cast<CCMenuItemToggler*>(btn)) {
+                                if (std::string(toggler->getID()).find("noclip-checkbox-") == 0) {
+                                    checked = toggler->isToggled();
+                                    // Update actionIdRaw to reflect the current checkbox state
+                                    actionIdRaw = "noclip:" + std::string(checked ? "true" : "false");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Always push the updated value
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
         }
         else if (actionIdRaw.rfind("keycode:", 0) == 0)
         {

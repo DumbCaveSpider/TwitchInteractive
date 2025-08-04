@@ -497,7 +497,8 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately."},
         {"gravity", "Set Gravity", "Sets the player's gravity to a specified value for a duration. <cg>Use to modify gravity temporarily.</c>."},
         {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration. <cg>Use to modify speed temporarily.</c>."},
-        {"restart_level", "Restart Level", "Restarts the entire level."}
+        {"restart_level", "Restart Level", "Restarts the entire level."},
+        {"noclip", "Noclip", "Enables or disables noclip mode for the player."}
     };
 
     return nodes;
