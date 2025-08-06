@@ -1,10 +1,12 @@
+# v0.1.7-beta.1
+- Fixed the texture scaling on the action & event nodes
+- Add a close confirmation on the command settings
 # v0.1.6-beta.1
 - Fixed the popup to fit based on your screen resolution
 - Removed **Edit Camera** due to issues with crashes on levels and compliances with the Geode Index guidelines. sorry :(
 - Fixed TextBox inputs not allowing user to set an decimal point on certain actions
 - Added **Set Gravity**,**Speed Player** & **Noclip** Events
-- Added a delete command comfirmation popup
-- Fixed the texture scaling on the action & event nodes
+- Added a delete command confirmation popup
 # v0.1.5-beta.1
 - Added **Sound Effect** & **Stop All Sounds** Events
 - Changed the **Wait** Action value to use float value instead of just integer.

@@ -8,7 +8,7 @@
 	},
 	"id": "arcticwoof.twitch_interactive",
 	"name": "Twitch Interactive",
-	"version": "v0.1.6-beta.1",
+	"version": "v0.1.7-beta.1",
 	"developer": "ArcticWoof",
 	"description": "Allows Twitch viewers to interact in game",
 	"tags": [

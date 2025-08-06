@@ -951,7 +951,7 @@ void CommandSettingsPopup::refreshActionsList()
                     std::string rgb = actionIdRaw.substr(colon + 1);
                     settingsLabelText = "RGB: " + rgb;
                 }
-                else 
+                else
                 {
                     settingsLabelText = "No color selected";
                 }
@@ -1114,7 +1114,8 @@ void CommandSettingsPopup::refreshActionsList()
         // Settings button (if applicable)
         CCMenuItemSpriteExtra *settingsBtn = nullptr;
 
-        if (hasSettingsHandler) {
+        if (hasSettingsHandler)
+        {
             auto settingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
             settingsSprite->setScale(0.5f);
             settingsBtn = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(CommandSettingsPopup::onSettingsButtonUnified));
@@ -1124,8 +1125,9 @@ void CommandSettingsPopup::refreshActionsList()
         }
 
         // handle checkboxes for specific actions
-        CCMenuItemToggler* noclipCheckbox = nullptr;
-        if (actionIdLower.rfind("noclip", 0) == 0) {
+        CCMenuItemToggler *noclipCheckbox = nullptr;
+        if (actionIdLower.rfind("noclip", 0) == 0)
+        {
             auto noclipOn = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
             auto noclipOff = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
             noclipCheckbox = CCMenuItemToggler::create(noclipOff, noclipOn, nullptr, nullptr);
@@ -1135,7 +1137,8 @@ void CommandSettingsPopup::refreshActionsList()
             // Set initial state from actionIdRaw ("noclip:true" or "noclip:false")
             bool checked = false;
             size_t colonPos = actionIdRaw.find(":");
-            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size()) {
+            if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size())
+            {
                 std::string val = actionIdRaw.substr(colonPos + 1);
                 checked = (val == "true");
             }
@@ -1184,7 +1187,6 @@ void CommandSettingsPopup::refreshActionsList()
             actionNode->addChild(waitInput);
         }
 
-
         // Menu for all buttons, positioned at the right side of the node
         auto menu = CCMenu::create();
         menu->setPosition(btnMenuRight - btnSpacing * 2, btnMenuY);
@@ -1229,8 +1231,17 @@ void CommandSettingsPopup::onRemoveAction(CCObject *sender)
 
 void CommandSettingsPopup::onCloseBtn(CCObject *sender)
 {
-    onClose(sender);
-};
+    geode::createQuickPopup(
+        "Close Without Saving?",
+        "Are you sure you want to close the settings without saving? <cr>Any unsaved changes will be lost.</c>",
+        "Cancel", "Close",
+        [this](auto, bool btn2) {
+            if (btn2) {
+                this->onClose(nullptr);
+            }
+        }
+    );
+}
 
 std::string CommandSettingsPopup::getNotificationText() const
 {
@@ -1448,17 +1459,25 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             // Always get the current state from the visible checkbox, not from actionIdRaw
             bool checked = false;
             auto children = m_actionContent->getChildren();
-            if (children && idx < children->count()) {
-                if (auto node = as<CCNode *>(children->objectAtIndex(idx))) {
+            if (children && idx < children->count())
+            {
+                if (auto node = as<CCNode *>(children->objectAtIndex(idx)))
+                {
                     // Find the noclip checkbox in the menu
-                    CCMenu* menu = nullptr;
-                    for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
-                        if ((menu = dynamic_cast<CCMenu*>(child))) break;
+                    CCMenu *menu = nullptr;
+                    for (auto child : CCArrayExt<CCNode *>(node->getChildren()))
+                    {
+                        if ((menu = dynamic_cast<CCMenu *>(child)))
+                            break;
                     }
-                    if (menu) {
-                        for (auto btn : CCArrayExt<CCNode*>(menu->getChildren())) {
-                            if (auto toggler = dynamic_cast<CCMenuItemToggler*>(btn)) {
-                                if (std::string(toggler->getID()).find("noclip-checkbox-") == 0) {
+                    if (menu)
+                    {
+                        for (auto btn : CCArrayExt<CCNode *>(menu->getChildren()))
+                        {
+                            if (auto toggler = dynamic_cast<CCMenuItemToggler *>(btn))
+                            {
+                                if (std::string(toggler->getID()).find("noclip-checkbox-") == 0)
+                                {
                                     checked = toggler->isToggled();
                                     // Update actionIdRaw to reflect the current checkbox state
                                     actionIdRaw = "noclip:" + std::string(checked ? "true" : "false");
