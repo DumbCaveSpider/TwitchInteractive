@@ -135,7 +135,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     m_mainLayer->addChild(profileMenu);
 
     // Background for the event scroll layer
-    auto eventScrollBg = CCScale9Sprite::create("square02_001.png");
+    auto eventScrollBg = CCScale9Sprite::create("square02_small.png");
     eventScrollBg->setID("events-scroll-background");
     eventScrollBg->setContentSize(scrollSize);
     eventScrollBg->setOpacity(50);
@@ -151,7 +151,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     eventScrollLayer->setPosition(eventSectionX, scrollLayerY);
 
     // Background for the actions scroll layer
-    auto actionScrollBg = CCScale9Sprite::create("square02_001.png");
+    auto actionScrollBg = CCScale9Sprite::create("square02_small.png");
     actionScrollBg->setID("actions-scroll-background");
     actionScrollBg->setContentSize(scrollSize);
     actionScrollBg->setOpacity(50);
@@ -296,7 +296,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
             menu->addChild(infoBtn);
             node->addChild(label);
             node->addChild(menu);
-            auto nodeBg = CCScale9Sprite::create("square02_001.png");
+            auto nodeBg = CCScale9Sprite::create("square02_small.png");
             nodeBg->setContentSize(node->getContentSize());
             nodeBg->setOpacity(60);
             nodeBg->setAnchorPoint({0, 0});
@@ -1200,7 +1200,7 @@ void CommandSettingsPopup::refreshActionsList()
         actionNode->addChild(menu);
 
         float nodeBgWidth = m_actionContent ? m_actionContent->getContentSize().width : actionNode->getContentSize().width;
-        auto nodeBg = CCScale9Sprite::create("square02_001.png");
+        auto nodeBg = CCScale9Sprite::create("square02_small.png");
         nodeBg->setContentSize(CCSize(nodeBgWidth, actionNode->getContentSize().height));
         nodeBg->setOpacity(60);
         nodeBg->setAnchorPoint({0, 0});

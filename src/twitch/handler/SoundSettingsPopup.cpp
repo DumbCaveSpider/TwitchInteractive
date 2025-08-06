@@ -147,7 +147,7 @@ bool SoundSettingsPopup::setup() {
             node->setPosition(centerX, y);
 
             // Background
-            auto bg = CCScale9Sprite::create("square02_001.png");
+            auto bg = CCScale9Sprite::create("square02_small.png");
             bg->setContentSize(CCSize(scrollSize.width, nodeHeight));
             bg->setOpacity(60);
             bg->setAnchorPoint({ 0, 0 });
