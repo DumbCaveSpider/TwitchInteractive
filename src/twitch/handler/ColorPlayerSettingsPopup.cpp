@@ -69,14 +69,9 @@ bool ColorPlayerSettingsPopup::setup() {
     m_bInput->setMaxCharCount(3);
 
 
-    auto buf_r = fmt::format("{}", m_selectedColor.r);
-    m_rInput->setString(buf_r);
-
-    auto buf_g = fmt::format("{}", m_selectedColor.g);
-    m_gInput->setString(buf_g);
-
-    auto buf_b = fmt::format("{}", m_selectedColor.b);
-    m_bInput->setString(buf_b);
+    m_rInput->setString(fmt::format("{}", m_selectedColor.r));
+    m_gInput->setString(fmt::format("{}", m_selectedColor.g));
+    m_bInput->setString(fmt::format("{}", m_selectedColor.b));
 
     m_mainLayer->addChild(m_rInput, 2);
     m_mainLayer->addChild(m_gInput, 2);
@@ -150,14 +145,9 @@ void ColorPlayerSettingsPopup::onApplyRGB(cocos2d::CCObject* sender) {
     if (m_colorPicker) m_colorPicker->setColorValue(m_selectedColor);
 
 
-    auto buf_r = fmt::format("{}", r);
-    m_rInput->setString(buf_r);
-
-    auto buf_g = fmt::format("{}", g);
-    m_gInput->setString(buf_g);
-
-    auto buf_b = fmt::format("{}", b);
-    m_bInput->setString(buf_b);
+    m_rInput->setString(fmt::format("{}", r));
+    m_gInput->setString(fmt::format("{}", g));
+    m_bInput->setString(fmt::format("{}", b));
 };
 
 void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d::extension::CCControlEvent) {
@@ -166,14 +156,9 @@ void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d
 
         // Update RGB textboxes
 
-        auto buf_r = fmt::format("{}", m_selectedColor.r);
-        m_rInput->setString(buf_r);
-
-        auto buf_g = fmt::format("{}", m_selectedColor.g);
-        m_gInput->setString(buf_g);
-
-        auto buf_b = fmt::format("{}", m_selectedColor.b);
-        m_bInput->setString(buf_b);
+        m_rInput->setString(fmt::format("{}", m_selectedColor.r));
+        m_gInput->setString(fmt::format("{}", m_selectedColor.g));
+        m_bInput->setString(fmt::format("{}", m_selectedColor.b));
     };
 };
 

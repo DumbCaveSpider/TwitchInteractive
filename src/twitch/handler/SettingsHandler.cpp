@@ -103,9 +103,7 @@ namespace SettingsHandler
         // Show the CameraSettingsPopup and update the value and label on save
         auto popupWindow = CameraSettingsPopup::create(zoom, x, y, duration, [popup, actionIdx](float newZoom, float newX, float newY, float newDuration)
                                                        {
-            auto buf_edit_camera = fmt::format("edit_camera:{:.2f}:{:.2f}:{:.2f}:{:.2f}", newZoom, newX, newY, newDuration);
-
-            popup->m_commandActions[actionIdx] = buf_edit_camera;
+            popup->m_commandActions[actionIdx] = fmt::format("edit_camera:{:.2f}:{:.2f}:{:.2f}:{:.2f}", newZoom, newX, newY, newDuration);
 
             // Refresh the action node UI after saving
             popup->refreshActionsList(); });
@@ -230,9 +228,7 @@ namespace SettingsHandler
         CameraSettingsPopup::create(skew, rot, scale, time, [popup, idx](float newSkew, float newRot, float newScale, float newTime)
                                     {
 
-            auto buf_skew = fmt::format("{:.2f},{:.2f},{:.2f},{:.2f}", newSkew, newRot, newScale, newTime);
-
-            popup->m_commandActions[idx] = std::string("edit_camera:") + buf_skew;
+            popup->m_commandActions[idx] = fmt::format("edit_camera:{:.2f},{:.2f},{:.2f},{:.2f}", newSkew, newRot, newScale, newTime);
             popup->refreshActionsList(); })
             ->show();
     };
