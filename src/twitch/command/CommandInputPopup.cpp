@@ -7,7 +7,8 @@
 
 using namespace geode::prelude;
 
-CCMenu* CommandInputPopup::createButtonMenu() {
+CCMenu *CommandInputPopup::createButtonMenu()
+{
     auto layerSize = m_mainLayer->getContentSize();
 
     // Create button menu
@@ -32,7 +33,8 @@ CCMenu* CommandInputPopup::createButtonMenu() {
     return buttonMenu;
 };
 
-bool CommandInputPopup::setup() {
+bool CommandInputPopup::setup()
+{
     setTitle(m_isEditing ? "Edit Command" : "Add Command");
 
     auto layerSize = m_mainLayer->getContentSize();
@@ -75,11 +77,13 @@ bool CommandInputPopup::setup() {
     return true;
 };
 
-void CommandInputPopup::setCallback(std::function<void(const std::string&, const std::string&)> callback) {
+void CommandInputPopup::setCallback(std::function<void(const std::string &, const std::string &)> callback)
+{
     m_callback = callback;
 };
 
-void CommandInputPopup::setupForEdit(const std::string& commandName, const std::string& commandDesc) {
+void CommandInputPopup::setupForEdit(const std::string &commandName, const std::string &commandDesc)
+{
     m_isEditing = true;
 
     m_originalName = commandName;
@@ -87,13 +91,16 @@ void CommandInputPopup::setupForEdit(const std::string& commandName, const std::
 
     // Parse cooldown if present
     size_t delim = commandDesc.find_last_of('|');
-    if (delim != std::string::npos) {
+    if (delim != std::string::npos)
+    {
         std::string desc = commandDesc.substr(0, delim);
         std::string cooldownStr = commandDesc.substr(delim + 1);
 
         m_descInput->setString(desc.c_str());
         m_cooldownInput->setString(cooldownStr.c_str());
-    } else {
+    }
+    else
+    {
         m_descInput->setString(commandDesc.c_str());
         m_cooldownInput->setString("");
     };
@@ -103,13 +110,15 @@ void CommandInputPopup::setupForEdit(const std::string& commandName, const std::
 
     // Change the add button to an edit button
     auto buttonMenu = m_mainLayer->getChildByID("command-input-button-menu");
-    if (buttonMenu) {
+    if (buttonMenu)
+    {
         auto editBtn = buttonMenu->getChildByID("command-input-add-btn");
-        auto editBtnSprite = typeinfo_cast<CCMenuItemSpriteExtra*>(editBtn);
+        auto editBtnSprite = typeinfo_cast<CCMenuItemSpriteExtra *>(editBtn);
 
-        if (editBtnSprite) {
+        if (editBtnSprite)
+        {
             // Update the label inside the button sprite
-            auto btnSprite = as<ButtonSprite*>(editBtnSprite->getNormalImage());
+            auto btnSprite = as<ButtonSprite *>(editBtnSprite->getNormalImage());
             if (btnSprite && btnSprite->m_label)
                 btnSprite->m_label->setString("Edit");
         };
@@ -119,7 +128,8 @@ void CommandInputPopup::setupForEdit(const std::string& commandName, const std::
         m_nameInput->setString(commandName.c_str());
 };
 
-void CommandInputPopup::onAdd(CCObject* sender) {
+void CommandInputPopup::onAdd(CCObject *sender)
+{
     // Get the command name from the text input
     std::string commandName = m_nameInput->getString();
     std::string commandDesc = m_descInput->getString();
@@ -138,7 +148,8 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     cooldownStr.erase(cooldownStr.find_last_not_of(" \t\n\r") + 1);
 
     // Check if command name is empty
-    if (commandName.empty()) {
+    if (commandName.empty())
+    {
         FLAlertLayer::create(
             "Error",
             "Please enter a command name",
@@ -153,7 +164,8 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         commandName = commandName.substr(1);
 
     // Check if still empty after removing '!'
-    if (commandName.empty()) {
+    if (commandName.empty())
+    {
         FLAlertLayer::create(
             "Error",
             "Please enter a valid command name",
@@ -165,7 +177,8 @@ void CommandInputPopup::onAdd(CCObject* sender) {
 
     // Check for illegal characters in command name
     const std::string illegalChars = "!@#$%^&*()+={}[]|\\:;\"'<>,?/~`";
-    if (commandName.find_first_of(illegalChars) != std::string::npos) {
+    if (commandName.find_first_of(illegalChars) != std::string::npos)
+    {
         FLAlertLayer::create(
             "Error",
             "Command name contains illegal characters.\nPlease use only letters, numbers, and underscores.",
@@ -181,12 +194,15 @@ void CommandInputPopup::onAdd(CCObject* sender) {
 
     // Validate cooldown input
     int cooldown = 0;
-    if (!cooldownStr.empty()) {
+    if (!cooldownStr.empty())
+    {
         size_t idx = 0;
         bool valid = !cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos);
-        if (valid) {
+        if (valid)
+        {
             cooldown = std::stoi(cooldownStr, &idx);
-            if (idx != cooldownStr.size() || cooldown < 0) {
+            if (idx != cooldownStr.size() || cooldown < 0)
+            {
                 FLAlertLayer::create(
                     "Invalid Cooldown",
                     "You must only input a number in the cooldown field.",
@@ -194,7 +210,9 @@ void CommandInputPopup::onAdd(CCObject* sender) {
                     ->show();
                 return;
             }
-        } else {
+        }
+        else
+        {
             FLAlertLayer::create(
                 "Invalid Cooldown",
                 "You must only input a number in the cooldown field.",
@@ -207,7 +225,8 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     m_cooldownSeconds = cooldown;
 
     // When editing, check if any field has changed (name, desc, or cooldown)
-    if (m_isEditing) {
+    if (m_isEditing)
+    {
         bool nameChanged = commandName != m_originalName;
         bool descChanged = commandDesc != m_originalDesc;
 
@@ -217,16 +236,19 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         int originalCooldown = 0;
         size_t delim = m_originalDesc.find_last_of('|');
 
-        if (delim != std::string::npos) {
+        if (delim != std::string::npos)
+        {
             std::string cooldownStrOrig = m_originalDesc.substr(delim + 1);
             originalCooldown = 0;
-            if (!cooldownStrOrig.empty() && (cooldownStrOrig.find_first_not_of("-0123456789") == std::string::npos)) {
+            if (!cooldownStrOrig.empty() && (cooldownStrOrig.find_first_not_of("-0123456789") == std::string::npos))
+            {
                 originalCooldown = std::stoi(cooldownStrOrig);
             }
         }
 
         cooldownChanged = (originalCooldown != m_cooldownSeconds);
-        if (!nameChanged && !descChanged && !cooldownChanged) {
+        if (!nameChanged && !descChanged && !cooldownChanged)
+        {
             FLAlertLayer::create(
                 "No Changes",
                 "You haven't made any changes to the command.\nPlease modify a field to apply.",
@@ -237,10 +259,13 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         };
 
         // If name changed, check for duplicates
-        if (nameChanged) {
+        if (nameChanged)
+        {
             auto commandManager = TwitchCommandManager::getInstance();
-            for (const auto& cmd : commandManager->getCommands()) {
-                if (cmd.name == commandName && cmd.name != m_originalName) {
+            for (const auto &cmd : commandManager->getCommands())
+            {
+                if (cmd.name == commandName && cmd.name != m_originalName)
+                {
                     FLAlertLayer::create(
                         "Error",
                         "A command with this name already exists.\nPlease choose a different name.",
@@ -253,7 +278,8 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         };
 
         // Call the callback with the original name and new details (always include cooldown)
-        if (m_callback) {
+        if (m_callback)
+        {
             m_callback(m_originalName, commandName + "|" + commandDesc + "|" + std::to_string(m_cooldownSeconds));
             // Update m_originalDesc so further edits compare against the new value
             m_originalDesc = commandDesc + "|" + std::to_string(m_cooldownSeconds);
@@ -264,11 +290,14 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     };
 
     // Check if command already exists (only if we're not editing the same command)
-    if (!m_isEditing || (m_isEditing && commandName != m_originalName)) {
+    if (!m_isEditing || (m_isEditing && commandName != m_originalName))
+    {
         auto commandManager = TwitchCommandManager::getInstance();
-        for (const auto& cmd : commandManager->getCommands()) {
+        for (const auto &cmd : commandManager->getCommands())
+        {
             // Only block if the name matches another command (not the one being edited)
-            if (cmd.name == commandName && (!m_isEditing || cmd.name != m_originalName)) {
+            if (cmd.name == commandName && (!m_isEditing || cmd.name != m_originalName))
+            {
                 FLAlertLayer::create(
                     "Error",
                     "A command with this name already exists.\nPlease choose a different name.",
@@ -281,10 +310,14 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     };
 
     // Call the callback with the command name and description
-    if (m_callback) {
-        if (m_isEditing) {
+    if (m_callback)
+    {
+        if (m_isEditing)
+        {
             m_callback(m_originalName, commandName + "|" + commandDesc + "|" + std::to_string(m_cooldownSeconds));
-        } else {
+        }
+        else
+        {
             m_callback(commandName, commandDesc + "|" + std::to_string(m_cooldownSeconds));
         };
     };
@@ -293,10 +326,12 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     onClose(nullptr);
 };
 
-CommandInputPopup* CommandInputPopup::create(std::function<void(const std::string&, const std::string&)> callback) {
+CommandInputPopup *CommandInputPopup::create(std::function<void(const std::string &, const std::string &)> callback)
+{
     auto ret = new CommandInputPopup();
 
-    if (ret && ret->initAnchored(220.f, 200.f)) {
+    if (ret && ret->initAnchored(220.f, 200.f))
+    {
         ret->autorelease();
         ret->setCallback(callback);
 
@@ -307,13 +342,15 @@ CommandInputPopup* CommandInputPopup::create(std::function<void(const std::strin
     return nullptr;
 };
 
-CommandInputPopup* CommandInputPopup::createForEdit(
-    const std::string& commandName,
-    const std::string& commandDesc,
-    std::function<void(const std::string&, const std::string&)> editCallback) {
+CommandInputPopup *CommandInputPopup::createForEdit(
+    const std::string &commandName,
+    const std::string &commandDesc,
+    std::function<void(const std::string &, const std::string &)> editCallback)
+{
     auto ret = new CommandInputPopup();
 
-    if (ret && ret->initAnchored(220.f, 200.f)) {
+    if (ret && ret->initAnchored(220.f, 200.f))
+    {
         ret->autorelease();
         ret->setCallback(editCallback);
         ret->setupForEdit(commandName, commandDesc);

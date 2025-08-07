@@ -7,13 +7,17 @@
 #include <cocos2d.h>
 using namespace geode::prelude;
 
-namespace {
+namespace
+{
     bool g_noclipEnabled = false;
 }
 
-class $modify(PlayLayer) {
-    void destroyPlayer(PlayerObject* player, GameObject* obj) {
-        if (g_noclipEnabled) {
+class $modify(PlayLayer)
+{
+    void destroyPlayer(PlayerObject *player, GameObject *obj)
+    {
+        if (g_noclipEnabled)
+        {
             // Noclip enabled: prevent player death
             log::debug("[PlayLayerEvent] Noclip enabled: destroyPlayer ignored");
             return;
@@ -306,7 +310,7 @@ void PlayLayerEvent::killPlayer()
     g_pendingKillPlayer = true;
 
     Loader::get()->queueInMainThread([]
-    {
+                                     {
         auto playLayer = PlayLayer::get();
         if (playLayer && g_pendingKillPlayer) {
             log::debug("[PlayLayerEvent] destroyPlayer: Executing now");
@@ -318,8 +322,7 @@ void PlayLayerEvent::killPlayer()
             g_pendingKillPlayer = false;
         } else if (g_pendingKillPlayer) {
             KillPlayerScheduler::start();
-        }
-    });
+        } });
 }
 
 void PlayLayerEvent::jumpPlayerHold(int playerIdx)

@@ -1,6 +1,7 @@
 #include "ProfileSettingsPopup.hpp"
 
-bool ProfileSettingsPopup::setup() {
+bool ProfileSettingsPopup::setup()
+{
     setTitle("Profile Settings");
     setID("profile-settings-popup");
 
@@ -21,8 +22,7 @@ bool ProfileSettingsPopup::setup() {
     auto openBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Open", "bigFont.fnt", "GJ_button_05.png", 0.3f),
         this,
-        menu_selector(ProfileSettingsPopup::onOpenProfile)
-    );
+        menu_selector(ProfileSettingsPopup::onOpenProfile));
     openBtn->setID("profile-open-btn");
     openBtn->setPosition(x + 70, y + 10);
 
@@ -37,8 +37,7 @@ bool ProfileSettingsPopup::setup() {
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
-        menu_selector(ProfileSettingsPopup::onSave)
-    );
+        menu_selector(ProfileSettingsPopup::onSave));
     saveBtn->setID("save-btn");
     saveBtn->setPosition(0, 0);
 
@@ -52,33 +51,41 @@ bool ProfileSettingsPopup::setup() {
     return true;
 };
 
-void ProfileSettingsPopup::onOpenProfile(CCObject* sender) {
+void ProfileSettingsPopup::onOpenProfile(CCObject *sender)
+{
     std::string idStr = m_accountIdInput ? m_accountIdInput->getString() : m_accountId;
 
     // Default fallback
-    if (idStr.empty()) idStr = "7689052";
+    if (idStr.empty())
+        idStr = "7689052";
 
     // Only allow numbers
-    if (idStr.find_first_not_of("0123456789") == std::string::npos) {
+    if (idStr.find_first_not_of("0123456789") == std::string::npos)
+    {
         int accountIdInt = std::stoi(idStr);
-        if (auto page = ProfilePage::create(accountIdInt, false)) page->show();
+        if (auto page = ProfilePage::create(accountIdInt, false))
+            page->show();
     };
 };
 
-void ProfileSettingsPopup::onSave(CCObject* sender) {
+void ProfileSettingsPopup::onSave(CCObject *sender)
+{
     std::string newId = m_accountIdInput ? m_accountIdInput->getString() : m_accountId;
-    if (m_callback) m_callback(newId);
+    if (m_callback)
+        m_callback(newId);
 
     onClose(sender);
 };
 
-ProfileSettingsPopup* ProfileSettingsPopup::create(const std::string& accountId, std::function<void(const std::string&)> callback) {
+ProfileSettingsPopup *ProfileSettingsPopup::create(const std::string &accountId, std::function<void(const std::string &)> callback)
+{
     auto ret = new ProfileSettingsPopup();
 
     ret->m_accountId = accountId;
     ret->m_callback = callback;
 
-    if (ret && ret->initAnchored(220.f, 120.f)) {
+    if (ret && ret->initAnchored(220.f, 120.f))
+    {
         ret->autorelease();
         return ret;
     };

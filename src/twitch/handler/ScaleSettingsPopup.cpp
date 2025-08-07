@@ -44,7 +44,6 @@ bool ScaleSettingsPopup::setup()
     float inputY = 40.0f;
     float labelY = 10.0f;
 
-
     // Scale label and input
     auto scaleLabel = CCLabelBMFont::create("Scale", "bigFont.fnt");
     scaleLabel->setScale(0.5f);

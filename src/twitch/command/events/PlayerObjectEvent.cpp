@@ -6,7 +6,6 @@
 
 using namespace geode::prelude;
 
-
 PlayerObjectEvent *PlayerObjectEvent::create(PlayerObject *player, float gravity, float duration, float speed, float speedDuration)
 {
     auto ret = new PlayerObjectEvent();
@@ -50,7 +49,8 @@ void PlayerObjectEvent::applySpeed()
         log::warn("[PlayerObjectEvent] m_player is nullptr, cannot apply speed.");
         return;
     }
-    if (m_speed <= 0.0f) {
+    if (m_speed <= 0.0f)
+    {
         log::warn("[PlayerObjectEvent] Speed value not set or invalid, skipping speed change.");
         return;
     }

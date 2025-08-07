@@ -1231,12 +1231,13 @@ void CommandSettingsPopup::onCloseBtn(CCObject *sender)
         "Close Without Saving?",
         "Are you sure you want to close the settings without saving? <cr>Any unsaved changes will be lost.</c>",
         "Cancel", "Close",
-        [this](auto, bool btn2) {
-            if (btn2) {
+        [this](auto, bool btn2)
+        {
+            if (btn2)
+            {
                 this->onClose(nullptr);
             }
-        }
-    );
+        });
 }
 
 std::string CommandSettingsPopup::getNotificationText() const

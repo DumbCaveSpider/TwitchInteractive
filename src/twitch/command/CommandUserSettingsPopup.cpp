@@ -3,7 +3,8 @@
 using namespace geode::prelude;
 using namespace cocos2d;
 
-bool CommandUserSettingsPopup::setup() {
+bool CommandUserSettingsPopup::setup()
+{
     setTitle("Command User/Role Settings");
     setID("command-user-settings-popup");
 
@@ -30,7 +31,8 @@ bool CommandUserSettingsPopup::setup() {
     auto togglerMenu = CCMenu::create();
     togglerMenu->setPosition(0, 0);
 
-    for (const auto& info : togglers) {
+    for (const auto &info : togglers)
+    {
         auto on = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
         auto off = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
 
@@ -43,7 +45,7 @@ bool CommandUserSettingsPopup::setup() {
         // Add label under toggler
         auto label = CCLabelBMFont::create(info.label, "bigFont.fnt");
         label->setScale(0.3f);
-        label->setAnchorPoint({ 0.5f, 1.0f });
+        label->setAnchorPoint({0.5f, 1.0f});
         label->setPosition(info.posX, y - 28.f);
 
         m_mainLayer->addChild(label);
@@ -68,7 +70,8 @@ bool CommandUserSettingsPopup::setup() {
     return true;
 };
 
-void CommandUserSettingsPopup::onSave(CCObject* sender) {
+void CommandUserSettingsPopup::onSave(CCObject *sender)
+{
     std::string user = m_userInput ? m_userInput->getString() : "";
 
     bool vip = m_vipToggler ? m_vipToggler->isToggled() : false;
@@ -76,12 +79,14 @@ void CommandUserSettingsPopup::onSave(CCObject* sender) {
     bool subscriber = m_subscriberToggler ? m_subscriberToggler->isToggled() : false;
     bool streamer = m_streamerToggler ? m_streamerToggler->isToggled() : false;
 
-    if (m_callback) m_callback(user, vip, mod, subscriber, streamer);
+    if (m_callback)
+        m_callback(user, vip, mod, subscriber, streamer);
 
     onClose(sender);
 };
 
-CommandUserSettingsPopup* CommandUserSettingsPopup::create(const std::string& allowedUser, bool allowVip, bool allowMod, bool allowSubscriber, bool allowStreamer, std::function<void(const std::string&, bool, bool, bool, bool)> callback) {
+CommandUserSettingsPopup *CommandUserSettingsPopup::create(const std::string &allowedUser, bool allowVip, bool allowMod, bool allowSubscriber, bool allowStreamer, std::function<void(const std::string &, bool, bool, bool, bool)> callback)
+{
     auto ret = new CommandUserSettingsPopup();
 
     ret->m_allowedUser = allowedUser;
@@ -91,7 +96,8 @@ CommandUserSettingsPopup* CommandUserSettingsPopup::create(const std::string& al
     ret->m_allowStreamer = allowStreamer;
     ret->m_callback = callback;
 
-    if (ret && ret->initAnchored(320.f, 220.f)) {
+    if (ret && ret->initAnchored(320.f, 220.f))
+    {
         ret->autorelease();
         return ret;
     };

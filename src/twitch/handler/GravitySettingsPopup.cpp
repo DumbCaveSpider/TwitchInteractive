@@ -5,7 +5,8 @@
 using namespace geode::prelude;
 using namespace cocos2d;
 
-bool GravitySettingsPopup::setup() {
+bool GravitySettingsPopup::setup()
+{
     setTitle("Gravity Player Settings");
     setID("gravity-player-settings-popup");
 
@@ -87,16 +88,19 @@ bool GravitySettingsPopup::setup() {
     return true;
 }
 
-void GravitySettingsPopup::onSaveBtn(CCObject*) {
+void GravitySettingsPopup::onSaveBtn(CCObject *)
+{
     std::string gravityStr = m_gravityInput ? m_gravityInput->getString() : "1.0";
     std::string durationStr = m_durationInput ? m_durationInput->getString() : "0.5";
     float gravity = strtof(gravityStr.c_str(), nullptr);
     float duration = strtof(durationStr.c_str(), nullptr);
-    if (gravity <= 0.0f) {
+    if (gravity <= 0.0f)
+    {
         Notification::create("Gravity must be positive!", NotificationIcon::Error)->show();
         return;
     }
-    if (duration < 0.0f) {
+    if (duration < 0.0f)
+    {
         Notification::create("Duration must be non-negative!", NotificationIcon::Error)->show();
         return;
     }
@@ -107,16 +111,19 @@ void GravitySettingsPopup::onSaveBtn(CCObject*) {
     this->removeFromParentAndCleanup(true);
 }
 
-GravitySettingsPopup* GravitySettingsPopup::create(int actionIdx, float defaultGravity, float defaultDuration, std::function<void(float, float)> onSave) {
+GravitySettingsPopup *GravitySettingsPopup::create(int actionIdx, float defaultGravity, float defaultDuration, std::function<void(float, float)> onSave)
+{
     auto ret = new GravitySettingsPopup();
-    if (ret != nullptr) {
+    if (ret != nullptr)
+    {
         ret->m_actionIdx = actionIdx;
         ret->m_onSave = onSave;
         ret->m_gravityInput = nullptr;
         ret->m_durationInput = nullptr;
         ret->m_gravity = defaultGravity;
         ret->m_duration = defaultDuration;
-        if (ret->initAnchored(300.f, 150.f)) {
+        if (ret->initAnchored(300.f, 150.f))
+        {
             ret->autorelease();
             return ret;
         }

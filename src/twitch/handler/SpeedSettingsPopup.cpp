@@ -4,7 +4,8 @@
 using namespace geode::prelude;
 using namespace cocos2d;
 
-bool SpeedSettingsPopup::setup() {
+bool SpeedSettingsPopup::setup()
+{
     setTitle("Speed Player Settings");
     setID("speed-player-settings-popup");
     auto popupSize = getContentSize();
@@ -85,30 +86,36 @@ bool SpeedSettingsPopup::setup() {
     return true;
 }
 
-void SpeedSettingsPopup::onSaveBtn(CCObject*) {
+void SpeedSettingsPopup::onSaveBtn(CCObject *)
+{
     std::string speedStr = m_speedInput ? m_speedInput->getString() : "1.0";
     std::string durationStr = m_durationInput ? m_durationInput->getString() : "0.5";
     float speed = strtof(speedStr.c_str(), nullptr);
     float duration = strtof(durationStr.c_str(), nullptr);
-    if (speed <= 0.0f) {
+    if (speed <= 0.0f)
+    {
         Notification::create("Speed must be positive!", NotificationIcon::Error)->show();
         return;
     }
-    if (duration < 0.0f) {
+    if (duration < 0.0f)
+    {
         Notification::create("Duration must be non-negative!", NotificationIcon::Error)->show();
         return;
     }
-    if (m_onSave) m_onSave(speed, duration);
+    if (m_onSave)
+        m_onSave(speed, duration);
     onClose(nullptr);
 }
 
-SpeedSettingsPopup* SpeedSettingsPopup::create(int actionIdx, float defaultSpeed, float defaultDuration, std::function<void(float, float)> onSave) {
+SpeedSettingsPopup *SpeedSettingsPopup::create(int actionIdx, float defaultSpeed, float defaultDuration, std::function<void(float, float)> onSave)
+{
     auto ret = new SpeedSettingsPopup();
     ret->m_actionIdx = actionIdx;
     ret->m_speed = defaultSpeed;
     ret->m_duration = defaultDuration;
     ret->m_onSave = onSave;
-    if (ret->initAnchored(300.f, 150.f)) {
+    if (ret->initAnchored(300.f, 150.f))
+    {
         ret->autorelease();
         return ret;
     }

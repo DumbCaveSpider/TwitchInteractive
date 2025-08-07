@@ -6,7 +6,8 @@
 using namespace geode::prelude;
 using namespace cocos2d;
 
-bool NotificationSettingsPopup::setup(std::string notificationText) {
+bool NotificationSettingsPopup::setup(std::string notificationText)
+{
     m_notificationText = notificationText;
 
     setTitle("Edit Notification");
@@ -36,8 +37,7 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     m_leftArrow = CCMenuItemSpriteExtra::create(
         leftArrowSprite,
         this,
-        menu_selector(NotificationSettingsPopup::onLeftIcon)
-    );
+        menu_selector(NotificationSettingsPopup::onLeftIcon));
     m_leftArrow->setID("left-arrow");
     m_leftArrow->setPosition(x - arrowOffset, iconY);
 
@@ -46,15 +46,14 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     m_rightArrow = CCMenuItemSpriteExtra::create(
         rightArrowSprite,
         this,
-        menu_selector(NotificationSettingsPopup::onRightIcon)
-    );
+        menu_selector(NotificationSettingsPopup::onRightIcon));
     m_rightArrow->setID("right-arrow");
     m_rightArrow->setPosition(x + arrowOffset, iconY);
 
     m_iconLabel = CCLabelBMFont::create("Info", "bigFont.fnt");
     m_iconLabel->setID("notification-icon-label");
     m_iconLabel->setScale(0.6f);
-    m_iconLabel->setAnchorPoint({ 0.5f, 0.5f });
+    m_iconLabel->setAnchorPoint({0.5f, 0.5f});
     m_iconLabel->setPosition(x, iconY);
 
     m_mainLayer->addChild(m_iconLabel);
@@ -71,8 +70,7 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     auto saveBtn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f),
         this,
-        menu_selector(NotificationSettingsPopup::onSave)
-    );
+        menu_selector(NotificationSettingsPopup::onSave));
     saveBtn->setID("notification-save-btn");
 
     auto menu = CCMenu::create();
@@ -87,14 +85,17 @@ bool NotificationSettingsPopup::setup(std::string notificationText) {
     return true;
 };
 
-void NotificationSettingsPopup::onSave(cocos2d::CCObject* sender) {
+void NotificationSettingsPopup::onSave(cocos2d::CCObject *sender)
+{
     std::string text = m_input ? m_input->getString() : "";
-    if (m_onSelect) m_onSelect(text, m_iconType);
+    if (m_onSelect)
+        m_onSelect(text, m_iconType);
 
     onClose(nullptr);
 };
 
-void NotificationSettingsPopup::onLeftIcon(cocos2d::CCObject* sender) {
+void NotificationSettingsPopup::onLeftIcon(cocos2d::CCObject *sender)
+{
     int icon = static_cast<int>(m_iconType);
     icon = (icon - 1 + 6) % 6; // 6 icon types
 
@@ -103,7 +104,8 @@ void NotificationSettingsPopup::onLeftIcon(cocos2d::CCObject* sender) {
     updateIconLabel();
 };
 
-void NotificationSettingsPopup::onRightIcon(cocos2d::CCObject* sender) {
+void NotificationSettingsPopup::onRightIcon(cocos2d::CCObject *sender)
+{
     int icon = static_cast<int>(m_iconType);
     icon = (icon + 1) % 6;
 
@@ -112,11 +114,13 @@ void NotificationSettingsPopup::onRightIcon(cocos2d::CCObject* sender) {
     updateIconLabel();
 };
 
-void NotificationSettingsPopup::updateIconLabel() {
-    const char* names[] = { "None", "Info", "Success", "Warning", "Error", "Loading" };
+void NotificationSettingsPopup::updateIconLabel()
+{
+    const char *names[] = {"None", "Info", "Success", "Warning", "Error", "Loading"};
     int icon = static_cast<int>(m_iconType);
 
-    if (m_iconLabel && icon >= 0 && icon < 6) m_iconLabel->setString(names[icon]);
+    if (m_iconLabel && icon >= 0 && icon < 6)
+        m_iconLabel->setString(names[icon]);
 
     // Always reset arrow button scale/position in case they were changed by click effects
     float x = m_mainLayer->getContentSize().width / 2;
@@ -124,13 +128,15 @@ void NotificationSettingsPopup::updateIconLabel() {
     float arrowOffset = 60.f;
 };
 
-NotificationSettingsPopup* NotificationSettingsPopup::create(const std::string& notificationText, std::function<void(const std::string&, NotificationIconType)> onSelect, NotificationIconType iconType) {
+NotificationSettingsPopup *NotificationSettingsPopup::create(const std::string &notificationText, std::function<void(const std::string &, NotificationIconType)> onSelect, NotificationIconType iconType)
+{
     auto ret = new NotificationSettingsPopup();
 
     ret->m_onSelect = onSelect;
     ret->m_iconType = iconType;
 
-    if (ret && ret->initAnchored(220.f, 160.f, notificationText)) {
+    if (ret && ret->initAnchored(220.f, 160.f, notificationText))
+    {
         ret->autorelease();
         return ret;
     };

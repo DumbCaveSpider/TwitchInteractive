@@ -150,7 +150,7 @@ namespace SettingsHandler
             popupWindow->show();
         }
     }
-    
+
     // Process the alert popup action settings
     void handleAlertSettings(CommandSettingsPopup *parent, cocos2d::CCObject *sender)
     {

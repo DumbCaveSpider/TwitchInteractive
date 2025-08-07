@@ -10,7 +10,8 @@ using namespace geode::prelude;
 using namespace cocos2d;
 
 // Command Node logic
-bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchCommand command, float width) {
+bool CommandActionEventNode::initCommandNode(TwitchDashboard *parent, TwitchCommand command, float width)
+{
     m_parent = parent;
     m_command = command;
     m_cooldownRemaining = 0;
@@ -35,7 +36,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     auto nameLabel = CCLabelBMFont::create(("!" + m_command.name).c_str(), "bigFont.fnt");
     nameLabel->setID("command-name");
     nameLabel->setScale(0.4f);
-    nameLabel->setAnchorPoint({ 0.0f, 0.5f });
+    nameLabel->setAnchorPoint({0.0f, 0.5f});
 
     // Make the command name label clickable (copy to clipboard)
     auto nameBtn = CCMenuItemSpriteExtra::create(
@@ -43,7 +44,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
         this,
         menu_selector(CommandActionEventNode::onCopyCommandName));
     nameBtn->setID("command-name-btn");
-    nameBtn->setAnchorPoint({ 0.0f, 0.5f });
+    nameBtn->setAnchorPoint({0.0f, 0.5f});
     nameBtn->setPosition(leftPadding, (itemHeight / 2.f));
 
     // Create a menu just so it can be clicked
@@ -64,15 +65,18 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     m_cooldownLabel = CCLabelBMFont::create("", "goldFont.fnt");
     m_cooldownLabel->setID("command-cooldown");
     m_cooldownLabel->setScale(0.4f);
-    m_cooldownLabel->setAnchorPoint({ 0.0f, 0.5f });
+    m_cooldownLabel->setAnchorPoint({0.0f, 0.5f});
     m_cooldownLabel->setPosition(leftPadding + nameLabelWidth + cooldownPadding, itemHeight / 2.f + 8.5f);
 
     addChild(m_cooldownLabel);
 
     // Set initial cooldown label
-    if (m_command.cooldown > 0) {
+    if (m_command.cooldown > 0)
+    {
         m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldown).c_str());
-    } else {
+    }
+    else
+    {
         m_cooldownLabel->setString("");
     };
 
@@ -80,7 +84,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     auto descLabel = CCLabelBMFont::create(m_command.description.c_str(), "chatFont.fnt");
     descLabel->setID("command-description");
     descLabel->setScale(0.375f);
-    descLabel->setAnchorPoint({ 0.0f, 0.5f });
+    descLabel->setAnchorPoint({0.0f, 0.5f});
     descLabel->setPosition(leftPadding, itemHeight / 2 - 2.f);
 
     addChild(descLabel);
@@ -88,33 +92,38 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     // Role restriction label & Create and store role label for live updates
     std::string roleText;
     bool anyRole = false;
-    if (!m_command.allowedUser.empty()) {
+    if (!m_command.allowedUser.empty())
+    {
         roleText += "User: " + m_command.allowedUser;
         anyRole = true;
     };
 
-    if (m_command.allowVip) {
+    if (m_command.allowVip)
+    {
         if (anyRole)
             roleText += " | ";
         roleText += "VIP";
         anyRole = true;
     };
 
-    if (m_command.allowMod) {
+    if (m_command.allowMod)
+    {
         if (anyRole)
             roleText += " | ";
         roleText += "Mod";
         anyRole = true;
     };
 
-    if (m_command.allowSubscriber) {
+    if (m_command.allowSubscriber)
+    {
         if (anyRole)
             roleText += " | ";
         roleText += "Subscriber";
         anyRole = true;
     };
 
-    if (m_command.allowStreamer) {
+    if (m_command.allowStreamer)
+    {
         if (anyRole)
             roleText += " | ";
         roleText += "Streamer";
@@ -127,7 +136,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     m_roleLabel = CCLabelBMFont::create(roleText.c_str(), "goldFont.fnt");
     m_roleLabel->setID("command-roles");
     m_roleLabel->setScale(0.32f);
-    m_roleLabel->setAnchorPoint({ 0.0f, 1.0f });
+    m_roleLabel->setAnchorPoint({0.0f, 1.0f});
     // Place directly under the description label
 
     float descBottom = itemHeight / 2 - 3 - (descLabel->getContentSize().height * descLabel->getScale()) / 2;
@@ -141,7 +150,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     auto commandEditMenu = CCMenu::create();
     commandEditMenu->setID("command-edit-menu");
     commandEditMenu->ignoreAnchorPointForPosition(false);
-    commandEditMenu->setContentSize({ 180, 40 }); // Wider for four buttons
+    commandEditMenu->setContentSize({180, 40}); // Wider for four buttons
 
     // Create edit, delete, and settings buttons
     auto editBtn = createEditButton();
@@ -158,7 +167,7 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
         this,
         menu_selector(CommandActionEventNode::onToggleEnableCommand));
     enableToggle->setID("enable-command-toggle");
-    enableToggle->setContentSize({ 60.0f, 40.0f });
+    enableToggle->setContentSize({60.0f, 40.0f});
 
     // Position buttons side by side (settings, edit, delete, enable/disable)
     settingsBtn->setPosition(0, 0);
@@ -184,10 +193,12 @@ bool CommandActionEventNode::initCommandNode(TwitchDashboard* parent, TwitchComm
     return true;
 };
 
-CommandActionEventNode* CommandActionEventNode::createCommandNode(TwitchDashboard* parent, TwitchCommand command, float width) {
+CommandActionEventNode *CommandActionEventNode::createCommandNode(TwitchDashboard *parent, TwitchCommand command, float width)
+{
     auto ret = new CommandActionEventNode();
 
-    if (ret && ret->initCommandNode(parent, command, width)) {
+    if (ret && ret->initCommandNode(parent, command, width))
+    {
         ret->autorelease();
         return ret;
     };
@@ -196,9 +207,12 @@ CommandActionEventNode* CommandActionEventNode::createCommandNode(TwitchDashboar
     return nullptr;
 };
 
-void CommandActionEventNode::triggerCommand() {
-    if (m_command.cooldown > 0) {
-        if (m_isOnCooldown) {
+void CommandActionEventNode::triggerCommand()
+{
+    if (m_command.cooldown > 0)
+    {
+        if (m_isOnCooldown)
+        {
             log::info("Command '{}' is currently on cooldown ({}s remaining)", m_command.name, m_cooldownRemaining);
             return;
         }
@@ -206,7 +220,8 @@ void CommandActionEventNode::triggerCommand() {
     }
 };
 
-void CommandActionEventNode::startCooldown() {
+void CommandActionEventNode::startCooldown()
+{
     m_cooldownRemaining = m_command.cooldown;
     m_isOnCooldown = true;
 
@@ -214,37 +229,47 @@ void CommandActionEventNode::startCooldown() {
     updateCooldown(0);
 };
 
-void CommandActionEventNode::onCopyCommandName(cocos2d::CCObject* sender) {
+void CommandActionEventNode::onCopyCommandName(cocos2d::CCObject *sender)
+{
     std::string cmd = "!" + m_command.name;
     geode::utils::clipboard::write(cmd);
     Notification::create(fmt::format("Copied '{}' to clipboard!", cmd), NotificationIcon::Success)->show();
 };
 
-void CommandActionEventNode::resetCooldown() {
+void CommandActionEventNode::resetCooldown()
+{
     unschedule(schedule_selector(CommandActionEventNode::updateCooldown));
 
     m_isOnCooldown = false;
     if (m_commandBg)
-        m_commandBg->setColor({ 255, 255, 255 }); // White
+        m_commandBg->setColor({255, 255, 255}); // White
 
-    if (m_command.cooldown > 0) {
+    if (m_command.cooldown > 0)
+    {
         m_cooldownLabel->setString(fmt::format("({}s)", m_command.cooldown).c_str());
-    } else {
+    }
+    else
+    {
         m_cooldownLabel->setString("");
     };
 };
 
-void CommandActionEventNode::updateCooldown(float dt) {
-    if (m_cooldownRemaining > 0) {
+void CommandActionEventNode::updateCooldown(float dt)
+{
+    if (m_cooldownRemaining > 0)
+    {
         m_cooldownLabel->setString(fmt::format("({}s)", m_cooldownRemaining).c_str());
         m_cooldownRemaining--;
-    } else {
+    }
+    else
+    {
         resetCooldown();
     };
 };
 
-void CommandActionEventNode::onDeleteCommand(cocos2d::CCObject* sender) {
-    auto menuItem = as<CCMenuItem*>(sender);
+void CommandActionEventNode::onDeleteCommand(cocos2d::CCObject *sender)
+{
+    auto menuItem = as<CCMenuItem *>(sender);
     runAction(CCFadeTo::create(0.2f, 120));
 
     log::info("Deleting command: {}", m_command.name);
@@ -252,32 +277,38 @@ void CommandActionEventNode::onDeleteCommand(cocos2d::CCObject* sender) {
     m_parent->handleCommandDelete(m_command.name);
 };
 
-void CommandActionEventNode::onEditCommand(cocos2d::CCObject* sender) {
-    auto menuItem = as<CCMenuItem*>(sender);
+void CommandActionEventNode::onEditCommand(cocos2d::CCObject *sender)
+{
+    auto menuItem = as<CCMenuItem *>(sender);
 
     log::info("Editing command: {}", m_command.name);
 
     m_parent->onEditCommand(sender);
 };
 
-void CommandActionEventNode::onSettingsCommand(cocos2d::CCObject* sender) {
+void CommandActionEventNode::onSettingsCommand(cocos2d::CCObject *sender)
+{
     log::info("Settings button clicked for command: {}", m_command.name);
     auto commandManager = TwitchCommandManager::getInstance();
 
-    for (const auto& cmd : commandManager->getCommands()) {
-        if (cmd.name == m_command.name) {
+    for (const auto &cmd : commandManager->getCommands())
+    {
+        if (cmd.name == m_command.name)
+        {
             m_command = cmd;
             break;
         };
     };
 
-    if (auto popup = CommandSettingsPopup::create(m_command)) {
+    if (auto popup = CommandSettingsPopup::create(m_command))
+    {
         popup->m_noElasticity = true;
         popup->show();
     };
 };
 
-void CommandActionEventNode::onToggleEnableCommand(cocos2d::CCObject* sender) {
+void CommandActionEventNode::onToggleEnableCommand(cocos2d::CCObject *sender)
+{
     m_command.enabled = !m_command.enabled;
 
     log::info("Command '{}' enabled state set to {}", m_command.name, m_command.enabled);
@@ -286,7 +317,8 @@ void CommandActionEventNode::onToggleEnableCommand(cocos2d::CCObject* sender) {
     commandManager->enableCommand(m_command.name, m_command.enabled);
 };
 
-cocos2d::CCMenuItem* CommandActionEventNode::createSettingsButton() {
+cocos2d::CCMenuItem *CommandActionEventNode::createSettingsButton()
+{
     auto settingsBtnSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
     settingsBtnSprite->setScale(0.65f);
 
@@ -297,7 +329,7 @@ cocos2d::CCMenuItem* CommandActionEventNode::createSettingsButton() {
         menu_selector(CommandActionEventNode::onSettingsCommand));
     settingsBtn->setID("settings-btn");
     settingsBtn->ignoreAnchorPointForPosition(true);
-    settingsBtn->setContentSize({ 40.0f, 40.0f });
+    settingsBtn->setContentSize({40.0f, 40.0f});
 
     auto btnSprite = settingsBtn->getNormalImage();
     if (btnSprite)
@@ -306,7 +338,8 @@ cocos2d::CCMenuItem* CommandActionEventNode::createSettingsButton() {
     return settingsBtn;
 };
 
-cocos2d::CCMenuItem* CommandActionEventNode::createEditButton() {
+cocos2d::CCMenuItem *CommandActionEventNode::createEditButton()
+{
     auto editBtnSprite = CCSprite::createWithSpriteFrameName("GJ_editBtn_001.png");
     editBtnSprite->setScale(0.4f);
 
@@ -317,7 +350,7 @@ cocos2d::CCMenuItem* CommandActionEventNode::createEditButton() {
         menu_selector(CommandActionEventNode::onEditCommand));
     editBtn->setID("edit-btn");
     editBtn->ignoreAnchorPointForPosition(true);
-    editBtn->setContentSize({ 40.0f, 40.0f });
+    editBtn->setContentSize({40.0f, 40.0f});
 
     auto btnSprite = editBtn->getNormalImage();
     if (btnSprite)
@@ -326,7 +359,8 @@ cocos2d::CCMenuItem* CommandActionEventNode::createEditButton() {
     return editBtn;
 };
 
-cocos2d::CCMenuItem* CommandActionEventNode::createDeleteButton() {
+cocos2d::CCMenuItem *CommandActionEventNode::createDeleteButton()
+{
     auto deleteBtnSprite = CCSprite::createWithSpriteFrameName("GJ_deleteBtn_001.png");
     deleteBtnSprite->setScale(0.7f);
 
@@ -337,7 +371,7 @@ cocos2d::CCMenuItem* CommandActionEventNode::createDeleteButton() {
         menu_selector(CommandActionEventNode::onDeleteCommand));
     deleteBtn->setID("delete-btn");
     deleteBtn->ignoreAnchorPointForPosition(true);
-    deleteBtn->setContentSize({ 40.0f, 40.0f });
+    deleteBtn->setContentSize({40.0f, 40.0f});
 
     auto btnSprite = deleteBtn->getNormalImage();
     if (btnSprite)
@@ -347,8 +381,9 @@ cocos2d::CCMenuItem* CommandActionEventNode::createDeleteButton() {
 };
 
 // Action Node logic
-bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale,
-                                            CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {
+bool CommandActionEventNode::initActionNode(const std::string &labelText, CCObject *target, SEL_MenuHandler selector, float checkboxScale,
+                                            CCObject *moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown)
+{
     if (!CCNode::init())
         return false;
 
@@ -357,7 +392,8 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
     m_upBtn = nullptr;
     m_downBtn = nullptr;
 
-    if (moveTarget && (moveUpSelector || moveDownSelector)) {
+    if (moveTarget && (moveUpSelector || moveDownSelector))
+    {
         auto upSprite = CCSprite::createWithSpriteFrameName("edit_upBtn_001.png");
         upSprite->setScale(0.5f);
         upSprite->setRotation(0.f);
@@ -401,7 +437,7 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
     // Label
     m_label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
     m_label->setScale(0.5f);
-    m_label->setAnchorPoint({ 0, 0.5f });
+    m_label->setAnchorPoint({0, 0.5f});
     m_label->setAlignment(kCCTextAlignmentLeft);
     m_label->setPosition(50.f, 16.f);
 
@@ -410,11 +446,13 @@ bool CommandActionEventNode::initActionNode(const std::string& labelText, CCObje
     return true;
 };
 
-CommandActionEventNode* CommandActionEventNode::createActionNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale,
-                                                                 CCObject* moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown) {
+CommandActionEventNode *CommandActionEventNode::createActionNode(const std::string &labelText, CCObject *target, SEL_MenuHandler selector, float checkboxScale,
+                                                                 CCObject *moveTarget, SEL_MenuHandler moveUpSelector, SEL_MenuHandler moveDownSelector, int actionIndex, bool canMoveUp, bool canMoveDown)
+{
     auto ret = new CommandActionEventNode();
 
-    if (ret && ret->initActionNode(labelText, target, selector, checkboxScale, moveTarget, moveUpSelector, moveDownSelector, actionIndex, canMoveUp, canMoveDown)) {
+    if (ret && ret->initActionNode(labelText, target, selector, checkboxScale, moveTarget, moveUpSelector, moveDownSelector, actionIndex, canMoveUp, canMoveDown))
+    {
         ret->autorelease();
         return ret;
     };
@@ -424,7 +462,8 @@ CommandActionEventNode* CommandActionEventNode::createActionNode(const std::stri
 };
 
 // Event Node logic
-bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale) {
+bool CommandActionEventNode::initEventNode(const std::string &labelText, CCObject *target, SEL_MenuHandler selector, float checkboxScale)
+{
     if (!CCNode::init())
         return false;
 
@@ -435,15 +474,17 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
 
     m_label = CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
     m_label->setScale(0.5f);
-    m_label->setAnchorPoint({ 0, 0.5f });
+    m_label->setAnchorPoint({0, 0.5f});
     m_label->setAlignment(kCCTextAlignmentLeft);
     m_label->setPosition(50.f, 16.f);
 
     // Store description for FLAlertLayer
     m_eventDescription = "";
 
-    for (const auto& node : getAllEventNodes()) {
-        if (node.label == labelText) {
+    for (const auto &node : getAllEventNodes())
+    {
+        if (node.label == labelText)
+        {
             m_eventDescription = node.description;
             break;
         };
@@ -466,10 +507,12 @@ bool CommandActionEventNode::initEventNode(const std::string& labelText, CCObjec
     return true;
 };
 
-CommandActionEventNode* CommandActionEventNode::createEventNode(const std::string& labelText, CCObject* target, SEL_MenuHandler selector, float checkboxScale) {
+CommandActionEventNode *CommandActionEventNode::createEventNode(const std::string &labelText, CCObject *target, SEL_MenuHandler selector, float checkboxScale)
+{
     auto ret = new CommandActionEventNode();
 
-    if (ret && ret->initEventNode(labelText, target, selector, checkboxScale)) {
+    if (ret && ret->initEventNode(labelText, target, selector, checkboxScale))
+    {
         ret->autorelease();
         return ret;
     };
@@ -478,7 +521,8 @@ CommandActionEventNode* CommandActionEventNode::createEventNode(const std::strin
     return nullptr;
 };
 
-std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
+std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
+{
     std::vector<EventNodeInfo> nodes = {
         {"reverse_player", "Reverse Player", "Reverses the player direction. <cg>Only works well on classic level</c>."},
         {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. <cr>Don't use this while beating extremes!</c>"},
@@ -498,14 +542,14 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes() {
         {"gravity", "Set Gravity", "Sets the player's gravity to a specified value for a duration. <cg>Use to modify gravity temporarily.</c>."},
         {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration. <cg>Use to modify speed temporarily.</c>."},
         {"restart_level", "Restart Level", "Restarts the entire level."},
-        {"noclip", "Noclip", "Enables or disables noclip mode for the player."}
-    };
+        {"noclip", "Noclip", "Enables or disables noclip mode for the player."}};
 
     return nodes;
 }
 
 // Unified interface
-bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize) {
+bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize)
+{
     m_action = action;
 
     if (!CCNode::create())
@@ -517,19 +561,22 @@ bool CommandActionEventNode::init(TwitchCommandAction action, CCSize scrollSize)
 };
 
 // Update the role label text to reflect current m_command
-void CommandActionEventNode::updateRoleLabel() {
+void CommandActionEventNode::updateRoleLabel()
+{
     if (!m_roleLabel)
         return;
 
     std::string roleText;
     bool anyRole = false;
 
-    if (!m_command.allowedUser.empty()) {
+    if (!m_command.allowedUser.empty())
+    {
         roleText += "User: " + m_command.allowedUser;
         anyRole = true;
     };
 
-    if (m_command.allowVip) {
+    if (m_command.allowVip)
+    {
         if (anyRole)
             roleText += " | ";
 
@@ -537,7 +584,8 @@ void CommandActionEventNode::updateRoleLabel() {
         anyRole = true;
     };
 
-    if (m_command.allowMod) {
+    if (m_command.allowMod)
+    {
         if (anyRole)
             roleText += " | ";
 
@@ -545,7 +593,8 @@ void CommandActionEventNode::updateRoleLabel() {
         anyRole = true;
     };
 
-    if (m_command.allowSubscriber) {
+    if (m_command.allowSubscriber)
+    {
         if (anyRole)
             roleText += " | ";
 
@@ -553,7 +602,8 @@ void CommandActionEventNode::updateRoleLabel() {
         anyRole = true;
     };
 
-    if (m_command.allowStreamer) {
+    if (m_command.allowStreamer)
+    {
         if (anyRole)
             roleText += " | ";
 
@@ -566,10 +616,12 @@ void CommandActionEventNode::updateRoleLabel() {
     m_roleLabel->setString(roleText.c_str());
 };
 
-CommandActionEventNode* CommandActionEventNode::create(TwitchCommandAction action, CCSize scrollSize) {
+CommandActionEventNode *CommandActionEventNode::create(TwitchCommandAction action, CCSize scrollSize)
+{
     auto ret = new CommandActionEventNode();
 
-    if (ret && ret->init(action, scrollSize)) {
+    if (ret && ret->init(action, scrollSize))
+    {
         ret->autorelease();
         return ret;
     };
