@@ -26,7 +26,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
         if (!menu) menu = getChildByID("social-media-menu");
 
         if (menu) {
-            as<CCMenu*>(menu)->addChild(twitchBtn);
+            static_cast<CCMenu*>(menu)->addChild(twitchBtn);
             // Position it at the bottom of existing buttons
             twitchBtn->setPosition(0, -60);
         } else {
@@ -79,8 +79,7 @@ class $modify(MyCreatorLayer, CreatorLayer) {
             return;
         };
 
-        auto popup = TwitchLoginPopup::create();
-        popup->show();
+        if (auto popup = TwitchLoginPopup::create()) popup->show();
     };
 };
 
@@ -163,7 +162,6 @@ class $modify(MyPauseLayer, PauseLayer) {
             return;
         };
 
-        auto popup = TwitchLoginPopup::create();
-        popup->show();
+        if (auto popup = TwitchLoginPopup::create()) popup->show();
     };
 };

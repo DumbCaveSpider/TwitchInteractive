@@ -13,7 +13,7 @@ using namespace geode::prelude;
 
 matjson::Value TwitchCommandAction::toJson() const {
     matjson::Value v = matjson::Value::object();
-    v["type"] = as<int>(type);
+    v["type"] = static_cast<int>(type);
     v["arg"] = arg;
     v["index"] = index;
 
@@ -25,7 +25,7 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
     std::string arg = "";
     float index = 0.f;
 
-    if (v.contains("type") && v["type"].asInt().ok()) type = as<CommandActionType>(v["type"].asInt().unwrap());
+    if (v.contains("type") && v["type"].asInt().ok()) type = static_cast<CommandActionType>(v["type"].asInt().unwrap());
     if (v.contains("arg") && v["arg"].asString().ok()) arg = v["arg"].asString().unwrap();
     if (v.contains("index") && v["index"].isNumber()) {
         auto result = v["index"].asDouble();
@@ -72,7 +72,7 @@ void TwitchCommandManager::loadCommands() {
 TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     std::string name = (v.contains("name") && v["name"].asString().ok()) ? v["name"].asString().unwrap() : "";
     std::string description = (v.contains("description") && v["description"].asString().ok()) ? v["description"].asString().unwrap() : "";
-    int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? as<int>(v["cooldown"].asInt().unwrap()) : 0;
+    int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
     std::vector<TwitchCommandAction> actions;
     if (v.contains("actions") && v["actions"].isArray()) {

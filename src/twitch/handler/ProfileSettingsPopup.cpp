@@ -1,7 +1,6 @@
 #include "ProfileSettingsPopup.hpp"
 
-bool ProfileSettingsPopup::setup()
-{
+bool ProfileSettingsPopup::setup() {
     setTitle("Profile Settings");
     setID("profile-settings-popup");
 
@@ -51,8 +50,7 @@ bool ProfileSettingsPopup::setup()
     return true;
 };
 
-void ProfileSettingsPopup::onOpenProfile(CCObject *sender)
-{
+void ProfileSettingsPopup::onOpenProfile(CCObject* sender) {
     std::string idStr = m_accountIdInput ? m_accountIdInput->getString() : m_accountId;
 
     // Default fallback
@@ -60,16 +58,14 @@ void ProfileSettingsPopup::onOpenProfile(CCObject *sender)
         idStr = "7689052";
 
     // Only allow numbers
-    if (idStr.find_first_not_of("0123456789") == std::string::npos)
-    {
-        int accountIdInt = std::stoi(idStr);
+    if (idStr.find_first_not_of("0123456789") == std::string::npos) {
+        int accountIdInt = numFromString<int>(idStr).unwrapOr(0);
         if (auto page = ProfilePage::create(accountIdInt, false))
             page->show();
     };
 };
 
-void ProfileSettingsPopup::onSave(CCObject *sender)
-{
+void ProfileSettingsPopup::onSave(CCObject* sender) {
     std::string newId = m_accountIdInput ? m_accountIdInput->getString() : m_accountId;
     if (m_callback)
         m_callback(newId);
@@ -77,15 +73,13 @@ void ProfileSettingsPopup::onSave(CCObject *sender)
     onClose(sender);
 };
 
-ProfileSettingsPopup *ProfileSettingsPopup::create(const std::string &accountId, std::function<void(const std::string &)> callback)
-{
+ProfileSettingsPopup* ProfileSettingsPopup::create(const std::string& accountId, std::function<void(const std::string&)> callback) {
     auto ret = new ProfileSettingsPopup();
 
     ret->m_accountId = accountId;
     ret->m_callback = callback;
 
-    if (ret && ret->initAnchored(220.f, 120.f))
-    {
+    if (ret && ret->initAnchored(220.f, 120.f)) {
         ret->autorelease();
         return ret;
     };

@@ -7,17 +7,13 @@
 #include <cocos2d.h>
 using namespace geode::prelude;
 
-namespace
-{
+namespace {
     bool g_noclipEnabled = false;
 }
 
-class $modify(PlayLayer)
-{
-    void destroyPlayer(PlayerObject *player, GameObject *obj)
-    {
-        if (g_noclipEnabled)
-        {
+class $modify(PlayLayer) {
+    void destroyPlayer(PlayerObject * player, GameObject * obj) {
+        if (g_noclipEnabled) {
             // Noclip enabled: prevent player death
             log::debug("[PlayLayerEvent] Noclip enabled: destroyPlayer ignored");
             return;
@@ -27,18 +23,15 @@ class $modify(PlayLayer)
 };
 
 // Helper to parse color from string (format: "R,G,B")
-cocos2d::ccColor3B parseColorString(const std::string &str)
-{
+cocos2d::ccColor3B parseColorString(const std::string& str) {
     int r = 255, g = 255, b = 255;
     sscanf(str.c_str(), "%d,%d,%d", &r, &g, &b);
-    return {static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+    return { static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b) };
 };
 
 // Set player color (playerIdx: 1, 2, or 3 for both)
-void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B &color)
-{
-    Loader::get()->queueInMainThread([playerIdx, color]
-                                     {
+void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B& color) {
+    Loader::get()->queueInMainThread([playerIdx, color] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] setPlayerColor: PlayLayer not found");
@@ -66,18 +59,14 @@ void PlayLayerEvent::setPlayerColor(int playerIdx, const cocos2d::ccColor3B &col
         } });
 };
 
-namespace
-{
+namespace {
     bool g_pendingKillPlayer = false;
 
-    class KillPlayerScheduler : public cocos2d::CCNode
-    {
+    class KillPlayerScheduler : public cocos2d::CCNode {
     public:
-        void update(float)
-        {
+        void update(float) {
             auto playLayer = PlayLayer::get();
-            if (playLayer && g_pendingKillPlayer)
-            {
+            if (playLayer && g_pendingKillPlayer) {
                 log::debug("[PlayLayerEvent] KillPlayerScheduler: Executing kill player");
 
                 playLayer->destroyPlayer(playLayer->m_player1, nullptr);
@@ -88,8 +77,7 @@ namespace
             };
         };
 
-        static void start()
-        {
+        static void start() {
             log::debug("[PlayLayerEvent] KillPlayerScheduler: Scheduling kill player");
 
             auto node = new KillPlayerScheduler();
@@ -102,10 +90,8 @@ namespace
 };
 
 // Reverse both players' direction
-void PlayLayerEvent::reversePlayer()
-{
-    Loader::get()->queueInMainThread([]
-                                     {
+void PlayLayerEvent::reversePlayer() {
+    Loader::get()->queueInMainThread([] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] reversePlayer: PlayLayer not found");
@@ -117,10 +103,8 @@ void PlayLayerEvent::reversePlayer()
 }
 
 // Restart the level from the start
-void PlayLayerEvent::restartLevel()
-{
-    Loader::get()->queueInMainThread([]
-                                     {
+void PlayLayerEvent::restartLevel() {
+    Loader::get()->queueInMainThread([] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] restartLevel: PlayLayer not found");
@@ -131,10 +115,8 @@ void PlayLayerEvent::restartLevel()
 }
 
 // Set player scale (playerIdx: 1, 2, or 3 for both), with optional animation time
-void PlayLayerEvent::scalePlayer(int playerIdx, float scale, float time)
-{
-    Loader::get()->queueInMainThread([playerIdx, scale, time]
-                                     {
+void PlayLayerEvent::scalePlayer(int playerIdx, float scale, float time) {
+    Loader::get()->queueInMainThread([playerIdx, scale, time] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] scalePlayer: PlayLayer not found");
@@ -191,10 +173,8 @@ void PlayLayerEvent::scalePlayer(int playerIdx, float scale, float time)
 }
 
 // Set PlayLayer camera settings from edit_camera action string (format: edit_camera:<skew>:<rot>:<scale>:<time>)
-void PlayLayerEvent::setCameraFromString(const std::string &arg)
-{
-    Loader::get()->queueInMainThread([arg]
-                                     {
+void PlayLayerEvent::setCameraFromString(const std::string& arg) {
+    Loader::get()->queueInMainThread([arg] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] setCameraFromString: PlayLayer not found");
@@ -211,10 +191,10 @@ void PlayLayerEvent::setCameraFromString(const std::string &arg)
             std::string rotStr = arg.substr(second + 1, third - second - 1);
             std::string scaleStr = arg.substr(third + 1, fourth - third - 1);
             std::string timeStr = arg.substr(fourth + 1);
-            if (!skewStr.empty()) skew = std::stof(skewStr);
-            if (!rotStr.empty()) rot = std::stof(rotStr);
-            if (!scaleStr.empty()) scale = std::stof(scaleStr);
-            if (!timeStr.empty()) time = std::stof(timeStr);
+            if (!skewStr.empty()) skew = numFromString<float>(skewStr).unwrapOr(0.f);
+            if (!rotStr.empty()) rot = numFromString<float>(rotStr).unwrapOr(0.f);
+            if (!scaleStr.empty()) scale = numFromString<float>(scaleStr).unwrapOr(0.f);
+            if (!timeStr.empty()) time = numFromString<float>(timeStr).unwrapOr(0.f);
         }
         // Animate camera properties if time > 0, else set instantly
         log::info("[PlayLayerEvent] Setting camera: Skew={} Rot={} Scale={} Time={}", skew, rot, scale, time);
@@ -268,10 +248,8 @@ void PlayLayerEvent::setCameraFromString(const std::string &arg)
 }
 
 // Simulate holding the jump button for a short duration
-void PlayLayerEvent::jumpPlayerTap(int playerIdx)
-{
-    Loader::get()->queueInMainThread([playerIdx]
-                                     {
+void PlayLayerEvent::jumpPlayerTap(int playerIdx) {
+    Loader::get()->queueInMainThread([playerIdx] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] holdJumpPlayer: PlayLayer not found");
@@ -304,13 +282,11 @@ void PlayLayerEvent::jumpPlayerTap(int playerIdx)
         }; });
 };
 
-void PlayLayerEvent::killPlayer()
-{
+void PlayLayerEvent::killPlayer() {
     log::debug("[PlayLayerEvent] destroyPlayer called");
     g_pendingKillPlayer = true;
 
-    Loader::get()->queueInMainThread([]
-                                     {
+    Loader::get()->queueInMainThread([] {
         auto playLayer = PlayLayer::get();
         if (playLayer && g_pendingKillPlayer) {
             log::debug("[PlayLayerEvent] destroyPlayer: Executing now");
@@ -325,10 +301,8 @@ void PlayLayerEvent::killPlayer()
         } });
 }
 
-void PlayLayerEvent::jumpPlayerHold(int playerIdx)
-{
-    Loader::get()->queueInMainThread([playerIdx]
-                                     {
+void PlayLayerEvent::jumpPlayerHold(int playerIdx) {
+    Loader::get()->queueInMainThread([playerIdx] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] jumpPlayer: PlayLayer not found");
@@ -357,10 +331,8 @@ void PlayLayerEvent::jumpPlayerHold(int playerIdx)
 };
 
 // Simulate a keypress by key string (universal, works anywhere in the game if supported)
-void PlayLayerEvent::pressKey(const std::string &key, float duration)
-{
-    Loader::get()->queueInMainThread([key, duration]
-                                     {
+void PlayLayerEvent::pressKey(const std::string& key, float duration) {
+    Loader::get()->queueInMainThread([key, duration] {
         cocos2d::enumKeyCodes keyCode = cocos2d::KEY_None;
 
         // switch doesnt support strings :/
@@ -398,15 +370,12 @@ void PlayLayerEvent::pressKey(const std::string &key, float duration)
 
 // Move player left or right by a distance
 // Set noclip state
-void PlayLayerEvent::setNoclip(bool enabled)
-{
+void PlayLayerEvent::setNoclip(bool enabled) {
     g_noclipEnabled = enabled;
     log::info("[PlayLayerEvent] Noclip set to {}", enabled ? "true" : "false");
 }
-void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance)
-{
-    Loader::get()->queueInMainThread([playerIdx, moveRight, distance]
-                                     {
+void PlayLayerEvent::movePlayer(int playerIdx, bool moveRight, float distance) {
+    Loader::get()->queueInMainThread([playerIdx, moveRight, distance] {
         auto playLayer = PlayLayer::get();
         if (!playLayer) {
             log::debug("[PlayLayerEvent] movePlayer: PlayLayer not found");
