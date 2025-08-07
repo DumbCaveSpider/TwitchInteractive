@@ -51,8 +51,7 @@ namespace SettingsHandler
             duration,
             [popup, idx](float newGravity, float newDuration)
             {
-                auto buf_gravity = fmt::format("gravity:{:.2f}:{:.2f}", newGravity, newDuration);
-                popup->m_commandActions[idx] = buf_gravity;
+                popup->m_commandActions[idx] = fmt::format("gravity:{:.2f}:{:.2f}", newGravity, newDuration);
                 popup->refreshActionsList();
             });
         if (popupWindow)

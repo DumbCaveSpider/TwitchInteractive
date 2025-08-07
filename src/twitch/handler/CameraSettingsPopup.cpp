@@ -90,9 +90,7 @@ void CameraSettingsPopup::onSave(CCObject *sender)
 
 std::string CameraSettingsPopup::formatCameraLabel(float skew, float rot, float scale, float time)
 {
-    char buf[128];
-    snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2fs", skew, rot, scale, time);
-    return std::string(buf);
+    return fmt::format("Skew: {:.2f}, Rot: {:.2f}, Scale: {:.2f}, Time: {:.2f}s", skew, rot, scale, time);
 };
 
 void CameraSettingsPopup::onApply(CCObject *sender)

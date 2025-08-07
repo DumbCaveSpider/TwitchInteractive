@@ -904,8 +904,7 @@ void CommandSettingsPopup::refreshActionsList()
                         float amt = strtof(amount.c_str(), &endptr);
                         if (endptr != amount.c_str() && *endptr == '\0')
                         {
-                            auto buf = fmt::format("{:.4f}", amt);
-                            amountStr = buf;
+                            auto amountStr = fmt::format("{:.4f}", amt);
                         };
                     };
                     settingsLabelText = "Player " + player + " | Dir: " + dir;
