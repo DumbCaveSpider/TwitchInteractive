@@ -191,10 +191,10 @@ void PlayLayerEvent::setCameraFromString(const std::string& arg) {
             std::string rotStr = arg.substr(second + 1, third - second - 1);
             std::string scaleStr = arg.substr(third + 1, fourth - third - 1);
             std::string timeStr = arg.substr(fourth + 1);
-            if (!skewStr.empty()) skew = numFromString<float>(skewStr).unwrapOr(0.f);
-            if (!rotStr.empty()) rot = numFromString<float>(rotStr).unwrapOr(0.f);
-            if (!scaleStr.empty()) scale = numFromString<float>(scaleStr).unwrapOr(0.f);
-            if (!timeStr.empty()) time = numFromString<float>(timeStr).unwrapOr(0.f);
+            if (!skewStr.empty()) skew = numFromString<float>(skewStr).unwrapOrDefault();
+            if (!rotStr.empty()) rot = numFromString<float>(rotStr).unwrapOrDefault();
+            if (!scaleStr.empty()) scale = numFromString<float>(scaleStr).unwrapOrDefault();
+            if (!timeStr.empty()) time = numFromString<float>(timeStr).unwrapOrDefault();
         }
         // Animate camera properties if time > 0, else set instantly
         log::info("[PlayLayerEvent] Setting camera: Skew={} Rot={} Scale={} Time={}", skew, rot, scale, time);

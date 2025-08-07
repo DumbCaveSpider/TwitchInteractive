@@ -99,19 +99,19 @@ void CameraSettingsPopup::onClose(CCObject* sender) {
 };
 
 float CameraSettingsPopup::getSkew() const {
-    return numFromString<float>(m_skewInput->getString()).unwrapOr(0.f);
+    return numFromString<float>(m_skewInput->getString()).unwrapOrDefault();
 };
 
 float CameraSettingsPopup::getRotation() const {
-    return numFromString<float>(m_rotInput->getString()).unwrapOr(0.f);
+    return numFromString<float>(m_rotInput->getString()).unwrapOrDefault();
 };
 
 float CameraSettingsPopup::getScale() const {
-    return numFromString<float>(m_scaleInput->getString()).unwrapOr(0.f);
+    return numFromString<float>(m_scaleInput->getString()).unwrapOrDefault();
 };
 
 float CameraSettingsPopup::getTime() const {
-    return numFromString<float>(m_timeInput->getString()).unwrapOr(0.f);
+    return numFromString<float>(m_timeInput->getString()).unwrapOrDefault();
 };
 
 CameraSettingsPopup* CameraSettingsPopup::create(float skew, float rot, float scale, float time, std::function<void(float, float, float, float)> callback) {

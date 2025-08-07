@@ -37,9 +37,9 @@ namespace SettingsHandler {
             std::string gravityStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
             std::string durationStr = actionStr.substr(secondColon + 1);
             if (!gravityStr.empty())
-                gravity = numFromString<float>(gravityStr).unwrapOr(0.f);
+                gravity = numFromString<float>(gravityStr).unwrapOrDefault();
             if (!durationStr.empty())
-                duration = numFromString<float>(durationStr).unwrapOr(0.f);
+                duration = numFromString<float>(durationStr).unwrapOrDefault();
         }
 
         auto popupWindow = GravitySettingsPopup::create(
@@ -83,13 +83,13 @@ namespace SettingsHandler {
             std::string durStr = actionIdRaw.substr(fourthColon + 1);
 
             if (!zoomStr.empty())
-                zoom = numFromString<float>(zoomStr).unwrapOr(0.f);
+                zoom = numFromString<float>(zoomStr).unwrapOrDefault();
             if (!xStr.empty())
-                x = numFromString<float>(xStr).unwrapOr(0.f);
+                x = numFromString<float>(xStr).unwrapOrDefault();
             if (!yStr.empty())
-                y = numFromString<float>(yStr).unwrapOr(0.f);
+                y = numFromString<float>(yStr).unwrapOrDefault();
             if (!durStr.empty())
-                duration = numFromString<float>(durStr).unwrapOr(0.f);
+                duration = numFromString<float>(durStr).unwrapOrDefault();
         };
 
         // Show the CameraSettingsPopup and update the value and label on save
@@ -119,9 +119,9 @@ namespace SettingsHandler {
             std::string speedStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
             std::string durationStr = actionStr.substr(secondColon + 1);
             if (!speedStr.empty())
-                speed = numFromString<float>(speedStr).unwrapOr(0);
+                speed = numFromString<float>(speedStr).unwrapOrDefault();
             if (!durationStr.empty())
-                duration = numFromString<float>(durationStr).unwrapOr(0);
+                duration = numFromString<float>(durationStr).unwrapOrDefault();
         }
 
         auto popupWindow = SpeedSettingsPopup::create(
@@ -350,7 +350,7 @@ namespace SettingsHandler {
             };
 
             if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos)
-                jumpPlayerValue = numFromString<int>(val).unwrapOr(0);
+                jumpPlayerValue = numFromString<int>(val).unwrapOrDefault();
         };
 
         JumpSettingsPopup::create(
@@ -410,12 +410,12 @@ namespace SettingsHandler {
             };
 
             if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                player = numFromString<int>(playerStr).unwrapOr(0);
+                player = numFromString<int>(playerStr).unwrapOrDefault();
 
             moveRight = (dirStr == "right");
 
             if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos)
-                distance = numFromString<float>(distStr).unwrapOr(0);
+                distance = numFromString<float>(distStr).unwrapOrDefault();
         };
 
         auto popupMove = MoveSettingsPopup::create(
@@ -466,7 +466,7 @@ namespace SettingsHandler {
         size_t secondColon = actionStr.find(":", firstColon + 1);
 
         if (firstColon != std::string::npos && secondColon != std::string::npos) {
-            iconTypeInt = numFromString<int>(actionStr.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOr(0);
+            iconTypeInt = numFromString<int>(actionStr.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOrDefault();
             notifText = actionStr.substr(secondColon + 1);
         } else if (actionStr.length() > 13) {
             notifText = actionStr.substr(13);
@@ -506,7 +506,7 @@ namespace SettingsHandler {
         if (firstColon != std::string::npos) {
             std::string scaleStr = actionStr.substr(firstColon + 1, (secondColon != std::string::npos ? secondColon - firstColon - 1 : std::string::npos));
             if (!scaleStr.empty()) {
-                float parsed = numFromString<float>(scaleStr).unwrapOr(0);
+                float parsed = numFromString<float>(scaleStr).unwrapOrDefault();
                 if (parsed > 0.0f)
                     scaleValue = parsed;
             };
@@ -515,7 +515,7 @@ namespace SettingsHandler {
                 std::string timeStr = actionStr.substr(secondColon + 1);
 
                 if (!timeStr.empty()) {
-                    float parsedTime = numFromString<float>(timeStr).unwrapOr(0);
+                    float parsedTime = numFromString<float>(timeStr).unwrapOrDefault();
                     if (parsedTime >= 0.0f)
                         timeValue = parsedTime;
                 };

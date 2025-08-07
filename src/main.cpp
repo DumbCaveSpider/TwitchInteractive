@@ -66,18 +66,18 @@ class $modify(MyCreatorLayer, CreatorLayer) {
     };
 
     void onTwitchPressed(CCObject*) {
-        // Check if Twitch Chat API mod is loaded
-        auto mod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+        // // Check if Twitch Chat API mod is loaded
+        // auto mod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
 
-        if (!mod || !mod->isEnabled()) {
-            FLAlertLayer::create(
-                "Mod Missing",
-                "The <cb>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
-                "OK"
-            )->show();
+        // if (!mod || !mod->isEnabled()) {
+        //     FLAlertLayer::create(
+        //         "Mod Missing",
+        //         "The <cp>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
+        //         "OK"
+        //     )->show();
 
-            return;
-        };
+        //     return;
+        // };
 
         if (auto popup = TwitchLoginPopup::create()) popup->show();
     };
@@ -150,17 +150,17 @@ class $modify(MyPauseLayer, PauseLayer) {
     };
 
     void onTwitchPressed(CCObject*) {
-        // Check if Twitch Chat API mod is loaded
-        auto mod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
+        // // Check if Twitch Chat API mod is loaded
+        // auto mod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
 
-        if (!mod || !mod->isEnabled()) {
-            FLAlertLayer::create(
-                "Mod Missing",
-                "The <cb>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
-                "OK"
-            )->show();
-            return;
-        };
+        // if (!mod || !mod->isEnabled()) {
+        //     FLAlertLayer::create(
+        //         "Mod Missing",
+        //         "The <cb>Twitch Chat API</c> mod is required but not found or disabled. Please install and enable it.",
+        //         "OK"
+        //     )->show();
+        //     return;
+        // };
 
         if (auto popup = TwitchLoginPopup::create()) popup->show();
     };

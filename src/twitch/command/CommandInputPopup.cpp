@@ -52,19 +52,19 @@ bool CommandInputPopup::setup() {
 
     // Create text input for description
     m_descInput = TextInput::create(200, "Command description", "bigFont.fnt");
+    m_descInput->setID("command-input-desc-field");
     m_descInput->setCommonFilter(CommonFilter::Any);
     m_descInput->setPosition(layerSize.width / 2, layerSize.height - 90);
     m_descInput->setScale(0.8f);
-    m_descInput->setID("command-input-desc-field");
 
     m_mainLayer->addChild(m_descInput);
 
     // Create text input for cooldown seconds
     m_cooldownInput = TextInput::create(200, "Cooldown (Seconds)", "bigFont.fnt");
+    m_cooldownInput->setID("command-input-cooldown-field");
     m_cooldownInput->setCommonFilter(CommonFilter::Int);
     m_cooldownInput->setPosition(layerSize.width / 2, layerSize.height - 125);
     m_cooldownInput->setScale(0.8f);
-    m_cooldownInput->setID("command-input-cooldown-field");
 
     m_mainLayer->addChild(m_cooldownInput);
 
@@ -142,23 +142,22 @@ void CommandInputPopup::onAdd(CCObject* sender) {
         FLAlertLayer::create(
             "Error",
             "Please enter a command name",
-            "OK")
-            ->show();
+            "OK"
+        )->show();
 
         return;
     };
 
     // Remove any '!' prefix if user added it
-    if (commandName.front() == '!')
-        commandName = commandName.substr(1);
+    if (commandName.front() == '!') commandName = commandName.substr(1);
 
     // Check if still empty after removing '!'
     if (commandName.empty()) {
         FLAlertLayer::create(
             "Error",
             "Please enter a valid command name",
-            "OK")
-            ->show();
+            "OK"
+        )->show();
 
         return;
     };
@@ -168,43 +167,48 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     if (commandName.find_first_of(illegalChars) != std::string::npos) {
         FLAlertLayer::create(
             "Error",
-            "Command name contains illegal characters.\nPlease use only letters, numbers, and underscores.",
-            "OK")
-            ->show();
+            "Command name contains illegal characters.\n<cy>Please use only letters, numbers, and underscores.</c>",
+            "OK"
+        )->show();
 
         return;
     };
 
     // Use default description if none provided
-    if (commandDesc.empty())
-        commandDesc = "No description provided";
+    if (commandDesc.empty()) commandDesc = "No description provided";
 
     // Validate cooldown input
     int cooldown = 0;
     if (!cooldownStr.empty()) {
         size_t idx = 0;
 
-        if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos)) {
-            cooldown = numFromString<int>(cooldownStr).unwrapOr(0);
+        if (cooldownStr.find_first_not_of("-0123456789") == std::string::npos) {
+            cooldown = numFromString<int>(cooldownStr).unwrapOrDefault();
 
             if (idx != cooldownStr.size() || cooldown < 0) {
                 FLAlertLayer::create(
                     "Invalid Cooldown",
-                    "You must only input a number in the cooldown field.",
-                    "OK")
-                    ->show();
+                    "You can only input a number value in the <cg>Cooldown</c> field.",
+                    "OK"
+                )->show();
 
                 return;
             };
         } else {
             FLAlertLayer::create(
                 "Invalid Cooldown",
-                "You must only input a number in the cooldown field.",
-                "OK")
-                ->show();
+                "You can only input a number value in the <cg>Cooldown</c> field.",
+                "OK"
+            )->show();
 
             return;
         };
+    } else {
+        FLAlertLayer::create(
+            "Required",
+            "You must input a number value in the <cg>Cooldown</c> field.",
+            "OK"
+        )->show();
     };
 
     m_cooldownSeconds = cooldown;
@@ -225,16 +229,16 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             originalCooldown = 0;
 
             if (!cooldownStrOrig.empty() && (cooldownStrOrig.find_first_not_of("-0123456789") == std::string::npos))
-                originalCooldown = numFromString<int>(cooldownStrOrig).unwrapOr(0);
+                originalCooldown = numFromString<int>(cooldownStrOrig).unwrapOrDefault();
         };
 
         cooldownChanged = originalCooldown != m_cooldownSeconds;
         if (!nameChanged && !descChanged && !cooldownChanged) {
             FLAlertLayer::create(
                 "No Changes",
-                "You haven't made any changes to the command.\nPlease modify a field to apply.",
-                "OK")
-                ->show();
+                "You haven't made any changes to the command.\n<cy>Please modify a field to apply.</c>",
+                "OK"
+            )->show();
 
             return;
         };
@@ -246,9 +250,9 @@ void CommandInputPopup::onAdd(CCObject* sender) {
                 if (cmd.name == commandName && cmd.name != m_originalName) {
                     FLAlertLayer::create(
                         "Error",
-                        "A command with this name already exists.\nPlease choose a different name.",
-                        "OK")
-                        ->show();
+                        "A command with this name already exists.\n<cy>Please choose a different name.</c>",
+                        "OK"
+                    )->show();
 
                     return;
                 };
@@ -274,9 +278,9 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             if (cmd.name == commandName && (!m_isEditing || cmd.name != m_originalName)) {
                 FLAlertLayer::create(
                     "Error",
-                    "A command with this name already exists.\nPlease choose a different name.",
-                    "OK")
-                    ->show();
+                    "A command with this name already exists.\n<cy>Please choose a different name.</c>",
+                    "OK"
+                )->show();
 
                 return;
             };

@@ -360,7 +360,7 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
             cooldown = 0;
 
             if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos))
-                cooldown = numFromString<int>(cooldownStr).unwrapOr(0);
+                cooldown = numFromString<int>(cooldownStr).unwrapOrDefault();
         };
 
         // Create a new command that logs when triggered
@@ -377,7 +377,7 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
         // Show success message
         FLAlertLayer::create(
             "Success",
-            ("Command '!" + commandName + "' added successfully!").c_str(),
+            ("Command '<cg>!" + commandName + "</c>' added successfully!").c_str(),
             "OK"
         )->show(); });
 
@@ -400,9 +400,9 @@ void TwitchDashboard::handleCommandDelete(const std::string& commandName) {
                 schedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList), 0.2f);
                 FLAlertLayer::create(
                     "Delete Success",
-                    "Command '!" + commandName + "' deleted successfully!",
-                    "OK")
-                    ->show();
+                    "Command '<cg>!" + commandName + "</c>' deleted successfully!",
+                    "OK"
+                )->show();
             }
         });
 };
@@ -476,7 +476,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
         cooldown = 0;
 
         if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos))
-            cooldown = numFromString<int>(cooldownStr).unwrapOr(0);
+            cooldown = numFromString<int>(cooldownStr).unwrapOrDefault();
     } else if (firstSep != std::string::npos) {
         // Format: desc|cooldown (if only one sep)
         desc = newDesc.substr(0, firstSep);
@@ -485,7 +485,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
         cooldown = 0;
 
         if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos))
-            cooldown = numFromString<int>(cooldownStr).unwrapOr(0);
+            cooldown = numFromString<int>(cooldownStr).unwrapOrDefault();
     };
 
     // Find the old command
@@ -533,21 +533,19 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     // Show success message
     FLAlertLayer::create(
         "Success",
-        ("Command '!" + originalName + "' updated successfully!").c_str(),
-        "OK")
-        ->show();
+        "Command '<cg>!" + originalName + "</c>' updated successfully!",
+        "OK"
+    )->show();
 };
 
 void TwitchDashboard::onEditCommand(CCObject* sender) {
     // Handle the edit button click
     auto button = static_cast<CCMenuItemSpriteExtra*>(sender);
-    if (!button)
-        return;
+    if (!button) return;
 
     // The command name should be stored in the button's tag or parent node
     auto node = static_cast<CommandActionEventNode*>(button->getParent()->getParent());
-    if (!node)
-        return;
+    if (!node) return;
 
     std::string commandName = node->getCommandName();
     auto commandManager = TwitchCommandManager::getInstance();

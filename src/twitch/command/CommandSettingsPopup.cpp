@@ -1006,7 +1006,7 @@ void CommandSettingsPopup::refreshActionsList() {
             if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
                 waitValue = actionIdRaw.substr(colon + 1);
             if (!waitValue.empty()) {
-                float waitFloat = numFromString<float>(waitValue).unwrapOr(0.f);
+                float waitFloat = numFromString<float>(waitValue).unwrapOrDefault();
                 waitFloat = std::round(waitFloat * 1000.0f) / 1000.0f;
                 auto buf = fmt::format("{:.2f}", waitFloat);
                 waitInput->setString(buf);
@@ -1217,7 +1217,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
 
             // check if string is valid
             if (!delayStr.empty() && (delayStr.find_first_not_of("-.0123456789") == std::string::npos)) {
-                float delay = numFromString<float>(delayStr).unwrapOr(0.f);
+                float delay = numFromString<float>(delayStr).unwrapOrDefault();
                 delay = std::round(delay * 1000.0f) / 1000.0f;
                 actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
                 auto buf = fmt::format("{:.3f}", delay);
@@ -1230,7 +1230,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             // Always use the value from m_commandActions (jumpPlayerValue and isHold)
             int playerIdx = 1;
             if (!jumpPlayerValue.empty() && (jumpPlayerValue.find_first_not_of("-0123456789") == std::string::npos))
-                playerIdx = numFromString<int>(jumpPlayerValue).unwrapOr(0);
+                playerIdx = numFromString<int>(jumpPlayerValue).unwrapOrDefault();
 
             std::string jumpActionStr = "jump:" + std::to_string(playerIdx);
             if (isHold)
@@ -1286,7 +1286,7 @@ void CommandSettingsPopup::onSave(CCObject* sender) {
             size_t secondColon = actionIdRaw.find(":", firstColon + 1);
 
             if (firstColon != std::string::npos && secondColon != std::string::npos) {
-                iconTypeInt = numFromString<int>(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOr(0);
+                iconTypeInt = numFromString<int>(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOrDefault();
                 notifText = actionIdRaw.substr(secondColon + 1);
             } else if (actionIdRaw.length() > 13) {
                 notifText = actionIdRaw.substr(13);

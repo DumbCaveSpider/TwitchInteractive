@@ -31,7 +31,7 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
         auto result = v["index"].asDouble();
         if (result.ok()) index = static_cast<float>(result.unwrap());
         else index = 0.f;
-    }
+    };
 
     return TwitchCommandAction(type, arg, index);
 };
@@ -39,11 +39,13 @@ TwitchCommandAction TwitchCommandAction::fromJson(const matjson::Value& v) {
 // Save commands to file
 void TwitchCommandManager::saveCommands() {
     std::vector<matjson::Value> arrVec;
+
     for (const auto& cmd : m_commands)
         arrVec.push_back(cmd.toJson());
 
     matjson::Value arr(arrVec);
     std::ofstream ofs(getSavePath());
+
     if (ofs)
         ofs << arr.dump(2);
 };
@@ -72,14 +74,18 @@ void TwitchCommandManager::loadCommands() {
 TwitchCommand TwitchCommand::fromJson(const matjson::Value& v) {
     std::string name = (v.contains("name") && v["name"].asString().ok()) ? v["name"].asString().unwrap() : "";
     std::string description = (v.contains("description") && v["description"].asString().ok()) ? v["description"].asString().unwrap() : "";
+
     int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
+
     std::vector<TwitchCommandAction> actions;
+
     if (v.contains("actions") && v["actions"].isArray()) {
         auto& actionsArr = v["actions"];
         for (size_t i = 0; i < actionsArr.size(); ++i)
             actions.push_back(TwitchCommandAction::fromJson(actionsArr[i]));
     };
+
     TwitchCommand cmd(name, description, cooldown, actions);
     cmd.enabled = enabled;
     return cmd;
@@ -185,6 +191,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
 
     // Log username and message ID whenever a message is received
     log::debug("Chat message received - Username: {}, Message ID: {}, Message: {}", username, messageID, message);
+
     std::string commandName;
     std::string commandArgs;
 
@@ -212,43 +219,38 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         if (hasRoleRestriction) {
             allowed = false;
             // Check username restriction
-            if (!it->allowedUser.empty() && chatMessage.getUsername() == it->allowedUser) {
-                allowed = true;
-            }
+            if (!it->allowedUser.empty() && chatMessage.getUsername() == it->allowedUser) allowed = true;
+
             // Check mod
-            if (!allowed && it->allowMod && chatMessage.getIsMod()) {
-                allowed = true;
-            }
+            if (!allowed && it->allowMod && chatMessage.getIsMod()) allowed = true;
+
             // Check VIP
-            if (!allowed && it->allowVip && chatMessage.getIsVIP()) {
-                allowed = true;
-            }
+            if (!allowed && it->allowVip && chatMessage.getIsVIP()) allowed = true;
+
             // Check subscriber
-            if (!allowed && it->allowSubscriber && chatMessage.getIsSubscriber()) {
-                allowed = true;
-            }
+            if (!allowed && it->allowSubscriber && chatMessage.getIsSubscriber()) allowed = true;
+
             // Check streamer (require username matches the current channel/login name)
             if (!allowed && it->allowStreamer) {
                 std::string channelName;
-                auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
-                if (twitchMod) {
+
+                if (auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api")) {
                     // The channel name is usually stored as 'twitch-channel' or similar
                     channelName = twitchMod->getSavedValue<std::string>("twitch-channel");
+
                     // Fallback: try 'twitch-username' if 'twitch-channel' is empty
-                    if (channelName.empty()) {
-                        channelName = twitchMod->getSavedValue<std::string>("twitch-username");
-                    }
-                }
+                    if (channelName.empty()) channelName = twitchMod->getSavedValue<std::string>("twitch-username");
+                };
+
                 // Only allow if the user executing the command is the channel owner
-                if (!channelName.empty() && chatMessage.getUsername() == channelName) {
-                    allowed = true;
-                }
-            }
-        }
+                if (!channelName.empty() && chatMessage.getUsername() == channelName) allowed = true;
+            };
+        };
+
         if (!allowed) {
             log::info("User '{}' is not allowed to execute command '{}' due to role restrictions.", username, commandName);
             return;
-        }
+        };
 
         // Check cooldown
         time_t now = time(nullptr);
@@ -275,21 +277,10 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         std::vector<TwitchCommandAction> orderedActions;
         for (const auto& action : it->actions) {
             // Only skip truly default/empty actions (all fields default)
-            if (action.type == CommandActionType::Notification && action.arg.empty() && action.index == 0)
-                continue;
-            if (action.type == CommandActionType::Event && action.arg.empty() && action.index == 0)
-                continue;
-            if (action.type == CommandActionType::Wait && action.arg.empty() && action.index == 0)
-                continue;
-            if (action.type == CommandActionType::Keybind && action.arg.empty() && action.index == 0)
-                continue;
-            if (action.type == CommandActionType::Chat && action.arg.empty() && action.index == 0)
-                continue;
-            orderedActions.push_back(action);
+            if (!action.arg.empty() && action.index != 0) orderedActions.push_back(action);
         };
 
         if (!orderedActions.empty()) {
-
             // Debug log: print action order before execution (use ostringstream for MSVC compatibility)
             std::ostringstream orderLog;
             orderLog << "[TwitchCommandManager] Action order for command '" << commandName << "': ";
@@ -315,8 +306,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         };
 
         // Execute command callback if it exists
-        if (it->callback)
-            it->callback(commandArgs);
+        if (it->callback) it->callback(commandArgs);
 
         // Removed response field handling
     } else {

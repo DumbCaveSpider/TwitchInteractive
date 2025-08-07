@@ -59,7 +59,7 @@ void ProfileSettingsPopup::onOpenProfile(CCObject* sender) {
 
     // Only allow numbers
     if (idStr.find_first_not_of("0123456789") == std::string::npos) {
-        int accountIdInt = numFromString<int>(idStr).unwrapOr(0);
+        int accountIdInt = numFromString<int>(idStr).unwrapOrDefault();
         if (auto page = ProfilePage::create(accountIdInt, false))
             page->show();
     };

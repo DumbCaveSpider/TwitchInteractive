@@ -143,7 +143,7 @@ void MoveSettingsPopup::onSave(CCObject* sender) {
         if (distStr == "${arg}") {
             // Accept as-is, but do not set m_distance (let backend handle it)
         } else if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) {
-            m_distance = numFromString<float>(distStr).unwrapOr(0.f);
+            m_distance = numFromString<float>(distStr).unwrapOrDefault();
         };
 
         // If not valid, ignore and keep previous m_distance

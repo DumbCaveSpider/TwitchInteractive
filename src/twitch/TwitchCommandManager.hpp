@@ -213,7 +213,7 @@ struct ActionContext : public CCObject {
             float delay = action.index;
 
             if (delay <= 0.f && !processedArg.empty() && processedArg.find_first_not_of("-.0123456789") == std::string::npos)
-                delay = numFromString<float>(processedArg).unwrapOr(0.f);
+                delay = numFromString<float>(processedArg).unwrapOrDefault();
 
             delay = std::round(delay * 1000.0f) / 1000.0f;
 
@@ -281,10 +281,10 @@ struct ActionContext : public CCObject {
                     std::string durationStr = processedArg.substr(secondColon + 1);
 
                     if (!gravityStr.empty() && gravityStr.find_first_not_of("-.0123456789") == std::string::npos)
-                        gravity = numFromString<float>(gravityStr).unwrapOr(0.f);
+                        gravity = numFromString<float>(gravityStr).unwrapOrDefault();
 
                     if (!durationStr.empty() && durationStr.find_first_not_of("-.0123456789") == std::string::npos)
-                        duration = numFromString<float>(durationStr).unwrapOr(0.f);
+                        duration = numFromString<float>(durationStr).unwrapOrDefault();
                 };
 
                 log::info("Triggering gravity event: gravity={} duration={} (command: {})", gravity, duration, ctx->commandName);
@@ -313,10 +313,10 @@ struct ActionContext : public CCObject {
                     std::string durationStr = processedArg.substr(secondColon + 1);
 
                     if (!speedStr.empty() && speedStr.find_first_not_of("-.0123456789") == std::string::npos)
-                        speed = numFromString<float>(speedStr).unwrapOr(0.f);
+                        speed = numFromString<float>(speedStr).unwrapOrDefault();
 
                     if (!durationStr.empty() && durationStr.find_first_not_of("-.0123456789") == std::string::npos)
-                        duration = numFromString<float>(durationStr).unwrapOr(0.f);
+                        duration = numFromString<float>(durationStr).unwrapOrDefault();
                 };
 
                 log::info("Triggering speed event: speed={} duration={} (command: {})", speed, duration, ctx->commandName);
@@ -375,28 +375,28 @@ struct ActionContext : public CCObject {
                         timeStr = processedArg.substr(thirdColon + 1);
 
                         if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                            playerIdx = numFromString<int>(playerStr).unwrapOr(0);
+                            playerIdx = numFromString<int>(playerStr).unwrapOrDefault();
 
                         if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
-                            scale = numFromString<float>(scaleStr).unwrapOr(0.f);
+                            scale = numFromString<float>(scaleStr).unwrapOrDefault();
 
                         if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
-                            time = numFromString<float>(timeStr).unwrapOr(0.f);
+                            time = numFromString<float>(timeStr).unwrapOrDefault();
                     } else {
                         // scale_player:<scale>:<time> (no player index)
                         scaleStr = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
                         timeStr = processedArg.substr(secondColon + 1);
 
                         if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
-                            scale = numFromString<float>(scaleStr).unwrapOr(0.f);
+                            scale = numFromString<float>(scaleStr).unwrapOrDefault();
                         if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
-                            time = numFromString<float>(timeStr).unwrapOr(0.f);
+                            time = numFromString<float>(timeStr).unwrapOrDefault();
                     };
                 } else if (firstColon != std::string::npos) {
                     std::string scaleStr = processedArg.substr(firstColon + 1);
 
                     if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
-                        scale = numFromString<float>(scaleStr).unwrapOr(0.f);
+                        scale = numFromString<float>(scaleStr).unwrapOrDefault();
                 };
 
                 log::info("Setting scale for player {} to {} (time: {}, command: {})", playerIdx, scale, time, ctx->commandName);
@@ -436,7 +436,7 @@ struct ActionContext : public CCObject {
                     std::string typeStr = processedArg.substr(secondColon + 1);
 
                     if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                        playerIdx = numFromString<int>(playerStr).unwrapOr(0);
+                        playerIdx = numFromString<int>(playerStr).unwrapOrDefault();
 
                     if (typeStr == "hold")
                         hold = true;
@@ -465,13 +465,13 @@ struct ActionContext : public CCObject {
                     std::string distStr = processedArg.substr(thirdColon + 1);
 
                     if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                        playerIdx = numFromString<int>(playerStr).unwrapOr(0);
+                        playerIdx = numFromString<int>(playerStr).unwrapOrDefault();
 
                     if (dirStr == "left")
                         moveRight = false;
 
                     if (!distStr.empty() && distStr.find_first_not_of("-.0123456789") == std::string::npos) {
-                        distance = numFromString<float>(distStr).unwrapOr(0.f);
+                        distance = numFromString<float>(distStr).unwrapOrDefault();
                         validDistance = true;
                     };
                 };
@@ -495,7 +495,7 @@ struct ActionContext : public CCObject {
                     colorStr = processedArg.substr(secondColon + 1);
 
                     if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                        playerIdx = numFromString<int>(playerStr).unwrapOr(0);
+                        playerIdx = numFromString<int>(playerStr).unwrapOrDefault();
                 } else if (firstColon != std::string::npos) {
                     colorStr = processedArg.substr(firstColon + 1);
                 };
@@ -510,7 +510,7 @@ struct ActionContext : public CCObject {
                 if (firstColon != std::string::npos) {
                     std::string idStr = processedArg.substr(firstColon + 1);
                     if (!idStr.empty() && idStr.find_first_not_of("-0123456789") == std::string::npos)
-                        accountIdInt = numFromString<int>(idStr).unwrapOr(0);
+                        accountIdInt = numFromString<int>(idStr).unwrapOrDefault();
                 };
 
                 if (auto page = ProfilePage::create(accountIdInt, false)) page->show();
@@ -538,7 +538,7 @@ struct ActionContext : public CCObject {
                         std::string iconPart = rest.substr(0, colonPos);
 
                         if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos) {
-                            iconTypeInt = numFromString<int>(iconPart).unwrapOr(0);
+                            iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
                             notifText = rest.substr(colonPos + 1);
                         } else {
                             notifText = rest.substr(colonPos + 1);
@@ -553,7 +553,7 @@ struct ActionContext : public CCObject {
                         std::string iconPart = argStr.substr(0, colonPos);
 
                         if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos) {
-                            iconTypeInt = numFromString<int>(iconPart).unwrapOr(0);
+                            iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
                             notifText = argStr.substr(colonPos + 1);
                         } else {
                             notifText = argStr.substr(colonPos + 1);
@@ -569,7 +569,7 @@ struct ActionContext : public CCObject {
                     std::string iconPart = argStr.substr(0, colonPos);
 
                     if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos) {
-                        iconTypeInt = numFromString<int>(iconPart).unwrapOr(0);
+                        iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
                         notifText = argStr.substr(colonPos + 1);
                     } else {
                         notifText = argStr.substr(colonPos + 1);
