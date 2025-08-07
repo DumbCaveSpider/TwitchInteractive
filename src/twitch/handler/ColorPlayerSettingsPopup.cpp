@@ -68,16 +68,15 @@ bool ColorPlayerSettingsPopup::setup() {
     m_gInput->setMaxCharCount(3);
     m_bInput->setMaxCharCount(3);
 
-    char buf[8];
 
-    snprintf(buf, sizeof(buf), "%d", m_selectedColor.r);
-    m_rInput->setString(buf);
+    auto buf_r = fmt::format("{}", m_selectedColor.r);
+    m_rInput->setString(buf_r);
 
-    snprintf(buf, sizeof(buf), "%d", m_selectedColor.g);
-    m_gInput->setString(buf);
+    auto buf_g = fmt::format("{}", m_selectedColor.g);
+    m_gInput->setString(buf_g);
 
-    snprintf(buf, sizeof(buf), "%d", m_selectedColor.b);
-    m_bInput->setString(buf);
+    auto buf_b = fmt::format("{}", m_selectedColor.b);
+    m_bInput->setString(buf_b);
 
     m_mainLayer->addChild(m_rInput, 2);
     m_mainLayer->addChild(m_gInput, 2);
@@ -150,16 +149,15 @@ void ColorPlayerSettingsPopup::onApplyRGB(cocos2d::CCObject* sender) {
 
     if (m_colorPicker) m_colorPicker->setColorValue(m_selectedColor);
 
-    char buf[8];
 
-    snprintf(buf, sizeof(buf), "%d", r);
-    m_rInput->setString(buf);
+    auto buf_r = fmt::format("{}", r);
+    m_rInput->setString(buf_r);
 
-    snprintf(buf, sizeof(buf), "%d", g);
-    m_gInput->setString(buf);
+    auto buf_g = fmt::format("{}", g);
+    m_gInput->setString(buf_g);
 
-    snprintf(buf, sizeof(buf), "%d", b);
-    m_bInput->setString(buf);
+    auto buf_b = fmt::format("{}", b);
+    m_bInput->setString(buf_b);
 };
 
 void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d::extension::CCControlEvent) {
@@ -167,16 +165,15 @@ void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject* sender, cocos2d
         m_selectedColor = m_colorPicker->getColorValue();
 
         // Update RGB textboxes
-        char buf[8];
 
-        snprintf(buf, sizeof(buf), "%d", m_selectedColor.r);
-        m_rInput->setString(buf);
+        auto buf_r = fmt::format("{}", m_selectedColor.r);
+        m_rInput->setString(buf_r);
 
-        snprintf(buf, sizeof(buf), "%d", m_selectedColor.g);
-        m_gInput->setString(buf);
+        auto buf_g = fmt::format("{}", m_selectedColor.g);
+        m_gInput->setString(buf_g);
 
-        snprintf(buf, sizeof(buf), "%d", m_selectedColor.b);
-        m_bInput->setString(buf);
+        auto buf_b = fmt::format("{}", m_selectedColor.b);
+        m_bInput->setString(buf_b);
     };
 };
 

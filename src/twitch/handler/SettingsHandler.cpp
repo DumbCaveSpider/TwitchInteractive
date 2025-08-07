@@ -51,9 +51,8 @@ namespace SettingsHandler
             duration,
             [popup, idx](float newGravity, float newDuration)
             {
-                char buf[64];
-                snprintf(buf, sizeof(buf), "gravity:%.2f:%.2f", newGravity, newDuration);
-                popup->m_commandActions[idx] = buf;
+                auto buf_gravity = fmt::format("gravity:{:.2f}:{:.2f}", newGravity, newDuration);
+                popup->m_commandActions[idx] = buf_gravity;
                 popup->refreshActionsList();
             });
         if (popupWindow)
@@ -104,10 +103,9 @@ namespace SettingsHandler
         // Show the CameraSettingsPopup and update the value and label on save
         auto popupWindow = CameraSettingsPopup::create(zoom, x, y, duration, [popup, actionIdx](float newZoom, float newX, float newY, float newDuration)
                                                        {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "edit_camera:%.2f:%.2f:%.2f:%.2f", newZoom, newX, newY, newDuration);
+            auto buf_edit_camera = fmt::format("edit_camera:{:.2f}:{:.2f}:{:.2f}:{:.2f}", newZoom, newX, newY, newDuration);
 
-            popup->m_commandActions[actionIdx] = buf;
+            popup->m_commandActions[actionIdx] = buf_edit_camera;
 
             // Refresh the action node UI after saving
             popup->refreshActionsList(); });
@@ -145,9 +143,8 @@ namespace SettingsHandler
             duration,
             [popup, idx](float newSpeed, float newDuration)
             {
-                char buf[64];
-                snprintf(buf, sizeof(buf), "speed_player:%.2f:%.2f", newSpeed, newDuration);
-                popup->m_commandActions[idx] = buf;
+                auto buf_speed = fmt::format("speed_player:{:.2f}:{:.2f}", newSpeed, newDuration);
+                popup->m_commandActions[idx] = buf_speed;
                 popup->refreshActionsList();
             });
         if (popupWindow)
@@ -232,11 +229,10 @@ namespace SettingsHandler
 
         CameraSettingsPopup::create(skew, rot, scale, time, [popup, idx](float newSkew, float newRot, float newScale, float newTime)
                                     {
-            char buf[64];
 
-            snprintf(buf, sizeof(buf), "%.2f,%.2f,%.2f,%.2f", newSkew, newRot, newScale, newTime);
+            auto buf_skew = fmt::format("{:.2f},{:.2f},{:.2f},{:.2f}", newSkew, newRot, newScale, newTime);
 
-            popup->m_commandActions[idx] = std::string("edit_camera:") + buf;
+            popup->m_commandActions[idx] = std::string("edit_camera:") + buf_skew;
             popup->refreshActionsList(); })
             ->show();
     };
@@ -353,10 +349,9 @@ namespace SettingsHandler
 
         ColorPlayerSettingsPopup::create(color, [popup, idx](const ccColor3B &newColor)
                                          {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "%d,%d,%d", newColor.r, newColor.g, newColor.b);
+            auto buf_color = fmt::format("{},{},{}", newColor.r, newColor.g, newColor.b);
 
-            popup->m_commandActions[idx] = std::string("color_player:") + buf;
+            popup->m_commandActions[idx] = std::string("color_player:") + buf_color;
 
             popup->updateColorPlayerLabel(idx);
             popup->refreshActionsList(); })
@@ -487,8 +482,7 @@ namespace SettingsHandler
 
             if (auto input = popupMove->getDistanceInput())
             {
-                char distBuf[32];
-                snprintf(distBuf, sizeof(distBuf), "%.5f", distance);
+                auto distBuf = fmt::format("{:.5f}", distance);
                 input->setString(distBuf);
             };
 

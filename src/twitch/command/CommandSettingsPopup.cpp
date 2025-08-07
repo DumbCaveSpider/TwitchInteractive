@@ -904,8 +904,7 @@ void CommandSettingsPopup::refreshActionsList()
                         float amt = strtof(amount.c_str(), &endptr);
                         if (endptr != amount.c_str() && *endptr == '\0')
                         {
-                            char buf[32];
-                            snprintf(buf, sizeof(buf), "%.4f", amt);
+                            auto buf = fmt::format("{:.4f}", amt);
                             amountStr = buf;
                         };
                     };
@@ -978,8 +977,7 @@ void CommandSettingsPopup::refreshActionsList()
                     if (!timeStr.empty())
                         time = strtof(timeStr.c_str(), nullptr);
                 }
-                char buf[128];
-                snprintf(buf, sizeof(buf), "Skew: %.2f, Rot: %.2f, Scale: %.2f, Time: %.2f", skew, rot, scale, time);
+                auto buf = fmt::format("Skew: {:.2f}, Rot: {:.2f}, Scale: {:.2f}, Time: {:.2f}", skew, rot, scale, time);
                 settingsLabelText = buf;
             }
             else if (actionIdLower.rfind("scale_player", 0) == 0)
@@ -1000,8 +998,7 @@ void CommandSettingsPopup::refreshActionsList()
                             time = strtof(timeStr.c_str(), nullptr);
                     }
                 }
-                char buf[64];
-                snprintf(buf, sizeof(buf), "Scale: %.2f, Time: %.2f", scale, time);
+                auto buf = fmt::format("Scale: {:.2f}, Time: {:.2f}", scale, time);
                 settingsLabelText = buf;
             }
             else if (actionIdLower.rfind("sound", 0) == 0)
@@ -1175,8 +1172,7 @@ void CommandSettingsPopup::refreshActionsList()
             {
                 float waitFloat = std::stof(waitValue);
                 waitFloat = std::round(waitFloat * 1000.0f) / 1000.0f;
-                char buf[16];
-                snprintf(buf, sizeof(buf), "%.2f", waitFloat);
+                auto buf = fmt::format("{:.2f}", waitFloat);
                 waitInput->setString(buf);
             }
 
@@ -1421,8 +1417,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
                 float delay = std::stof(delayStr);
                 delay = std::round(delay * 1000.0f) / 1000.0f;
                 actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
-                char buf[32];
-                snprintf(buf, sizeof(buf), "%.3f", delay);
+                auto buf = fmt::format("{:.3f}", delay);
                 actionIdRaw = std::string("wait:") + buf;
             }
             else
@@ -1547,8 +1542,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
         }
         else if (action.type == CommandActionType::Wait)
         {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "%.2f", action.index);
+            auto buf = fmt::format("{:.2f}", action.index);
             m_commandActions.push_back("wait:" + std::string(buf));
         }
         else if (action.type == CommandActionType::Event && action.arg.rfind("alert_popup:", 0) == 0)
