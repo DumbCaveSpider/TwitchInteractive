@@ -273,13 +273,8 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup")))
             dashboard->triggerCommandCooldown(commandName);
 
-        // Collect non-default actions in order
-        std::vector<TwitchCommandAction> orderedActions;
-        for (const auto& action : it->actions) {
-            // Only skip truly default/empty actions (all fields default)
-            if (!action.arg.empty() && action.index != 0) orderedActions.push_back(action);
-        };
-
+        // Collect all actions in order
+        std::vector<TwitchCommandAction> orderedActions = it->actions;
         if (!orderedActions.empty()) {
             // Debug log: print action order before execution (use ostringstream for MSVC compatibility)
             std::ostringstream orderLog;
@@ -303,7 +298,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
             ctx->manager = this;
 
             ctx->execute(ctx);
-        };
+        }
 
         // Execute command callback if it exists
         if (it->callback) it->callback(commandArgs);

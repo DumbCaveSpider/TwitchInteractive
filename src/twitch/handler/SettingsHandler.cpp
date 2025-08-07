@@ -37,9 +37,17 @@ namespace SettingsHandler {
             std::string gravityStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
             std::string durationStr = actionStr.substr(secondColon + 1);
             if (!gravityStr.empty())
-                gravity = numFromString<float>(gravityStr).unwrapOrDefault();
+                gravityStr.erase(0, gravityStr.find_first_not_of(" \t\n\r"));
+                gravityStr.erase(gravityStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedGravity = numFromString<float>(gravityStr);
+                if (parsedGravity)
+                    gravity = parsedGravity.unwrap();
             if (!durationStr.empty())
-                duration = numFromString<float>(durationStr).unwrapOrDefault();
+                durationStr.erase(0, durationStr.find_first_not_of(" \t\n\r"));
+                durationStr.erase(durationStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedDuration = numFromString<float>(durationStr);
+                if (parsedDuration)
+                    duration = parsedDuration.unwrap();
         }
 
         auto popupWindow = GravitySettingsPopup::create(
@@ -83,13 +91,29 @@ namespace SettingsHandler {
             std::string durStr = actionIdRaw.substr(fourthColon + 1);
 
             if (!zoomStr.empty())
-                zoom = numFromString<float>(zoomStr).unwrapOrDefault();
+                zoomStr.erase(0, zoomStr.find_first_not_of(" \t\n\r"));
+                zoomStr.erase(zoomStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedZoom = numFromString<float>(zoomStr);
+                if (parsedZoom)
+                    zoom = parsedZoom.unwrap();
             if (!xStr.empty())
-                x = numFromString<float>(xStr).unwrapOrDefault();
+                xStr.erase(0, xStr.find_first_not_of(" \t\n\r"));
+                xStr.erase(xStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedX = numFromString<float>(xStr);
+                if (parsedX)
+                    x = parsedX.unwrap();
             if (!yStr.empty())
-                y = numFromString<float>(yStr).unwrapOrDefault();
+                yStr.erase(0, yStr.find_first_not_of(" \t\n\r"));
+                yStr.erase(yStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedY = numFromString<float>(yStr);
+                if (parsedY)
+                    y = parsedY.unwrap();
             if (!durStr.empty())
-                duration = numFromString<float>(durStr).unwrapOrDefault();
+                durStr.erase(0, durStr.find_first_not_of(" \t\n\r"));
+                durStr.erase(durStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedDur = numFromString<float>(durStr);
+                if (parsedDur)
+                    duration = parsedDur.unwrap();
         };
 
         // Show the CameraSettingsPopup and update the value and label on save
@@ -119,9 +143,17 @@ namespace SettingsHandler {
             std::string speedStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
             std::string durationStr = actionStr.substr(secondColon + 1);
             if (!speedStr.empty())
-                speed = numFromString<float>(speedStr).unwrapOrDefault();
+                speedStr.erase(0, speedStr.find_first_not_of(" \t\n\r"));
+                speedStr.erase(speedStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedSpeed = numFromString<float>(speedStr);
+                if (parsedSpeed)
+                    speed = parsedSpeed.unwrap();
             if (!durationStr.empty())
-                duration = numFromString<float>(durationStr).unwrapOrDefault();
+                durationStr.erase(0, durationStr.find_first_not_of(" \t\n\r"));
+                durationStr.erase(durationStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedDur = numFromString<float>(durationStr);
+                if (parsedDur)
+                    duration = parsedDur.unwrap();
         }
 
         auto popupWindow = SpeedSettingsPopup::create(
@@ -350,7 +382,11 @@ namespace SettingsHandler {
             };
 
             if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos)
-                jumpPlayerValue = numFromString<int>(val).unwrapOrDefault();
+                val.erase(0, val.find_first_not_of(" \t\n\r"));
+                val.erase(val.find_last_not_of(" \t\n\r") + 1);
+                auto parsedJump = numFromString<int>(val);
+                if (parsedJump)
+                    jumpPlayerValue = parsedJump.unwrap();
         };
 
         JumpSettingsPopup::create(
@@ -410,12 +446,20 @@ namespace SettingsHandler {
             };
 
             if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                player = numFromString<int>(playerStr).unwrapOrDefault();
+                playerStr.erase(0, playerStr.find_first_not_of(" \t\n\r"));
+                playerStr.erase(playerStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedPlayer = numFromString<int>(playerStr);
+                if (parsedPlayer)
+                    player = parsedPlayer.unwrap();
 
             moveRight = (dirStr == "right");
 
             if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos)
-                distance = numFromString<float>(distStr).unwrapOrDefault();
+                distStr.erase(0, distStr.find_first_not_of(" \t\n\r"));
+                distStr.erase(distStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedDist = numFromString<float>(distStr);
+                if (parsedDist)
+                    distance = parsedDist.unwrap();
         };
 
         auto popupMove = MoveSettingsPopup::create(
@@ -466,7 +510,14 @@ namespace SettingsHandler {
         size_t secondColon = actionStr.find(":", firstColon + 1);
 
         if (firstColon != std::string::npos && secondColon != std::string::npos) {
-            iconTypeInt = numFromString<int>(actionStr.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOrDefault();
+            {
+                std::string iconTypeStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+                iconTypeStr.erase(0, iconTypeStr.find_first_not_of(" \t\n\r"));
+                iconTypeStr.erase(iconTypeStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedIcon = numFromString<int>(iconTypeStr);
+                if (parsedIcon)
+                    iconTypeInt = parsedIcon.unwrap();
+            }
             notifText = actionStr.substr(secondColon + 1);
         } else if (actionStr.length() > 13) {
             notifText = actionStr.substr(13);
@@ -506,18 +557,22 @@ namespace SettingsHandler {
         if (firstColon != std::string::npos) {
             std::string scaleStr = actionStr.substr(firstColon + 1, (secondColon != std::string::npos ? secondColon - firstColon - 1 : std::string::npos));
             if (!scaleStr.empty()) {
-                float parsed = numFromString<float>(scaleStr).unwrapOrDefault();
-                if (parsed > 0.0f)
-                    scaleValue = parsed;
+                scaleStr.erase(0, scaleStr.find_first_not_of(" \t\n\r"));
+                scaleStr.erase(scaleStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsed = numFromString<float>(scaleStr);
+                if (parsed && parsed.unwrap() > 0.0f)
+                    scaleValue = parsed.unwrap();
             };
 
             if (secondColon != std::string::npos) {
                 std::string timeStr = actionStr.substr(secondColon + 1);
 
                 if (!timeStr.empty()) {
-                    float parsedTime = numFromString<float>(timeStr).unwrapOrDefault();
-                    if (parsedTime >= 0.0f)
-                        timeValue = parsedTime;
+                    timeStr.erase(0, timeStr.find_first_not_of(" \t\n\r"));
+                    timeStr.erase(timeStr.find_last_not_of(" \t\n\r") + 1);
+                    auto parsedTime = numFromString<float>(timeStr);
+                    if (parsedTime && parsedTime.unwrap() >= 0.0f)
+                        timeValue = parsedTime.unwrap();
                 };
             };
         };

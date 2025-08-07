@@ -1046,7 +1046,7 @@ void CommandSettingsPopup::refreshActionsList()
                 }
                 else
                 {
-                    settingsLabelText = "Gravity: - | Duration: -";
+                    settingsLabelText = "Gravity: 1.00 | Duration: 2.00";
                 }
             }
             else if (actionIdLower.rfind("speed_player", 0) == 0)
@@ -1184,10 +1184,14 @@ void CommandSettingsPopup::refreshActionsList()
                 waitValue = actionIdRaw.substr(colon + 1);
             if (!waitValue.empty())
             {
-                float waitFloat = numFromString<float>(waitValue).unwrapOrDefault();
+                waitValue.erase(0, waitValue.find_first_not_of(" \t\n\r"));
+                waitValue.erase(waitValue.find_last_not_of(" \t\n\r") + 1);
+                auto parsedWait = numFromString<float>(waitValue);
+                float waitFloat = 0.0f;
+                if (parsedWait)
+                    waitFloat = parsedWait.unwrap();
                 waitFloat = std::round(waitFloat * 1000.0f) / 1000.0f;
-                auto buf = fmt::format("{:.2f}", waitFloat);
-                waitInput->setString(buf);
+                waitInput->setString(fmt::format("{:.2f}", waitFloat));
             }
 
             waitInput->setID(waitInputId);
@@ -1401,59 +1405,53 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
         if (actionId == "wait")
         {
-            std::string inputId = "wait-delay-input-" + std::to_string(idx); // Use idx for consistent indexing
+            std::string inputId = "wait-delay-input-" + std::to_string(idx);
             TextInput *waitInput = nullptr;
-
             auto children = m_actionContent->getChildren();
-
-            if (children && idx < children->count())
-            {
-                if (auto node = static_cast<CCNode *>(children->objectAtIndex(idx)))
-                {
+            if (children && idx < children->count()) {
+                if (auto node = static_cast<CCNode *>(children->objectAtIndex(idx))) {
                     auto inputNode = node->getChildByID(inputId);
                     if (inputNode)
                         waitInput = dynamic_cast<TextInput *>(inputNode);
-                };
-            };
-
+                }
+            }
             std::string delayStr = waitValue;
             if (waitInput)
                 delayStr = waitInput->getString();
-
-            if (delayStr.empty())
-            {
+            // Trim whitespace
+            delayStr.erase(0, delayStr.find_first_not_of(" \t\n\r"));
+            delayStr.erase(delayStr.find_last_not_of(" \t\n\r") + 1);
+            if (delayStr.empty()) {
                 Notification::create("Please fill in all wait delay fields!", NotificationIcon::Error)->show();
                 return;
-            };
-
-            // check if string is valid
-            if (!delayStr.empty() && (delayStr.find_first_not_of("-.0123456789") == std::string::npos))
-            {
-                float delay = numFromString<float>(delayStr).unwrapOrDefault();
-                delay = std::round(delay * 1000.0f) / 1000.0f;
-                actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
-                auto buf = fmt::format("{:.3f}", delay);
-                actionIdRaw = std::string("wait:") + buf;
             }
-            else
-            {
-                Notification::create("Wait delay must be a number!", NotificationIcon::Error)->show();
+            auto parsedDelay = numFromString<float>(delayStr);
+            if (!parsedDelay) {
+                Notification::create("Wait delay must be a valid number!", NotificationIcon::Error)->show();
                 return;
-            };
+            }
+            float delay = parsedDelay.unwrap();
+            delay = std::round(delay * 1000.0f) / 1000.0f;
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Wait, "wait", delay));
+            actionIdRaw = fmt::format("wait:{:.3f}", delay);
         }
         else if (actionId == "jump")
         {
-            // Always use the value from m_commandActions (jumpPlayerValue and isHold)
             int playerIdx = 1;
-            if (!jumpPlayerValue.empty() && (jumpPlayerValue.find_first_not_of("-0123456789") == std::string::npos))
-                playerIdx = numFromString<int>(jumpPlayerValue).unwrapOrDefault();
-
+            jumpPlayerValue.erase(0, jumpPlayerValue.find_first_not_of(" \t\n\r"));
+            jumpPlayerValue.erase(jumpPlayerValue.find_last_not_of(" \t\n\r") + 1);
+            if (!jumpPlayerValue.empty()) {
+                auto parsedJump = numFromString<int>(jumpPlayerValue);
+                if (!parsedJump) {
+                    Notification::create("Jump player index must be a valid number!", NotificationIcon::Error)->show();
+                    return;
+                }
+                playerIdx = parsedJump.unwrap();
+            }
             std::string jumpActionStr = "jump:" + std::to_string(playerIdx);
             if (isHold)
                 jumpActionStr += ":hold";
-
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, jumpActionStr, 0));
-
             actionIdRaw = jumpActionStr;
         }
         else if (actionId == "alert_popup")
@@ -1520,7 +1518,14 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
             if (firstColon != std::string::npos && secondColon != std::string::npos)
             {
-                iconTypeInt = numFromString<int>(actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOrDefault();
+                {
+                    std::string iconTypeStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                    iconTypeStr.erase(0, iconTypeStr.find_first_not_of(" \t\n\r"));
+                    iconTypeStr.erase(iconTypeStr.find_last_not_of(" \t\n\r") + 1);
+                    auto parsedIcon = numFromString<int>(iconTypeStr);
+                    if (parsedIcon)
+                        iconTypeInt = parsedIcon.unwrap();
+                }
                 notifText = actionIdRaw.substr(secondColon + 1);
             }
             else if (actionIdRaw.length() > 13)
