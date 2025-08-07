@@ -180,36 +180,33 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     // Validate cooldown input
     int cooldown = 0;
     if (!cooldownStr.empty()) {
-        size_t idx = 0;
-
-        if (cooldownStr.find_first_not_of("-0123456789") == std::string::npos) {
-            cooldown = numFromString<int>(cooldownStr).unwrapOrDefault();
-
-            if (idx != cooldownStr.size() || cooldown < 0) {
+        // Only allow digits (no negative cooldowns)
+        if (cooldownStr.find_first_not_of("0123456789") == std::string::npos) {
+            cooldown = numFromString<int>(cooldownStr).unwrapOr(0);
+            if (cooldown < 0) {
                 FLAlertLayer::create(
                     "Invalid Cooldown",
-                    "You can only input a number value in the <cg>Cooldown</c> field.",
+                    "Cooldown must be a non-negative integer.",
                     "OK"
                 )->show();
-
                 return;
-            };
+            }
         } else {
             FLAlertLayer::create(
                 "Invalid Cooldown",
                 "You can only input a number value in the <cg>Cooldown</c> field.",
                 "OK"
             )->show();
-
             return;
-        };
+        }
     } else {
         FLAlertLayer::create(
             "Required",
             "You must input a number value in the <cg>Cooldown</c> field.",
             "OK"
         )->show();
-    };
+        return;
+    }
 
     m_cooldownSeconds = cooldown;
 
