@@ -1,5 +1,6 @@
 # v0.1.10-beta.1
-- ...
+- Added **Experimental Features** option in the Mod Settings.
+- Fixed Command Cooldown not detecting correctly. 
 
 # v0.1.9-beta.1
 - Reworked the codebase
