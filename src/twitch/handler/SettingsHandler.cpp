@@ -40,9 +40,9 @@ namespace SettingsHandler
             std::string gravityStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
             std::string durationStr = actionStr.substr(secondColon + 1);
             if (!gravityStr.empty())
-                gravity = std::stof(gravityStr);
+                gravity = numFromString<float>(gravityStr).unwrapOr(0);
             if (!durationStr.empty())
-                duration = std::stof(durationStr);
+                duration = numFromString<float>(durationStr).unwrapOr(0);
         }
 
         auto popupWindow = GravitySettingsPopup::create(
@@ -91,13 +91,13 @@ namespace SettingsHandler
             std::string durStr = actionIdRaw.substr(fourthColon + 1);
 
             if (!zoomStr.empty())
-                zoom = std::stof(zoomStr);
+                zoom = numFromString<float>(zoomStr).unwrapOr(0);
             if (!xStr.empty())
-                x = std::stof(xStr);
+                x = numFromString<float>(xStr).unwrapOr(0);
             if (!yStr.empty())
-                y = std::stof(yStr);
+                y = numFromString<float>(yStr).unwrapOr(0);
             if (!durStr.empty())
-                duration = std::stof(durStr);
+                duration = numFromString<float>(durStr).unwrapOr(0);
         };
 
         // Show the CameraSettingsPopup and update the value and label on save
@@ -130,9 +130,9 @@ namespace SettingsHandler
             std::string speedStr = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
             std::string durationStr = actionStr.substr(secondColon + 1);
             if (!speedStr.empty())
-                speed = std::stof(speedStr);
+                speed = numFromString<float>(speedStr).unwrapOr(0);
             if (!durationStr.empty())
-                duration = std::stof(durationStr);
+                duration = numFromString<float>(durationStr).unwrapOr(0);
         }
 
         auto popupWindow = SpeedSettingsPopup::create(
@@ -384,7 +384,7 @@ namespace SettingsHandler
             };
 
             if (!val.empty() && val.find_first_not_of("-0123456789") == std::string::npos)
-                jumpPlayerValue = std::stoi(val);
+                jumpPlayerValue = numFromString<int>(val).unwrapOr(0);
         };
 
         JumpSettingsPopup::create(
@@ -451,12 +451,12 @@ namespace SettingsHandler
             };
 
             if (!playerStr.empty() && playerStr.find_first_not_of("-0123456789") == std::string::npos)
-                player = std::stoi(playerStr);
+                player = numFromString<int>(playerStr).unwrapOr(0);
 
             moveRight = (dirStr == "right");
 
             if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos)
-                distance = std::stof(distStr);
+                distance = numFromString<float>(distStr).unwrapOr(0);
         };
 
         auto popupMove = MoveSettingsPopup::create(
@@ -513,7 +513,7 @@ namespace SettingsHandler
 
         if (firstColon != std::string::npos && secondColon != std::string::npos)
         {
-            iconTypeInt = std::stoi(actionStr.substr(firstColon + 1, secondColon - firstColon - 1));
+            iconTypeInt = numFromString<int>(actionStr.substr(firstColon + 1, secondColon - firstColon - 1)).unwrapOr(0);
             notifText = actionStr.substr(secondColon + 1);
         }
         else if (actionStr.length() > 13)
@@ -555,7 +555,7 @@ namespace SettingsHandler
             std::string scaleStr = actionStr.substr(firstColon + 1, (secondColon != std::string::npos ? secondColon - firstColon - 1 : std::string::npos));
             if (!scaleStr.empty())
             {
-                float parsed = strtof(scaleStr.c_str(), nullptr);
+                float parsed = numFromString<float>(scaleStr).unwrapOr(0);
                 if (parsed > 0.0f)
                     scaleValue = parsed;
             }
@@ -564,7 +564,7 @@ namespace SettingsHandler
                 std::string timeStr = actionStr.substr(secondColon + 1);
                 if (!timeStr.empty())
                 {
-                    float parsedTime = strtof(timeStr.c_str(), nullptr);
+                    float parsedTime = numFromString<float>(timeStr).unwrapOr(0);
                     if (parsedTime >= 0.0f)
                         timeValue = parsedTime;
                 }

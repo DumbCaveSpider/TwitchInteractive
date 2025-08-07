@@ -1,3 +1,8 @@
+# v0.1.8-beta.1
+- Change the codebase (So nothing changed on the end user side)
+  - Replace all use of `stoi` and other alternative functions
+  - All `buf` variables are all replaced with their respectful variables
+  - Replace all `snprintf` to use the Geode Standards `fmt::format`
 # v0.1.7-beta.1
 - Fixed the texture scaling on the action & event nodes
 - Add a close confirmation on the command settings
