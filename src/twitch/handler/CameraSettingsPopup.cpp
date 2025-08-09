@@ -48,7 +48,7 @@ bool CameraSettingsPopup::setup() {
         m_contentLayer->addChild(label);
 
         // Input
-        *inputs[i] = geode::TextInput::create(fieldWidth, names[i], "chatFont.fnt");
+        *inputs[i] = geode::TextInput::create(fieldWidth, names[i], "bigFont.fnt");
 
         (*inputs[i])->setPosition(x + fieldWidth / 2, inputY);
         (*inputs[i])->setScale(0.6f);

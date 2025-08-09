@@ -29,7 +29,7 @@ bool AlertSettingsPopup::setup()
     float btnY = margin;
 
     // Title input
-    m_titleInput = geode::TextInput::create(inputWidth, "Title", "chatFont.fnt");
+    m_titleInput = geode::TextInput::create(inputWidth, "Title", "bigFont.fnt");
     m_titleInput->setCommonFilter(CommonFilter::Any);
     m_titleInput->setString(m_initTitle.c_str());
     m_titleInput->setPosition(popupSize.width / 2, titleY);
@@ -37,7 +37,7 @@ bool AlertSettingsPopup::setup()
     m_mainLayer->addChild(m_titleInput);
 
     // Description input
-    m_descInput = geode::TextInput::create(inputWidth, "Content", "chatFont.fnt");
+    m_descInput = geode::TextInput::create(inputWidth, "Content", "bigFont.fnt");
     m_descInput->setCommonFilter(CommonFilter::Any);
     m_descInput->setString(m_initDesc.c_str());
     m_descInput->setPosition(popupSize.width / 2, descY + 10.f);

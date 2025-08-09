@@ -1032,25 +1032,39 @@ void CommandSettingsPopup::refreshActionsList()
             }
             else if (actionIdLower.rfind("sound", 0) == 0)
             {
-                // For sound effect actions, show the selected sound name or a placeholder
-                std::string soundName = "";
-                size_t colonPos = actionIdRaw.find(":");
-                if (colonPos != std::string::npos && colonPos + 1 < actionIdRaw.size())
-                {
-                    soundName = actionIdRaw.substr(colonPos + 1);
-                }
-                if (soundName.empty())
-                {
+                // New format: sound_effect:<sound>:<speed>:<volume>:<pitch>:<start>:<end>
+                // Legacy: sound_effect:<sound> or sound:<sound>
+                size_t firstColon = actionIdRaw.find(":");
+                if (firstColon == std::string::npos || firstColon + 1 >= actionIdRaw.size()) {
                     settingsLabelText = "No sound selected";
-                }
-                else
-                {
-                    settingsLabelText = soundName;
+                } else {
+                    std::string rest = actionIdRaw.substr(firstColon + 1);
+                    std::vector<std::string> parts;
+                    size_t start = 0;
+                    while (true) {
+                        size_t pos = rest.find(":", start);
+                        if (pos == std::string::npos) { parts.push_back(rest.substr(start)); break; }
+                        parts.push_back(rest.substr(start, pos - start));
+                        start = pos + 1;
+                    }
+                    if (parts.empty() || parts[0].empty()) {
+                        settingsLabelText = "No sound selected";
+                    } else if (parts.size() == 1) {
+                        settingsLabelText = parts[0];
+                    } else {
+                        // Try parse numbers for nicer formatting
+                        float spd = (parts.size() > 1) ? strtof(parts[1].c_str(), nullptr) : 1.f;
+                        float vol = (parts.size() > 2) ? strtof(parts[2].c_str(), nullptr) : 1.f;
+                        float pit = (parts.size() > 3) ? strtof(parts[3].c_str(), nullptr) : 0.f;
+                        int st = (parts.size() > 4) ? atoi(parts[4].c_str()) : 0;
+                        int en = (parts.size() > 5) ? atoi(parts[5].c_str()) : 0;
+                        settingsLabelText = fmt::format("{} | Speed: {:.2f}, Vol: {:.2f}, Pit: {:.2f}, ({}-{} ms)", parts[0], spd, vol, pit, st, en);
+                    }
                 }
             }
             else if (actionIdLower.rfind("gravity", 0) == 0)
             {
-                // Format: gravity:<gravity>:<duration>
+                // Format: gravity:<gravity>:<duration>F
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 if (firstColon != std::string::npos && secondColon != std::string::npos)

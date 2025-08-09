@@ -40,7 +40,7 @@ bool KeyCodesSettingsPopup::setup(std::string keyCode)
     m_mainLayer->addChild(m_keyLabel);
 
     // Add textbox for hold duration
-    m_durationInput = geode::TextInput::create(180.f, "Hold Duration (leave blank for infinite)", "chatFont.fnt");
+    m_durationInput = geode::TextInput::create(180.f, "Hold Duration (leave blank for infinite)", "bigFont.fnt");
     m_durationInput->setCommonFilter(CommonFilter::Float);
     m_durationInput->setID("keycode-duration-input");
     m_durationInput->setPosition(x, y - 30.f);

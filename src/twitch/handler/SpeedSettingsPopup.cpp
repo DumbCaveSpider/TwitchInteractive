@@ -44,7 +44,7 @@ bool SpeedSettingsPopup::setup()
     speedLabel->setPosition(centerX - inputSpacing / 2, inputY + 20.0f);
     inputStack->addChild(speedLabel);
 
-    m_speedInput = TextInput::create(80, "Speed", "chatFont.fnt");
+    m_speedInput = TextInput::create(80, "Speed", "bigFont.fnt");
     m_speedInput->setCommonFilter(CommonFilter::Float);
     m_speedInput->setString(fmt::format("{:.2f}", m_speed).c_str());
     m_speedInput->setScale(0.7f);
@@ -60,7 +60,7 @@ bool SpeedSettingsPopup::setup()
     durationLabel->setPosition(centerX + inputSpacing / 2, inputY + 20.0f);
     inputStack->addChild(durationLabel);
 
-    m_durationInput = TextInput::create(80, "Duration (secs)", "chatFont.fnt");
+    m_durationInput = TextInput::create(80, "Duration (secs)", "bigFont.fnt");
     m_durationInput->setCommonFilter(CommonFilter::Float);
     m_durationInput->setString(fmt::format("{:.2f}", m_duration).c_str());
     m_durationInput->setScale(0.7f);

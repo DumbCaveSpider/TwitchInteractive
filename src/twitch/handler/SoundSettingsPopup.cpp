@@ -108,6 +108,8 @@ bool SoundSettingsPopup::setup()
     searchBox->setPosition(popupSize.width / 2, popupSize.height - 70.f);
     m_mainLayer->addChild(searchBox);
 
+    m_soundSearchInput = searchBox;
+
     // Create text inputs for advanced sound options
     auto speedInput = TextInput::create(100, "Speed", "bigFont.fnt");
     speedInput->setID("sound-speed-input");
@@ -171,6 +173,54 @@ bool SoundSettingsPopup::setup()
     pitchInput->setPositionY(pitchInput->getPositionY());
     startMillisInput->setPositionY(startMillisInput->getPositionY());
     endMillisInput->setPositionY(endMillisInput->getPositionY());
+
+    // Prefill fields from existing action string if available
+    {
+        float speed = 1.0f;
+        float volume = 1.0f;
+        float pitch = 0.0f;
+        int startMillis = 0;
+        int endMillis = 0;
+
+        std::string actionIdRaw;
+        if (m_parent && m_actionIdx >= 0 && m_actionIdx < static_cast<int>(m_parent->m_commandActions.size()))
+            actionIdRaw = m_parent->m_commandActions[m_actionIdx];
+
+        size_t firstColon = actionIdRaw.find(":");
+        if (firstColon != std::string::npos && firstColon + 1 < actionIdRaw.size()) {
+            std::string rest = actionIdRaw.substr(firstColon + 1);
+            std::vector<std::string> parts;
+            size_t start = 0;
+            while (true) {
+                size_t pos = rest.find(":", start);
+                if (pos == std::string::npos) { parts.push_back(rest.substr(start)); break; }
+                parts.push_back(rest.substr(start, pos - start));
+                start = pos + 1;
+            }
+
+            auto trim = [](std::string s) {
+                s.erase(0, s.find_first_not_of(" \t\n\r"));
+                s.erase(s.find_last_not_of(" \t\n\r") + 1);
+                return s;
+            };
+            for (auto &p : parts) p = trim(p);
+
+            if (!parts.empty()) {
+                if (m_selectedSound.empty()) m_selectedSound = parts[0];
+                if (parts.size() >= 2) speed = numFromString<float>(parts[1]).unwrapOrDefault();
+                if (parts.size() >= 3) volume = numFromString<float>(parts[2]).unwrapOrDefault();
+                if (parts.size() >= 4) pitch = numFromString<float>(parts[3]).unwrapOrDefault();
+                if (parts.size() >= 5) startMillis = numFromString<int>(parts[4]).unwrapOrDefault();
+                if (parts.size() >= 6) endMillis = numFromString<int>(parts[5]).unwrapOrDefault();
+            }
+        }
+
+        speedInput->setString(fmt::format("{:.2f}", speed));
+        volumeInput->setString(fmt::format("{:.2f}", volume));
+        pitchInput->setString(fmt::format("{:.2f}", pitch));
+        startMillisInput->setString(fmt::format("{}", startMillis));
+        endMillisInput->setString(fmt::format("{}", endMillis));
+    }
 
     // Scroll area setup
     auto scrollSize = CCSize(320, 150);
@@ -240,7 +290,7 @@ bool SoundSettingsPopup::setup()
                 menu_selector(SoundSettingsPopup::onPlaySound));
             playBtn->setID("sound-play-btn-" + std::to_string(i));
             playBtn->setUserObject(CCString::create(sounds[i]));
-            playBtn->setAnchorPoint({1, 0.5f});
+            playBtn->setAnchorPoint({0.5, 0.5f});
             playBtn->setPosition(scrollSize.width - 30.f, nodeHeight / 2);
 
             // Select button for selecting sound
@@ -254,7 +304,7 @@ bool SoundSettingsPopup::setup()
                 menu_selector(SoundSettingsPopup::onSelectSound));
             selectBtn->setID("sound-select-btn-" + std::to_string(i));
             selectBtn->setUserObject(CCString::create(sounds[i]));
-            selectBtn->setAnchorPoint({1, 0.5f});
+            selectBtn->setAnchorPoint({0.5, 0.5f});
             selectBtn->setPosition(scrollSize.width - 70.f, nodeHeight / 2);
 
             auto btnMenu = CCMenu::create();
@@ -357,16 +407,26 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
         return;
     }
 
+    // Parse values
+    float speed = numFromString<float>(speedInput->getString()).unwrapOrDefault();
+    float volume = numFromString<float>(volumeInput->getString()).unwrapOrDefault();
+    float pitch = numFromString<float>(pitchInput->getString()).unwrapOrDefault();
+    int startMillis = numFromString<int>(startMillisInput->getString()).unwrapOrDefault();
+    int endMillis = numFromString<int>(endMillisInput->getString()).unwrapOrDefault();
+
+    // Build param part for action string: <sound>:<speed>:<volume>:<pitch>:<start>:<end>
+    std::string paramPart = fmt::format("{}:{:.2f}:{:.2f}:{:.2f}:{}:{}", m_selectedSound, speed, volume, pitch, startMillis, endMillis);
+
     if (m_onSave)
-        m_onSave(m_selectedSound);
+        m_onSave(paramPart);
 
     // Update parent CommandSettingsPopup action node and settings label
     if (m_parent && m_actionIdx >= 0)
     {
-        // Save selected sound to the action node
+        // Save selected sound with params to the action node
         if (m_parent->m_commandActions.size() > static_cast<size_t>(m_actionIdx))
         {
-            m_parent->m_commandActions[m_actionIdx] = "sound:" + m_selectedSound;
+            m_parent->m_commandActions[m_actionIdx] = "sound_effect:" + paramPart;
         }
         // Update the settings text label in the action node
         if (m_parent->m_actionContent)
@@ -380,7 +440,9 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
                     std::string settingsLabelId = "action-settings-label-" + std::to_string(m_actionIdx);
                     if (auto settingsLabel = typeinfo_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId)))
                     {
-                        settingsLabel->setString(m_selectedSound.c_str());
+                        // Compact summary in label
+                        auto summary = fmt::format("{} | spd {:.2f}, vol {:.2f}, pit {:.2f}, {}-{} ms", m_selectedSound, speed, volume, pitch, startMillis, endMillis);
+                        settingsLabel->setString(summary.c_str());
                     }
                 }
             }
@@ -510,6 +572,17 @@ SoundSettingsPopup *SoundSettingsPopup::create(CommandSettingsPopup *parent, int
     ret->m_actionIdx = actionIdx;
     ret->m_selectedSound = selectedSound;
     ret->m_onSave = onSave;
+
+    // If selectedSound is empty, try extract from parent's action string for convenience
+    if (ret->m_selectedSound.empty() && parent && actionIdx >= 0 && actionIdx < static_cast<int>(parent->m_commandActions.size())) {
+        std::string raw = parent->m_commandActions[actionIdx];
+        size_t c = raw.find(":");
+        if (c != std::string::npos && c + 1 < raw.size()) {
+            std::string rest = raw.substr(c + 1);
+            size_t nc = rest.find(":");
+            ret->m_selectedSound = (nc == std::string::npos) ? rest : rest.substr(0, nc);
+        }
+    }
 
     if (ret && ret->initAnchored(520.f, 280.f))
     {

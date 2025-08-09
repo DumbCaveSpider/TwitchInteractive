@@ -607,17 +607,23 @@ namespace SettingsHandler {
         // Parse current sound effect from m_commandActions[actionIdx]
         std::string actionIdRaw = popup->m_commandActions[actionIdx];
         std::string soundName = "secretKey.ogg";
-
-        size_t colon = actionIdRaw.find(":");
-
-        if (colon != std::string::npos && colon + 1 < actionIdRaw.size()) {
-            soundName = actionIdRaw.substr(colon + 1);
+        // Expect either sound_effect:<sound> or sound_effect:<sound>:<speed>:<volume>:<pitch>:<start>:<end>
+        size_t firstColon = actionIdRaw.find(":");
+        if (firstColon != std::string::npos && firstColon + 1 < actionIdRaw.size()) {
+            std::string rest = actionIdRaw.substr(firstColon + 1);
+            size_t nextColon = rest.find(":");
+            if (nextColon == std::string::npos) {
+                soundName = rest;
+            } else {
+                soundName = rest.substr(0, nextColon);
+            }
             if (soundName.empty()) soundName = "secretKey.ogg";
-        };
+        }
 
         // Show the SoundSettingsPopup and update the value and label on save
-        auto popupWindow = SoundSettingsPopup::create(popup, actionIdx, soundName, [popup, actionIdx](const std::string& newSound) {
-            popup->m_commandActions[actionIdx] = "sound_effect:" + newSound;
+        auto popupWindow = SoundSettingsPopup::create(popup, actionIdx, soundName, [popup, actionIdx](const std::string& newParamPart) {
+            // newParamPart is '<sound>:<speed>:<volume>:<pitch>:<start>:<end>'
+            popup->m_commandActions[actionIdx] = "sound_effect:" + newParamPart;
             popup->refreshActionsList();
                                                       });
 

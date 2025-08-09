@@ -3,7 +3,7 @@
 - Fixed the `${displayname}` identifiers not displaying properly
 - Fixed the **Key Code** action node formatting
 - Added Close confirmation on the Command Settings and editing commands when escape button is clicked
-
+- Added extra options for the **Sound Effect** action settings (Speed, Volume, Pitch, Start, End)
 # v0.1.10-beta.1
 - Added **Experimental Features** option in the Mod Settings.
 - Fixed Command Cooldown not detecting correctly.

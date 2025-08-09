@@ -19,7 +19,7 @@ bool NotificationSettingsPopup::setup(std::string notificationText)
     m_noElasticity = true;
 
     // Text input for notification
-    m_input = TextInput::create(180, "Notification text", "chatFont.fnt");
+    m_input = TextInput::create(180, "Notification text", "bigFont.fnt");
     m_input->setCommonFilter(CommonFilter::Any);
     m_input->setID("notification-input");
     m_input->setString(notificationText.c_str());

@@ -47,7 +47,7 @@ bool MoveSettingsPopup::setup() {
     // Place distance textbox between player and direction rows
     float distanceBoxY = startY - (btnGapY + rowSpacing) / 2.0f;
 
-    distanceInput = TextInput::create(80, "Distance", "chatFont.fnt");
+    distanceInput = TextInput::create(80, "Distance", "bigFont.fnt");
     distanceInput->setCommonFilter(CommonFilter::Float);
     distanceInput->setID("move-distance-input");
     distanceInput->setPosition(centerX, distanceBoxY);

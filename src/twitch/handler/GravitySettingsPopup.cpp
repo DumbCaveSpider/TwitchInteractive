@@ -46,7 +46,7 @@ bool GravitySettingsPopup::setup()
     gravityLabel->setPosition(centerX - inputSpacing / 2, inputY + 20.0f);
     inputStack->addChild(gravityLabel);
 
-    m_gravityInput = TextInput::create(80, "Gravity", "chatFont.fnt");
+    m_gravityInput = TextInput::create(80, "Gravity", "bigFont.fnt");
     m_gravityInput->setCommonFilter(CommonFilter::Float);
     m_gravityInput->setString(fmt::format("{:.2f}", m_gravity).c_str());
     m_gravityInput->setScale(0.7f);
@@ -62,7 +62,7 @@ bool GravitySettingsPopup::setup()
     durationLabel->setPosition(centerX + inputSpacing / 2, inputY + 20.0f);
     inputStack->addChild(durationLabel);
 
-    m_durationInput = TextInput::create(80, "Duration (secs)", "chatFont.fnt");
+    m_durationInput = TextInput::create(80, "Duration (secs)", "bigFont.fnt");
     m_durationInput->setCommonFilter(CommonFilter::Float);
     m_durationInput->setString(fmt::format("{:.2f}", m_duration).c_str());
     m_durationInput->setScale(0.7f);

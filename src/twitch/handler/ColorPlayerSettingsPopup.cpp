@@ -51,11 +51,11 @@ bool ColorPlayerSettingsPopup::setup()
     float totalWidth = boxWidth * 3 + boxSpacing * 2;
     float startX = popupSize.width / 2 - totalWidth / 2;
 
-    m_rInput = TextInput::create(boxWidth, "R", "chatFont.fnt");
+    m_rInput = TextInput::create(boxWidth, "R", "bigFont.fnt");
     m_rInput->setCommonFilter(CommonFilter::Int);
-    m_gInput = TextInput::create(boxWidth, "G", "chatFont.fnt");
+    m_gInput = TextInput::create(boxWidth, "G", "bigFont.fnt");
     m_gInput->setCommonFilter(CommonFilter::Int);
-    m_bInput = TextInput::create(boxWidth, "B", "chatFont.fnt");
+    m_bInput = TextInput::create(boxWidth, "B", "bigFont.fnt");
     m_bInput->setCommonFilter(CommonFilter::Int);
 
     m_rInput->setPosition(startX + boxWidth / 2, rgbBoxY);
