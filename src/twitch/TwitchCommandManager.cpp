@@ -270,7 +270,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage& chatMessage) {
         log::info("Executing command: {} for user: {} (Message ID: {})", commandName, username, messageID);
 
         // Notify dashboard to trigger cooldown for this command
-        if (TwitchDashboard* dashboard = dynamic_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup")))
+        if (TwitchDashboard* dashboard = typeinfo_cast<TwitchDashboard*>(CCDirector::sharedDirector()->getRunningScene()->getChildByID("twitch-dashboard-popup")))
             dashboard->triggerCommandCooldown(commandName);
 
         // Collect all actions in order

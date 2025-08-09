@@ -108,9 +108,69 @@ bool SoundSettingsPopup::setup()
     searchBox->setPosition(popupSize.width / 2, popupSize.height - 70.f);
     m_mainLayer->addChild(searchBox);
 
-    // Store search input and last search string for polling
-    m_soundSearchInput = searchBox;
-    m_lastSoundSearchString = "";
+    // Create text inputs for advanced sound options
+    auto speedInput = TextInput::create(100, "Speed", "bigFont.fnt");
+    speedInput->setID("sound-speed-input");
+    speedInput->setCommonFilter(CommonFilter::Float);
+    speedInput->setPosition(popupSize.width - 100.f, popupSize.height - 70.f);
+    m_mainLayer->addChild(speedInput);
+
+    auto volumeInput = TextInput::create(100, "Volume", "bigFont.fnt");
+    volumeInput->setID("sound-volume-input");
+    volumeInput->setCommonFilter(CommonFilter::Float);
+    volumeInput->setPosition(popupSize.width - 100.f, popupSize.height - 120.f);
+    m_mainLayer->addChild(volumeInput);
+
+    auto pitchInput = TextInput::create(100, "Pitch", "bigFont.fnt");
+    pitchInput->setID("sound-pitch-input");
+    pitchInput->setCommonFilter(CommonFilter::Float);
+    pitchInput->setPosition(popupSize.width - 100.f, popupSize.height - 170.f);
+    m_mainLayer->addChild(pitchInput);
+
+    auto startMillisInput = TextInput::create(100, "Start (ms)", "bigFont.fnt");
+    startMillisInput->setID("sound-startmillis-input");
+    startMillisInput->setCommonFilter(CommonFilter::Int);
+    startMillisInput->setPosition(popupSize.width - 100.f, popupSize.height - 220.f);
+    m_mainLayer->addChild(startMillisInput);
+
+    auto endMillisInput = TextInput::create(100, "End (ms)", "bigFont.fnt");
+    endMillisInput->setID("sound-endmillis-input");
+    endMillisInput->setCommonFilter(CommonFilter::Int);
+    endMillisInput->setPosition(popupSize.width - 100.f, popupSize.height - 270.f);
+    m_mainLayer->addChild(endMillisInput);
+
+    // Add labels for text inputs
+    auto speedLabel = CCLabelBMFont::create("Speed", "bigFont.fnt");
+    speedLabel->setPosition(speedInput->getPositionX(), speedInput->getPositionY() + 25.f);
+    m_mainLayer->addChild(speedLabel);
+
+    auto volumeLabel = CCLabelBMFont::create("Volume", "bigFont.fnt");
+    volumeLabel->setPosition(volumeInput->getPositionX(), volumeInput->getPositionY() + 25.f);
+    m_mainLayer->addChild(volumeLabel);
+
+    auto pitchLabel = CCLabelBMFont::create("Pitch", "bigFont.fnt");
+    pitchLabel->setPosition(pitchInput->getPositionX(), pitchInput->getPositionY() + 25.f);
+    m_mainLayer->addChild(pitchLabel);
+
+    auto startMillisLabel = CCLabelBMFont::create("Start (ms)", "bigFont.fnt");
+    startMillisLabel->setPosition(startMillisInput->getPositionX(), startMillisInput->getPositionY() + 25.f);
+    m_mainLayer->addChild(startMillisLabel);
+
+    auto endMillisLabel = CCLabelBMFont::create("End (ms)", "bigFont.fnt");
+    endMillisLabel->setPosition(endMillisInput->getPositionX(), endMillisInput->getPositionY() + 25.f);
+    m_mainLayer->addChild(endMillisLabel);
+
+    speedLabel->setScale(0.5f);
+    volumeLabel->setScale(0.5f);
+    pitchLabel->setScale(0.5f);
+    startMillisLabel->setScale(0.5f);
+    endMillisLabel->setScale(0.5f);
+
+    speedInput->setPositionY(speedInput->getPositionY());
+    volumeInput->setPositionY(volumeInput->getPositionY());
+    pitchInput->setPositionY(pitchInput->getPositionY());
+    startMillisInput->setPositionY(startMillisInput->getPositionY());
+    endMillisInput->setPositionY(endMillisInput->getPositionY());
 
     // Scroll area setup
     auto scrollSize = CCSize(320, 150);
@@ -183,9 +243,24 @@ bool SoundSettingsPopup::setup()
             playBtn->setAnchorPoint({1, 0.5f});
             playBtn->setPosition(scrollSize.width - 30.f, nodeHeight / 2);
 
+            // Select button for selecting sound
+            auto selectSprite = CCSprite::createWithSpriteFrameName("GJ_backBtn_001.png");
+            if (!selectSprite)
+                selectSprite = CCSprite::create("GJ_backBtn_001.png");
+            selectSprite->setScale(0.55f); // Initial scale
+            auto selectBtn = CCMenuItemSpriteExtra::create(
+                selectSprite,
+                this,
+                menu_selector(SoundSettingsPopup::onSelectSound));
+            selectBtn->setID("sound-select-btn-" + std::to_string(i));
+            selectBtn->setUserObject(CCString::create(sounds[i]));
+            selectBtn->setAnchorPoint({1, 0.5f});
+            selectBtn->setPosition(scrollSize.width - 70.f, nodeHeight / 2);
+
             auto btnMenu = CCMenu::create();
             btnMenu->addChild(labelBtn);
             btnMenu->addChild(playBtn);
+            btnMenu->addChild(selectBtn);
             btnMenu->setPosition(0, 0);
             btnMenu->setContentSize(node->getContentSize());
             node->addChild(btnMenu);
@@ -224,6 +299,10 @@ bool SoundSettingsPopup::setup()
 
     m_mainLayer->addChild(btnMenu);
 
+    searchBox->setPosition(searchBox->getPositionX() - 70.f, searchBox->getPositionY());
+    scrollBg->setPosition(scrollBg->getPositionX() - 70.f, scrollBg->getPositionY());
+    scrollLayer->setPosition(scrollLayer->getPositionX() - 70.f, scrollLayer->getPositionY());
+
     return true;
 }
 
@@ -260,6 +339,24 @@ void SoundSettingsPopup::onSoundSearchPoll(float)
 
 void SoundSettingsPopup::onSaveBtn(CCObject *)
 {
+    // Retrieve text inputs
+    auto speedInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-speed-input"));
+    auto volumeInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-volume-input"));
+    auto pitchInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-pitch-input"));
+    auto startMillisInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-startmillis-input"));
+    auto endMillisInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-endmillis-input"));
+
+    // Check if any input is empty
+    if (!speedInput || speedInput->getString().empty() ||
+        !volumeInput || volumeInput->getString().empty() ||
+        !pitchInput || pitchInput->getString().empty() ||
+        !startMillisInput || startMillisInput->getString().empty() ||
+        !endMillisInput || endMillisInput->getString().empty())
+    {
+        Notification::create("Please fill in all fields before saving.", NotificationIcon::Error)->show();
+        return;
+    }
+
     if (m_onSave)
         m_onSave(m_selectedSound);
 
@@ -277,11 +374,11 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
             auto children = m_parent->m_actionContent->getChildren();
             if (children && m_actionIdx >= 0 && m_actionIdx < children->count())
             {
-                auto actionNode = dynamic_cast<CCNode *>(children->objectAtIndex(m_actionIdx));
+                auto actionNode = typeinfo_cast<CCNode *>(children->objectAtIndex(m_actionIdx));
                 if (actionNode)
                 {
                     std::string settingsLabelId = "action-settings-label-" + std::to_string(m_actionIdx);
-                    if (auto settingsLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId)))
+                    if (auto settingsLabel = typeinfo_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId)))
                     {
                         settingsLabel->setString(m_selectedSound.c_str());
                     }
@@ -312,7 +409,7 @@ void SoundSettingsPopup::onClose(CCObject *)
 // Select sound button handler
 void SoundSettingsPopup::onSelectSound(CCObject *sender)
 {
-    auto btn = dynamic_cast<CCMenuItemSpriteExtra *>(sender);
+    auto btn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
     if (!btn || !btn->getUserObject())
         return;
     std::string sound = static_cast<CCString *>(btn->getUserObject())->getCString();
@@ -330,7 +427,7 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
             {
                 for (int i = 0; i < children->count(); ++i)
                 {
-                    auto node = dynamic_cast<CCNode *>(children->objectAtIndex(i));
+                    auto node = typeinfo_cast<CCNode *>(children->objectAtIndex(i));
                     if (!node)
                         continue;
                     CCMenu *btnMenu = nullptr;
@@ -338,7 +435,7 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
                     for (int j = 0; j < node->getChildren()->count(); ++j)
                     {
                         auto child = node->getChildren()->objectAtIndex(j);
-                        btnMenu = dynamic_cast<CCMenu *>(child);
+                        btnMenu = typeinfo_cast<CCMenu *>(child);
                         if (btnMenu)
                             break;
                     };
@@ -347,7 +444,7 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
                     {
                         for (int j = 0; j < btnMenu->getChildren()->count(); ++j)
                         {
-                            auto btnChild = dynamic_cast<CCMenuItemSpriteExtra *>(btnMenu->getChildren()->objectAtIndex(j));
+                            auto btnChild = typeinfo_cast<CCMenuItemSpriteExtra *>(btnMenu->getChildren()->objectAtIndex(j));
                             if (btnChild)
                             {
                                 auto btnSound = btnChild->getUserObject() ? static_cast<CCString *>(btnChild->getUserObject())->getCString() : "";
@@ -355,12 +452,12 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
                                 if (btnChild->getID().find("sound-play-btn-") == 0)
                                 {
                                     // Only scale the play button's sprite
-                                    auto playSprite = dynamic_cast<CCSprite *>(btnChild->getNormalImage());
+                                    auto playSprite = typeinfo_cast<CCSprite *>(btnChild->getNormalImage());
                                 }
                                 else if (btnChild->getID().find("sound-label-btn-") == 0)
                                 {
                                     // Only scale the label sprite
-                                    auto labelSprite = dynamic_cast<CCLabelBMFont *>(btnChild->getNormalImage());
+                                    auto labelSprite = typeinfo_cast<CCLabelBMFont *>(btnChild->getNormalImage());
                                     if (labelSprite)
                                         labelSprite->setColor(btnSound == sound ? ccColor3B{0, 255, 0} : ccColor3B{255, 255, 255});
                                 };
@@ -376,7 +473,7 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
 // Play sound preview handler
 void SoundSettingsPopup::onPlaySound(CCObject *sender)
 {
-    auto btn = dynamic_cast<CCMenuItemSpriteExtra *>(sender);
+    auto btn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
     if (!btn || !btn->getUserObject())
         return;
 
@@ -386,8 +483,23 @@ void SoundSettingsPopup::onPlaySound(CCObject *sender)
     if (audioEngine != nullptr)
     {
         audioEngine->stopAllEffects();
-        audioEngine->playEffect(sound);
-    };
+
+        // Retrieve values from text inputs
+        auto speedInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-speed-input"));
+        auto volumeInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-volume-input"));
+        auto pitchInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-pitch-input"));
+        auto startMillisInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-startmillis-input"));
+        auto endMillisInput = typeinfo_cast<TextInput *>(m_mainLayer->getChildByID("sound-endmillis-input"));
+
+        float speed = numFromString<float>(speedInput->getString()).unwrapOrDefault();
+        float volume = numFromString<float>(volumeInput->getString()).unwrapOrDefault();
+        float pitch = numFromString<float>(pitchInput->getString()).unwrapOrDefault();
+        int startMillis = numFromString<int>(startMillisInput->getString()).unwrapOrDefault();
+        int endMillis = numFromString<int>(endMillisInput->getString()).unwrapOrDefault();
+
+        // Play sound with advanced options
+        audioEngine->playEffectAdvanced(sound, speed, 0.0f, volume, pitch, false, false, startMillis, endMillis, 0, 0, false, 0, false, false, 0, 0.0f, 0.f, 0);
+    }
 };
 
 SoundSettingsPopup *SoundSettingsPopup::create(CommandSettingsPopup *parent, int actionIdx, const std::string &selectedSound, std::function<void(const std::string &)> onSave)
@@ -399,7 +511,7 @@ SoundSettingsPopup *SoundSettingsPopup::create(CommandSettingsPopup *parent, int
     ret->m_selectedSound = selectedSound;
     ret->m_onSave = onSave;
 
-    if (ret && ret->initAnchored(400.f, 280.f))
+    if (ret && ret->initAnchored(520.f, 280.f))
     {
         ret->autorelease();
         return ret;

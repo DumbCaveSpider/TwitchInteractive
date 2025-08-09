@@ -30,7 +30,7 @@ void addOrUpdateActionLabel(CCNode *actionNode, const std::string &labelId, cons
 
     if (auto label = actionNode->getChildByID(labelId))
     {
-        if (auto bmLabel = dynamic_cast<CCLabelBMFont *>(label))
+        if (auto bmLabel = typeinfo_cast<CCLabelBMFont *>(label))
             bmLabel->setString(text.c_str());
     }
     else
@@ -423,7 +423,7 @@ void CommandSettingsPopup::onProfileUserSettings(CCObject *sender)
                     {
                         if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
                         {
-                            if (auto eventNode = dynamic_cast<CommandActionEventNode *>(node))
+                            if (auto eventNode = typeinfo_cast<CommandActionEventNode *>(node))
                                 eventNode->updateRoleLabel();
                         };
                     };
@@ -593,7 +593,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
 
             if (m_mainLayer)
             {
-                auto eventScrollLayer = dynamic_cast<ScrollLayer *>(m_mainLayer->getChildByID("events-scroll"));
+                auto eventScrollLayer = typeinfo_cast<ScrollLayer *>(m_mainLayer->getChildByID("events-scroll"));
 
                 if (eventScrollLayer && eventScrollLayer->m_contentLayer)
                 {
@@ -651,7 +651,7 @@ void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::
 
     if (auto label = actionNode->getChildByID(keyLabelId))
     {
-        if (auto bmLabel = dynamic_cast<CCLabelBMFont *>(label))
+        if (auto bmLabel = typeinfo_cast<CCLabelBMFont *>(label))
         {
             bmLabel->setString(labelText.c_str());
         }
@@ -1317,7 +1317,7 @@ void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx)
                         rgbText = actionStr.substr(colonPos + 1);
 
                     std::string labelText = "RGB: " + rgbText;
-                    if (auto colorLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(colorLabelId)))
+                    if (auto colorLabel = typeinfo_cast<CCLabelBMFont *>(actionNode->getChildByID(colorLabelId)))
                         colorLabel->setString(labelText.c_str());
                 };
             };
@@ -1432,7 +1432,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
                 {
                     auto inputNode = node->getChildByID(inputId);
                     if (inputNode)
-                        waitInput = dynamic_cast<TextInput *>(inputNode);
+                        waitInput = typeinfo_cast<TextInput *>(inputNode);
                 }
             }
             std::string delayStr = waitValue;
@@ -1501,7 +1501,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
                     for (auto child : CCArrayExt<CCNode *>(node->getChildren()))
                     {
-                        if ((menu = dynamic_cast<CCMenu *>(child)))
+                        if ((menu = typeinfo_cast<CCMenu *>(child)))
                             break;
                     };
 
@@ -1509,7 +1509,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
                     {
                         for (auto btn : CCArrayExt<CCNode *>(menu->getChildren()))
                         {
-                            if (auto toggler = dynamic_cast<CCMenuItemToggler *>(btn))
+                            if (auto toggler = typeinfo_cast<CCMenuItemToggler *>(btn))
                             {
                                 if (std::string(toggler->getID()).find("noclip-checkbox-") == 0)
                                 {
@@ -1626,7 +1626,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
     // Refresh the dashboard command list if the dashboard is open
     if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene())
     {
-        if (auto dashboard = dynamic_cast<TwitchDashboard *>(scene->getChildByID("twitch-dashboard-popup")))
+        if (auto dashboard = typeinfo_cast<TwitchDashboard *>(scene->getChildByID("twitch-dashboard-popup")))
             dashboard->refreshCommandsList();
     };
 
@@ -1725,7 +1725,7 @@ void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const 
         labelText += nextText;
     };
 
-    if (auto notifLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(notifLabelId)))
+    if (auto notifLabel = typeinfo_cast<CCLabelBMFont *>(actionNode->getChildByID(notifLabelId)))
         notifLabel->setString(labelText.c_str());
 };
 
@@ -1786,7 +1786,7 @@ void CommandSettingsPopup::onEventSearchPoll(float)
 
         if (m_mainLayer)
         {
-            if (auto eventScrollLayer = dynamic_cast<ScrollLayer *>(m_mainLayer->getChildByID("events-scroll")))
+            if (auto eventScrollLayer = typeinfo_cast<ScrollLayer *>(m_mainLayer->getChildByID("events-scroll")))
                 eventScrollLayer->scrollToTop();
         };
     };

@@ -168,8 +168,8 @@ static void updateAllPauseLayerTwitchStatus() {
         auto& children = *scene->getChildren();
         for (int i = 0; i < children.count(); ++i) {
             auto node = static_cast<cocos2d::CCNode*>(children.objectAtIndex(i));
-            if (auto pause = dynamic_cast<PauseLayer*>(node)) {
-                if (auto myPause = dynamic_cast<MyPauseLayer*>(pause)) {
+            if (auto pause = typeinfo_cast<PauseLayer*>(node)) {
+                if (auto myPause = typeinfo_cast<MyPauseLayer*>(pause)) {
                     myPause->updateTwitchStatusLabel();
                 }
             }
@@ -584,7 +584,7 @@ void TwitchDashboard::triggerCommandCooldown(const std::string& commandName) {
         return;
 
     for (auto child : CCArrayExt<CCNode*>(m_commandLayer->getChildren())) {
-        if (auto node = dynamic_cast<CommandActionEventNode*>(child)) {
+        if (auto node = typeinfo_cast<CommandActionEventNode*>(child)) {
             if (node->getCommandName() == commandName) {
                 node->triggerCommand();
                 break;
