@@ -187,31 +187,46 @@ bool SoundSettingsPopup::setup()
             actionIdRaw = m_parent->m_commandActions[m_actionIdx];
 
         size_t firstColon = actionIdRaw.find(":");
-        if (firstColon != std::string::npos && firstColon + 1 < actionIdRaw.size()) {
+        if (firstColon != std::string::npos && firstColon + 1 < actionIdRaw.size())
+        {
             std::string rest = actionIdRaw.substr(firstColon + 1);
             std::vector<std::string> parts;
             size_t start = 0;
-            while (true) {
+            while (true)
+            {
                 size_t pos = rest.find(":", start);
-                if (pos == std::string::npos) { parts.push_back(rest.substr(start)); break; }
+                if (pos == std::string::npos)
+                {
+                    parts.push_back(rest.substr(start));
+                    break;
+                }
                 parts.push_back(rest.substr(start, pos - start));
                 start = pos + 1;
             }
 
-            auto trim = [](std::string s) {
+            auto trim = [](std::string s)
+            {
                 s.erase(0, s.find_first_not_of(" \t\n\r"));
                 s.erase(s.find_last_not_of(" \t\n\r") + 1);
                 return s;
             };
-            for (auto &p : parts) p = trim(p);
+            for (auto &p : parts)
+                p = trim(p);
 
-            if (!parts.empty()) {
-                if (m_selectedSound.empty()) m_selectedSound = parts[0];
-                if (parts.size() >= 2) speed = numFromString<float>(parts[1]).unwrapOrDefault();
-                if (parts.size() >= 3) volume = numFromString<float>(parts[2]).unwrapOrDefault();
-                if (parts.size() >= 4) pitch = numFromString<float>(parts[3]).unwrapOrDefault();
-                if (parts.size() >= 5) startMillis = numFromString<int>(parts[4]).unwrapOrDefault();
-                if (parts.size() >= 6) endMillis = numFromString<int>(parts[5]).unwrapOrDefault();
+            if (!parts.empty())
+            {
+                if (m_selectedSound.empty())
+                    m_selectedSound = parts[0];
+                if (parts.size() >= 2)
+                    speed = numFromString<float>(parts[1]).unwrapOrDefault();
+                if (parts.size() >= 3)
+                    volume = numFromString<float>(parts[2]).unwrapOrDefault();
+                if (parts.size() >= 4)
+                    pitch = numFromString<float>(parts[3]).unwrapOrDefault();
+                if (parts.size() >= 5)
+                    startMillis = numFromString<int>(parts[4]).unwrapOrDefault();
+                if (parts.size() >= 6)
+                    endMillis = numFromString<int>(parts[5]).unwrapOrDefault();
             }
         }
 
@@ -270,6 +285,11 @@ bool SoundSettingsPopup::setup()
 
             auto labelSprite = CCLabelBMFont::create(sounds[i].c_str(), "bigFont.fnt");
             labelSprite->setScale(0.5f); // Initial scale
+            // Highlight preselected sound (if any)
+            if (!this->m_selectedSound.empty() && this->m_selectedSound == sounds[i])
+            {
+                labelSprite->setColor({0, 255, 0});
+            }
             auto labelBtn = CCMenuItemSpriteExtra::create(
                 labelSprite,
                 this,
@@ -535,6 +555,13 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
 // Play sound preview handler
 void SoundSettingsPopup::onPlaySound(CCObject *sender)
 {
+    // Disallow preview while in a level (PlayLayer exists)
+    if (PlayLayer::get())
+    {
+        FLAlertLayer::create("Preview not available", "You can't preview sounds while playing a level. You can preview the audio through the Creator Page.", "OK")->show();
+        return;
+    }
+
     auto btn = typeinfo_cast<CCMenuItemSpriteExtra *>(sender);
     if (!btn || !btn->getUserObject())
         return;
@@ -574,10 +601,12 @@ SoundSettingsPopup *SoundSettingsPopup::create(CommandSettingsPopup *parent, int
     ret->m_onSave = onSave;
 
     // If selectedSound is empty, try extract from parent's action string for convenience
-    if (ret->m_selectedSound.empty() && parent && actionIdx >= 0 && actionIdx < static_cast<int>(parent->m_commandActions.size())) {
+    if (ret->m_selectedSound.empty() && parent && actionIdx >= 0 && actionIdx < static_cast<int>(parent->m_commandActions.size()))
+    {
         std::string raw = parent->m_commandActions[actionIdx];
         size_t c = raw.find(":");
-        if (c != std::string::npos && c + 1 < raw.size()) {
+        if (c != std::string::npos && c + 1 < raw.size())
+        {
             std::string rest = raw.substr(c + 1);
             size_t nc = rest.find(":");
             ret->m_selectedSound = (nc == std::string::npos) ? rest : rest.substr(0, nc);

@@ -444,6 +444,46 @@ void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject *sender)
         idx = static_cast<CCInteger *>(btn->getUserObject())->getValue();
     if (idx <= 0 || idx >= static_cast<int>(m_commandActions.size()))
         return;
+    // Keep the wait input when adding new event
+    if (m_actionContent)
+    {
+        auto children = m_actionContent->getChildren();
+        if (children)
+        {
+            int maxCount = std::min(static_cast<int>(children->count()), static_cast<int>(m_commandActions.size()));
+            for (int i = 0; i < maxCount; ++i)
+            {
+                std::string lower = m_commandActions[i];
+                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                if (lower.rfind("wait:", 0) == 0)
+                {
+                    if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
+                    {
+                        std::string waitInputId = "wait-delay-input-" + std::to_string(i);
+                        if (auto waitInput = typeinfo_cast<TextInput *>(node->getChildByID(waitInputId)))
+                        {
+                            std::string val = waitInput->getString();
+                            // Trim
+                            val.erase(0, val.find_first_not_of(" \t\n\r"));
+                            size_t last = val.find_last_not_of(" \t\n\r");
+                            if (last != std::string::npos)
+                                val.erase(last + 1);
+                            if (!val.empty())
+                            {
+                                auto parsed = numFromString<float>(val);
+                                if (parsed)
+                                {
+                                    float f = parsed.unwrap();
+                                    f = std::round(f * 1000.0f) / 1000.0f;
+                                    m_commandActions[i] = "wait:" + fmt::format("{:.2f}", f);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     std::swap(m_commandActions[idx], m_commandActions[idx - 1]);
     refreshActionsList();
 };
@@ -456,6 +496,46 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject *sender)
         idx = static_cast<CCInteger *>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size()) - 1)
         return;
+    // Keep the wait input when moving the index positions
+    if (m_actionContent)
+    {
+        auto children = m_actionContent->getChildren();
+        if (children)
+        {
+            int maxCount = std::min(static_cast<int>(children->count()), static_cast<int>(m_commandActions.size()));
+            for (int i = 0; i < maxCount; ++i)
+            {
+                std::string lower = m_commandActions[i];
+                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                if (lower.rfind("wait:", 0) == 0)
+                {
+                    if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
+                    {
+                        std::string waitInputId = "wait-delay-input-" + std::to_string(i);
+                        if (auto waitInput = typeinfo_cast<TextInput *>(node->getChildByID(waitInputId)))
+                        {
+                            std::string val = waitInput->getString();
+                            // Trim
+                            val.erase(0, val.find_first_not_of(" \t\n\r"));
+                            size_t last = val.find_last_not_of(" \t\n\r");
+                            if (last != std::string::npos)
+                                val.erase(last + 1);
+                            if (!val.empty())
+                            {
+                                auto parsed = numFromString<float>(val);
+                                if (parsed)
+                                {
+                                    float f = parsed.unwrap();
+                                    f = std::round(f * 1000.0f) / 1000.0f;
+                                    m_commandActions[i] = "wait:" + fmt::format("{:.2f}", f);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     std::swap(m_commandActions[idx], m_commandActions[idx + 1]);
     refreshActionsList();
 };
@@ -533,6 +613,47 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
     std::string eventId;
     if (btn->getUserObject())
         eventId = static_cast<CCString *>(btn->getUserObject())->getCString();
+
+    // Persist current wait input values into m_commandActions before modifying the list
+    if (m_actionContent)
+    {
+        auto children = m_actionContent->getChildren();
+        if (children)
+        {
+            int maxCount = std::min(static_cast<int>(children->count()), static_cast<int>(m_commandActions.size()));
+            for (int i = 0; i < maxCount; ++i)
+            {
+                std::string lower = m_commandActions[i];
+                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                if (lower.rfind("wait:", 0) == 0)
+                {
+                    if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
+                    {
+                        std::string waitInputId = "wait-delay-input-" + std::to_string(i);
+                        if (auto waitInput = typeinfo_cast<TextInput *>(node->getChildByID(waitInputId)))
+                        {
+                            std::string val = waitInput->getString();
+                            // Trim whitespace
+                            val.erase(0, val.find_first_not_of(" \t\n\r"));
+                            size_t last = val.find_last_not_of(" \t\n\r");
+                            if (last != std::string::npos)
+                                val.erase(last + 1);
+                            if (!val.empty())
+                            {
+                                auto parsed = numFromString<float>(val);
+                                if (parsed)
+                                {
+                                    float f = parsed.unwrap();
+                                    f = std::round(f * 1000.0f) / 1000.0f;
+                                    m_commandActions[i] = "wait:" + fmt::format("{:.2f}", f);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (!eventId.empty())
     {
