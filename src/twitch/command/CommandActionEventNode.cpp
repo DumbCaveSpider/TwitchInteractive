@@ -540,7 +540,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"gravity", "Gravity Player", "Sets the player's gravity to a specified value for a duration."},
         {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration."},
         {"restart_level", "Restart Level", "Restarts the entire level."},
-        {"jumpscare", "Jumpscare", "Shows a custom jumpscare to scare the streamer."},
+        //{"jumpscare", "Jumpscare", "Shows a custom jumpscare to scare the streamer. <cy>boo</c>"},
         {"noclip", "Noclip", "Enables or disables noclip mode for the player. <cr>This does not have Safe Mode, use with caution!</c> <cy>Disables upon exiting the level</c>"}};
 
     auto mod = Mod::get();
