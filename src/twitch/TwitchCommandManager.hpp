@@ -153,7 +153,7 @@ struct ActionContext : public CCObject {
         // Replace all ${displayname} with displayName
         pos = 0;
         while ((pos = result.find("${displayname}", pos)) != std::string::npos) {
-            result.replace(pos, 13, displayName);
+            result.replace(pos, 14, displayName);
             pos += displayName.length();
         };
 

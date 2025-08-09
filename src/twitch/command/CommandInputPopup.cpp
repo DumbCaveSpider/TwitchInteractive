@@ -137,6 +137,9 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     cooldownStr.erase(0, cooldownStr.find_first_not_of(" \t\n\r"));
     cooldownStr.erase(cooldownStr.find_last_not_of(" \t\n\r") + 1);
 
+    // Convert commandName to lowercase
+    std::transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
+
     // Check if command name is empty
     if (commandName.empty()) {
         FLAlertLayer::create(

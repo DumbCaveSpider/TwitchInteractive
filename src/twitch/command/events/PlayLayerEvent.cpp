@@ -14,11 +14,14 @@ namespace {
 class $modify(PlayLayer) {
     void destroyPlayer(PlayerObject * player, GameObject * obj) {
         if (g_noclipEnabled) {
-            // Noclip enabled: prevent player death
             log::debug("[PlayLayerEvent] Noclip enabled: destroyPlayer ignored");
             return;
         }
         PlayLayer::destroyPlayer(player, obj);
+    }
+    void onExit() override {
+        g_noclipEnabled = false;
+        PlayLayer::onExit();
     }
 };
 

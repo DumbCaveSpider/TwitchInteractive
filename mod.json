@@ -8,13 +8,14 @@
 	},
 	"id": "arcticwoof.twitch_interactive",
 	"name": "Twitch Interactive",
-	"version": "v0.1.10-beta.1",
+	"version": "v0.1.11-beta.1",
 	"developer": "ArcticWoof",
 	"description": "Allows Twitch viewers to interact in game",
 	"tags": [
 		"online",
 		"gameplay",
-		"cheat"
+		"cheat",
+		"content"
 	],
 	"links": {
 		"source": "https://github.com/DumbCaveSpider/TwitchInteractive",

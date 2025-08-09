@@ -631,16 +631,28 @@ void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::
 
     std::string keyLabelId = "keycode-action-text-label-" + std::to_string(actionIdx);
 
-    // Only show the key part in the label
+    // Separate the duration and key in the label
     std::string keyPart = nextKey;
+    std::string durationPart;
 
-    size_t pipePos = keyPart.find("|");
+    size_t pipePos = keyPart.find(":");
     if (pipePos != std::string::npos)
+    {
+        durationPart = keyPart.substr(pipePos + 1);
         keyPart = keyPart.substr(0, pipePos);
+    }
 
-    std::string labelText = keyPart.empty() ? "-" : keyPart;
-    if (auto keyLabel = dynamic_cast<CCLabelBMFont *>(actionNode->getChildByID(keyLabelId)))
-        keyLabel->setString(labelText.c_str());
+    // Update the label text with the new format
+    std::string labelText = "Key: " + (keyPart.empty() ? "-" : keyPart);
+    if (!durationPart.empty()) {
+        labelText += " (" + durationPart + ")";
+    }
+
+    if (auto label = actionNode->getChildByID(keyLabelId)) {
+        if (auto bmLabel = dynamic_cast<CCLabelBMFont *>(label)) {
+            bmLabel->setString(labelText.c_str());
+        }
+    }
 };
 
 void CommandSettingsPopup::refreshActionsList()
@@ -886,7 +898,7 @@ void CommandSettingsPopup::refreshActionsList()
                 };
                 if (user.empty())
                 {
-                    settingsLabelText = "User: 7689052";
+                    settingsLabelText = "No User selected";
                 }
             }
             else if (actionIdLower.rfind("move", 0) == 0)

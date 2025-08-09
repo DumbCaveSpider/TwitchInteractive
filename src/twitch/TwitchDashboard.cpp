@@ -440,7 +440,7 @@ TwitchDashboard* TwitchDashboard::create() {
     float height = baseHeight * scaleFactor;
 
     // Ensure minimum size
-    width = std::max(width, baseWidth - 40.f);
+    width = std::max(width, baseWidth - 60.f);
     height = std::max(height, baseHeight - 40.f);
 
     if (ret && ret->initAnchored(width, height)) {
@@ -533,7 +533,7 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     // Show success message
     FLAlertLayer::create(
         "Success",
-        "Command '<cg>!" + originalName + "</c>' updated successfully!",
+        "Command '<cg>!" + finalName + "</c>' updated successfully!",
         "OK"
     )->show();
 };

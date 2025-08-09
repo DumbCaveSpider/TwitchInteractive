@@ -7,16 +7,22 @@ using namespace cocos2d;
 
 bool KeyCodesSettingsPopup::setup(std::string keyCode)
 {
-    // Parse key and duration if present (format: key|duration)
+    // Parse key and duration if present (format: keycode:<key>:<duration>)
     m_keyCode = keyCode;
     m_holdDuration = "";
 
-    size_t pipePos = keyCode.find("|");
-    if (pipePos != std::string::npos)
-    {
-        m_keyCode = keyCode.substr(0, pipePos);
-        m_holdDuration = keyCode.substr(pipePos + 1);
-    };
+    size_t firstColon = keyCode.find(":");
+    size_t secondColon = keyCode.find(":", firstColon + 1);
+
+    if (firstColon != std::string::npos && secondColon != std::string::npos) {
+        m_keyCode = keyCode.substr(0, firstColon); // Extract key before the first colon
+        m_holdDuration = keyCode.substr(secondColon + 1); // Extract duration after the second colon
+    } else if (firstColon != std::string::npos) {
+        m_keyCode = keyCode.substr(0, firstColon); // Extract key
+        m_holdDuration = keyCode.substr(firstColon + 1); // Extract duration
+    } else {
+        m_keyCode = keyCode; // No colons, treat the entire string as the key
+    }
 
     setTitle("Edit Key Code");
     setID("keycodes-settings-popup");
@@ -57,6 +63,19 @@ bool KeyCodesSettingsPopup::setup(std::string keyCode)
 
     setTouchEnabled(true);
     setKeypadEnabled(true);
+
+    if (m_keyLabel) {
+        if (m_keyCode.empty()) {
+            m_keyLabel->setString("Press Key...");
+        } else {
+            m_keyLabel->setString(m_keyCode.c_str());
+        }
+    }
+
+    // Ensure the duration input displays the hold duration
+    if (m_durationInput) {
+        m_durationInput->setString(m_holdDuration);
+    }
 
     return true;
 };
@@ -102,12 +121,16 @@ void KeyCodesSettingsPopup::onSave(cocos2d::CCObject *sender)
         };
     };
 
+    // Update the result format to `keycode:<key>:<duration>`
     std::string result = m_keyCode;
 
-    if (!m_holdDuration.empty())
-        result += "|" + m_holdDuration;
-    if (m_onSelect)
+    if (!m_holdDuration.empty()) {
+        result += ":" + m_holdDuration;
+    }
+
+    if (m_onSelect) {
         m_onSelect(result);
+    }
 
     onClose(nullptr);
 };
@@ -248,8 +271,15 @@ void KeyCodesSettingsPopup::keyDown(cocos2d::enumKeyCodes key)
     };
 
     m_keyCode = keyStr;
-    if (m_keyLabel)
-        m_keyLabel->setString(keyStr.c_str());
+    // Ensure the key label only displays the key
+    if (m_keyLabel) {
+        m_keyLabel->setString(m_keyCode.c_str());
+    }
+
+    // Ensure the duration input only displays the duration
+    if (m_durationInput) {
+        m_durationInput->setString(m_holdDuration);
+    }
 };
 
 KeyCodesSettingsPopup *KeyCodesSettingsPopup::create(const std::string &keyCode, std::function<void(const std::string &)> onSelect)

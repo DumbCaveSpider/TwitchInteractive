@@ -74,4 +74,6 @@ public:
     void updateNotificationNextTextLabel(int actionIdx, const std::string &nextText, NotificationIconType iconType);
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string &nextKey);
     void updateColorPlayerLabel(int actionIdx);
+
+    void onClose(cocos2d::CCObject *sender);
 };

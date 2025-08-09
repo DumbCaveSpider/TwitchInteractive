@@ -1,3 +1,8 @@
+# v0.1.11-beta.1
+- **Noclip** event will be disabled when exiting the level (Also added extra info about the event)
+- Fixed the `${displayname}` identifiers not displaying properly
+- Fixed the **Key Code** action node formatting
+
 # v0.1.10-beta.1
 - Added **Experimental Features** option in the Mod Settings.
 - Fixed Command Cooldown not detecting correctly.

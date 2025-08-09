@@ -299,17 +299,21 @@ namespace SettingsHandler {
         if (actionStr.rfind("keycode", 0) != 0)
             return;
 
-        std::string keyValue;
-        size_t colonPos = actionStr.find(":");
+        // Extract key and duration separately
+        std::string keyPart;
+        std::string durationPart;
+        size_t firstColon = actionStr.find(":");
+        size_t secondColon = actionStr.find(":", firstColon + 1);
 
-        if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
-            keyValue = actionStr.substr(colonPos + 1);
+        if (firstColon != std::string::npos && secondColon != std::string::npos) {
+            keyPart = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+            durationPart = actionStr.substr(secondColon + 1);
         } else {
-            keyValue = "";
-        };
+            keyPart = actionStr.substr(firstColon + 1);
+        }
 
         KeyCodesSettingsPopup::create(
-            keyValue,
+            keyPart + ":" + durationPart,
             [popup, idx](const std::string& newKeyWithDuration) {
                 popup->updateKeyCodeNextTextLabel(idx, newKeyWithDuration);
                 popup->refreshActionsList();

@@ -171,14 +171,11 @@ void HandbookPopup::onCommandsBtn(CCObject *)
 
         "## How to Use\n"
         "- Every command starts with an exclamation mark (e.g., `!jump`).\n"
+        "- All commands ARE CASE SENSITIVE. It only triggers when you type the command exactly.\n"
         "- You can add, edit, or remove commands in the Dashboard.\n"
         "- Apply cooldown on a specific command to prevent spamming by setting a cooldown in the settings.\n"
         "- You can disable commands by unchecking the 'Enabled' checkbox in the Dashboard.\n"
         "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
-
-        "## Example\n"
-        "- If you create a command named `!jump`, viewers can type `!jump` in chat to trigger the associated action added to that command.\n"
-        "- You can use identifiers like `${arg}` to allow users to pass arguments (e.g., `!say Hello`).\n\n"
 
         "**Tip:** Use commands to make your stream interactive and fun!";
 
