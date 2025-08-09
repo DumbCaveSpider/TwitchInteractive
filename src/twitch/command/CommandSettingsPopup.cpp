@@ -644,12 +644,15 @@ void CommandSettingsPopup::updateKeyCodeNextTextLabel(int actionIdx, const std::
 
     // Update the label text with the new format
     std::string labelText = "Key: " + (keyPart.empty() ? "-" : keyPart);
-    if (!durationPart.empty()) {
+    if (!durationPart.empty())
+    {
         labelText += " (" + durationPart + ")";
     }
 
-    if (auto label = actionNode->getChildByID(keyLabelId)) {
-        if (auto bmLabel = dynamic_cast<CCLabelBMFont *>(label)) {
+    if (auto label = actionNode->getChildByID(keyLabelId))
+    {
+        if (auto bmLabel = dynamic_cast<CCLabelBMFont *>(label))
+        {
             bmLabel->setString(labelText.c_str());
         }
     }
@@ -1257,15 +1260,18 @@ void CommandSettingsPopup::onRemoveAction(CCObject *sender)
 
 void CommandSettingsPopup::onCloseBtn(CCObject *sender)
 {
+    this->onClose(nullptr);
+}
+
+void CommandSettingsPopup::onClose(CCObject *sender)
+{
     geode::createQuickPopup(
         "Close Without Saving?",
         "Are you sure you want to close the settings without saving? <cr>Any unsaved changes will be lost.</c>",
         "Cancel", "Close",
-        [this](auto, bool btn2)
-        {
-            if (btn2)
-            {
-                this->onClose(nullptr);
+        [this](auto, bool btn2) {
+            if (btn2) {
+                this->removeFromParent();
             }
         });
 }
@@ -1420,8 +1426,10 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             std::string inputId = "wait-delay-input-" + std::to_string(idx);
             TextInput *waitInput = nullptr;
             auto children = m_actionContent->getChildren();
-            if (children && idx < children->count()) {
-                if (auto node = static_cast<CCNode *>(children->objectAtIndex(idx))) {
+            if (children && idx < children->count())
+            {
+                if (auto node = static_cast<CCNode *>(children->objectAtIndex(idx)))
+                {
                     auto inputNode = node->getChildByID(inputId);
                     if (inputNode)
                         waitInput = dynamic_cast<TextInput *>(inputNode);
@@ -1433,12 +1441,14 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             // Trim whitespace
             delayStr.erase(0, delayStr.find_first_not_of(" \t\n\r"));
             delayStr.erase(delayStr.find_last_not_of(" \t\n\r") + 1);
-            if (delayStr.empty()) {
+            if (delayStr.empty())
+            {
                 Notification::create("Please fill in all wait delay fields!", NotificationIcon::Error)->show();
                 return;
             }
             auto parsedDelay = numFromString<float>(delayStr);
-            if (!parsedDelay) {
+            if (!parsedDelay)
+            {
                 Notification::create("Wait delay must be a valid number!", NotificationIcon::Error)->show();
                 return;
             }
@@ -1452,9 +1462,11 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             int playerIdx = 1;
             jumpPlayerValue.erase(0, jumpPlayerValue.find_first_not_of(" \t\n\r"));
             jumpPlayerValue.erase(jumpPlayerValue.find_last_not_of(" \t\n\r") + 1);
-            if (!jumpPlayerValue.empty()) {
+            if (!jumpPlayerValue.empty())
+            {
                 auto parsedJump = numFromString<int>(jumpPlayerValue);
-                if (!parsedJump) {
+                if (!parsedJump)
+                {
                     Notification::create("Jump player index must be a valid number!", NotificationIcon::Error)->show();
                     return;
                 }
@@ -1618,7 +1630,7 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             dashboard->refreshCommandsList();
     };
 
-    onClose(nullptr);
+    this->removeFromParent();
 };
 
 void CommandSettingsPopup::updateNotificationNextTextLabel(int actionIdx, const std::string &nextText, NotificationIconType iconType)

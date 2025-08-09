@@ -75,5 +75,5 @@ public:
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string &nextKey);
     void updateColorPlayerLabel(int actionIdx);
 
-    void onClose(cocos2d::CCObject *sender);
+    void onClose(CCObject* sender);
 };

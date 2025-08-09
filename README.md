@@ -6,10 +6,9 @@
 
 Twitch Interactive is a mod that allows both Twitch Streamers and Viewers to interact directly in game.
 
-This mod was heavily inspired by **ArcticWoof's Interactive Level Request** streams and works seemlessly between the game and Twitch.
+This mod was heavily inspired by **ArcticWoof's Interactive Level Request** streams and works seemlessly between Geometry Dash and Twitch.
 
-It provides a lot of quality of life and ease of use that makes your interactive streaming more fun or chaotic!
-
+It provides a lot of quality of life, ease of use and in-game events that makes your interactive streaming more fun or chaotic!
 
 ## Usage
 - Open the **Twitch Dashboard** button which is located at the bottom left of the **Creator Page** or top right at the **Pause Menu**

@@ -2,6 +2,7 @@
 - **Noclip** event will be disabled when exiting the level (Also added extra info about the event)
 - Fixed the `${displayname}` identifiers not displaying properly
 - Fixed the **Key Code** action node formatting
+- Added Close confirmation on the Command Settings and editing commands when escape button is clicked
 
 # v0.1.10-beta.1
 - Added **Experimental Features** option in the Mod Settings.

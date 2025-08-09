@@ -266,7 +266,7 @@ void CommandInputPopup::onAdd(CCObject* sender) {
             m_originalDesc = commandDesc + "|" + std::to_string(m_cooldownSeconds);
         };
 
-        onClose(nullptr);
+        this->removeFromParent();
         return;
     };
 
@@ -297,8 +297,21 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     };
 
     // Close the popup
-    onClose(nullptr);
+    this->removeFromParent();
 };
+
+void CommandInputPopup::onClose(CCObject *sender)
+{
+    geode::createQuickPopup(
+        "Close Without Saving?",
+        "Are you sure you want to close the settings without saving? <cr>Any unsaved changes will be lost.</c>",
+        "Cancel", "Close",
+        [this](auto, bool btn2) {
+            if (btn2) {
+                this->removeFromParent();
+            }
+        });
+}
 
 CommandInputPopup* CommandInputPopup::create(std::function<void(const std::string&, const std::string&)> callback) {
     auto ret = new CommandInputPopup();
