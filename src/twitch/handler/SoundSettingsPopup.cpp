@@ -460,8 +460,7 @@ void SoundSettingsPopup::onSaveBtn(CCObject *)
                     std::string settingsLabelId = "action-settings-label-" + std::to_string(m_actionIdx);
                     if (auto settingsLabel = typeinfo_cast<CCLabelBMFont *>(actionNode->getChildByID(settingsLabelId)))
                     {
-                        // Compact summary in label
-                        auto summary = fmt::format("{} | spd {:.2f}, vol {:.2f}, pit {:.2f}, {}-{} ms", m_selectedSound, speed, volume, pitch, startMillis, endMillis);
+                        auto summary = fmt::format("{} | Speed {:.2f}, Volume {:.2f}, Pitch {:.2f}, {}-{} ms", m_selectedSound, speed, volume, pitch, startMillis, endMillis);
                         settingsLabel->setString(summary.c_str());
                     }
                 }

@@ -1153,8 +1153,7 @@ void CommandSettingsPopup::refreshActionsList()
             }
             else if (actionIdLower.rfind("sound", 0) == 0)
             {
-                // New format: sound_effect:<sound>:<speed>:<volume>:<pitch>:<start>:<end>
-                // Legacy: sound_effect:<sound> or sound:<sound>
+                // sound_effect:<sound>:<speed>:<volume>:<pitch>:<start>:<end>
                 size_t firstColon = actionIdRaw.find(":");
                 if (firstColon == std::string::npos || firstColon + 1 >= actionIdRaw.size()) {
                     settingsLabelText = "No sound selected";
@@ -1185,7 +1184,7 @@ void CommandSettingsPopup::refreshActionsList()
             }
             else if (actionIdLower.rfind("gravity", 0) == 0)
             {
-                // Format: gravity:<gravity>:<duration>F
+                // Format: gravity:<gravity>:<duration>
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = actionIdRaw.find(":", firstColon + 1);
                 if (firstColon != std::string::npos && secondColon != std::string::npos)
