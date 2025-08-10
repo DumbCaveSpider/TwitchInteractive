@@ -1,7 +1,7 @@
 # v0.1.11-beta.1
 - **Noclip** event will be disabled when exiting the level (Also added extra info about the event)
 - Fixed the `${displayname}` identifiers not displaying properly
-- Fixed the **Key Code** action node formatting
+- Fixed the **Key Code** action node formatting and functionality
 - Added Close confirmation on the Command Settings and editing commands when escape button is clicked
 - Added extra options for the **Sound Effect** action settings (Speed, Volume, Pitch, Start, End)
 - Fixed **Wait** action time value disappearing when adding/moving actions.

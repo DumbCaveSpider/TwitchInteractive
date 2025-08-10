@@ -533,7 +533,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"notification", "Notification", "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>."},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading. <cg>Supports the use of identifiers.</c>."},
         {"profile", "Profile", "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>"},
-        {"nothing", "Nothing", "Does nothing at all."},
+        {"keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users</c>"},
         {"scale_player", "Scale Player", "Scales the player in-game. <cr>Does not affect the player hitbox.</c>"},
         {"sound", "Sound Effect", "Plays a sound effect. <cg>Supports Custom SFX and & GD default SFX.</c>"},
         {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately"},
@@ -541,13 +541,13 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration."},
         {"restart_level", "Restart Level", "Restarts the entire level."},
         //{"jumpscare", "Jumpscare", "Shows a custom jumpscare to scare the streamer. <cy>boo</c>"},
-        {"noclip", "Noclip", "Enables or disables noclip mode for the player. <cr>This does not have Safe Mode, use with caution!</c> <cy>Disables upon exiting the level</c>"}};
+        {"noclip", "Noclip", "Enables or disables noclip mode for the player. <cr>This does not have Safe Mode, use with caution!</c> <cy>Disables upon exiting the level</c>"},
+        {"nothing", "Nothing", "Does nothing at all. <cy>Dev note: this is added so i can just copy paste new events easily</c>"}};
 
     auto mod = Mod::get();
     if (mod && mod->getSettingValue<bool>("experimental"))
     {
         nodes.push_back({"edit_camera", "Edit Camera", "Edit Camera's Skew, Rotation, and Scale. <cy>Experimental Feature. May crash your game.</c>"});
-        nodes.push_back({"keycode", "Key Code", "Simulates a key press or release. <cy>Experimental Feature.</c> <cr>Does not work on mobile users</c>"});
     }
     return nodes;
 }

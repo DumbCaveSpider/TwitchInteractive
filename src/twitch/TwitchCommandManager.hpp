@@ -14,6 +14,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
+#include "command/events/KeyReleaseScheduler.hpp"
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
@@ -344,9 +345,254 @@ struct ActionContext : public CCObject
             };
         };
 
+        // Handle Keybind type: arg format "<key>[:<durationSeconds>]"; empty duration = infinite hold
+        if (action.type == CommandActionType::Keybind)
+        {
+            std::string keyStr;
+            float duration = -1.f; // negative = infinite
+
+            size_t colon = processedArg.find(":");
+            if (colon != std::string::npos)
+            {
+                keyStr = processedArg.substr(0, colon);
+                std::string durStr = processedArg.substr(colon + 1);
+                if (!durStr.empty() && durStr.find_first_not_of("-.0123456789") == std::string::npos)
+                    duration = numFromString<float>(durStr).unwrapOrDefault();
+            }
+            else
+            {
+                keyStr = processedArg;
+            }
+
+            // trim keyStr
+            keyStr.erase(0, keyStr.find_first_not_of(" \t\n\r"));
+            keyStr.erase(keyStr.find_last_not_of(" \t\n\r") + 1);
+
+            auto toUpper = [](std::string s)
+            {
+                std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+                return s;
+            };
+
+            cocos2d::enumKeyCodes code = static_cast<cocos2d::enumKeyCodes>(0);
+            bool found = false;
+            std::string up = toUpper(keyStr);
+
+            if (keyStr.size() == 1)
+            {
+                char c = keyStr[0];
+                if (c >= 'a' && c <= 'z')
+                    c = static_cast<char>(c - 'a' + 'A');
+
+                if (c >= 'A' && c <= 'Z')
+                {
+                    code = static_cast<cocos2d::enumKeyCodes>(cocos2d::KEY_A + (c - 'A'));
+                    found = true;
+                }
+                else if (c >= '0' && c <= '9')
+                {
+                    code = static_cast<cocos2d::enumKeyCodes>(c);
+                    found = true;
+                }
+                else
+                {
+                    // punctuation by known VK codes used elsewhere
+                    switch (c)
+                    {
+                    case ';': code = static_cast<cocos2d::enumKeyCodes>(4101); found = true; break;
+                    case '=': code = static_cast<cocos2d::enumKeyCodes>(4097); found = true; break;
+                    case ',': code = static_cast<cocos2d::enumKeyCodes>(188);  found = true; break;
+                    case '-': code = static_cast<cocos2d::enumKeyCodes>(189);  found = true; break;
+                    case '.': code = static_cast<cocos2d::enumKeyCodes>(190);  found = true; break;
+                    case '/': code = static_cast<cocos2d::enumKeyCodes>(4103); found = true; break;
+                    case '`': code = static_cast<cocos2d::enumKeyCodes>(4096); found = true; break;
+                    case '[': code = static_cast<cocos2d::enumKeyCodes>(4098); found = true; break;
+                    case '\\': code = static_cast<cocos2d::enumKeyCodes>(4100); found = true; break;
+                    case ']': code = static_cast<cocos2d::enumKeyCodes>(4099); found = true; break;
+                    case '\'': code = static_cast<cocos2d::enumKeyCodes>(4102); found = true; break;
+                    default: break;
+                    }
+                }
+            }
+            else
+            {
+                // named keys
+                if (up == "SPACE") { code = cocos2d::KEY_Space; found = true; }
+                else if (up == "ENTER" || up == "RETURN") { code = cocos2d::KEY_Enter; found = true; }
+                else if (up == "ESC" || up == "ESCAPE") { code = cocos2d::KEY_Escape; found = true; }
+                else if (up == "LEFT") { code = cocos2d::KEY_Left; found = true; }
+                else if (up == "RIGHT") { code = cocos2d::KEY_Right; found = true; }
+                else if (up == "UP") { code = cocos2d::KEY_Up; found = true; }
+                else if (up == "DOWN") { code = cocos2d::KEY_Down; found = true; }
+                else if (up == "TAB") { code = cocos2d::KEY_Tab; found = true; }
+                else if (up == "BACKSPACE" || up == "BKSP") { code = cocos2d::KEY_Backspace; found = true; }
+                else if (up == "SHIFT") { code = cocos2d::KEY_Shift; found = true; }
+                else if (up == "CTRL" || up == "CONTROL") { code = cocos2d::KEY_Control; found = true; }
+                else if (up == "ALT") { code = cocos2d::KEY_Alt; found = true; }
+                else if (up == "CAPSLOCK") { code = static_cast<cocos2d::enumKeyCodes>(20); found = true; }
+                else if (up == "LEFTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(160); found = true; }
+                else if (up == "RIGHTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(161); found = true; }
+            }
+
+            if (!found)
+            {
+                log::warn("[Keybind] Unknown key string '{}'", keyStr);
+            }
+            else
+            {
+                auto disp = CCDirector::sharedDirector()->getKeyboardDispatcher();
+                if (disp)
+                {
+                    // Press
+                    disp->dispatchKeyboardMSG(code, true, false);
+
+                    // Release
+                    if (duration <= 0.f)
+                    {
+                        disp->dispatchKeyboardMSG(code, false, false);
+                    }
+                    else
+                    {
+                        if (auto scene = CCDirector::sharedDirector()->getRunningScene())
+                        {
+                            auto node = KeyReleaseScheduler::create([disp, code]() {
+                                disp->dispatchKeyboardMSG(code, false, false);
+                            }, duration);
+                            if (node)
+                                scene->addChild(node);
+                        }
+                        else
+                        {
+                            disp->dispatchKeyboardMSG(code, false, false);
+                        }
+                    }
+                }
+            }
+        }
+
         // Handle other Event types
         if (action.type == CommandActionType::Event)
         {
+            // Keycode event: keycode:<key>[:<durationSeconds>]
+            if (processedArg.rfind("keycode:", 0) == 0)
+            {
+                std::string rest = processedArg.substr(8);
+
+                // split key and optional duration
+                std::string keyStr;
+                float duration = -1.f; // negative = infinite hold
+                size_t colon = rest.find(":");
+                if (colon != std::string::npos)
+                {
+                    keyStr = rest.substr(0, colon);
+                    std::string durStr = rest.substr(colon + 1);
+                    // trim
+                    durStr.erase(0, durStr.find_first_not_of(" \t\n\r"));
+                    if (!durStr.empty())
+                    {
+                        if (durStr.find_first_not_of("-.0123456789") == std::string::npos)
+                            duration = numFromString<float>(durStr).unwrapOrDefault();
+                        else
+                            duration = 0.f; // malformed -> tap
+                    }
+                }
+                else
+                {
+                    keyStr = rest;
+                }
+
+                // trim key
+                keyStr.erase(0, keyStr.find_first_not_of(" \t\n\r"));
+                keyStr.erase(keyStr.find_last_not_of(" \t\n\r") + 1);
+
+                auto toUpper = [](std::string s)
+                {
+                    std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+                    return s;
+                };
+
+                cocos2d::enumKeyCodes code = static_cast<cocos2d::enumKeyCodes>(0);
+                bool found = false;
+                std::string up = toUpper(keyStr);
+
+                if (keyStr.size() == 1)
+                {
+                    char c = keyStr[0];
+                    if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
+                    if (c >= 'A' && c <= 'Z') { code = static_cast<cocos2d::enumKeyCodes>(cocos2d::KEY_A + (c - 'A')); found = true; }
+                    else if (c >= '0' && c <= '9') { code = static_cast<cocos2d::enumKeyCodes>(c); found = true; }
+                    else {
+                        switch (c)
+                        {
+                        case ';': code = static_cast<cocos2d::enumKeyCodes>(4101); found = true; break;
+                        case '=': code = static_cast<cocos2d::enumKeyCodes>(4097); found = true; break;
+                        case ',': code = static_cast<cocos2d::enumKeyCodes>(188);  found = true; break;
+                        case '-': code = static_cast<cocos2d::enumKeyCodes>(189);  found = true; break;
+                        case '.': code = static_cast<cocos2d::enumKeyCodes>(190);  found = true; break;
+                        case '/': code = static_cast<cocos2d::enumKeyCodes>(4103); found = true; break;
+                        case '`': code = static_cast<cocos2d::enumKeyCodes>(4096); found = true; break;
+                        case '[': code = static_cast<cocos2d::enumKeyCodes>(4098); found = true; break;
+                        case '\\': code = static_cast<cocos2d::enumKeyCodes>(4100); found = true; break;
+                        case ']': code = static_cast<cocos2d::enumKeyCodes>(4099); found = true; break;
+                        case '\'': code = static_cast<cocos2d::enumKeyCodes>(4102); found = true; break;
+                        default: break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (up == "SPACE") { code = cocos2d::KEY_Space; found = true; }
+                    else if (up == "ENTER" || up == "RETURN") { code = cocos2d::KEY_Enter; found = true; }
+                    else if (up == "ESC" || up == "ESCAPE") { code = cocos2d::KEY_Escape; found = true; }
+                    else if (up == "LEFT") { code = cocos2d::KEY_Left; found = true; }
+                    else if (up == "RIGHT") { code = cocos2d::KEY_Right; found = true; }
+                    else if (up == "UP") { code = cocos2d::KEY_Up; found = true; }
+                    else if (up == "DOWN") { code = cocos2d::KEY_Down; found = true; }
+                    else if (up == "TAB") { code = cocos2d::KEY_Tab; found = true; }
+                    else if (up == "BACKSPACE" || up == "BKSP") { code = cocos2d::KEY_Backspace; found = true; }
+                    else if (up == "SHIFT") { code = cocos2d::KEY_Shift; found = true; }
+                    else if (up == "CTRL" || up == "CONTROL") { code = cocos2d::KEY_Control; found = true; }
+                    else if (up == "ALT") { code = cocos2d::KEY_Alt; found = true; }
+                    else if (up == "CAPSLOCK") { code = static_cast<cocos2d::enumKeyCodes>(20); found = true; }
+                    else if (up == "LEFTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(160); found = true; }
+                    else if (up == "RIGHTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(161); found = true; }
+                }
+
+                if (!found)
+                {
+                    log::warn("[Keycode Event] Unknown key string '{}'", keyStr);
+                }
+                else
+                {
+                    auto disp = cocos2d::CCKeyboardDispatcher::get();
+                    if (!disp) disp = CCDirector::sharedDirector()->getKeyboardDispatcher();
+                    if (disp)
+                    {
+                        // key down
+                        disp->dispatchKeyboardMSG(code, true, false);
+
+                        // schedule release
+                        if (duration <= 0.f)
+                        {
+                            disp->dispatchKeyboardMSG(code, false, false);
+                        }
+                        else if (auto scene = CCDirector::sharedDirector()->getRunningScene())
+                        {
+                            auto node = KeyReleaseScheduler::create([disp, code]() {
+                                disp->dispatchKeyboardMSG(code, false, false);
+                            }, duration);
+                            if (node) scene->addChild(node);
+                        }
+                        else
+                        {
+                            disp->dispatchKeyboardMSG(code, false, false);
+                        }
+                    }
+                }
+
+                // continue to next action
+            }
+
             // Noclip event: noclip:true or noclip:false
             if (processedArg.rfind("noclip:", 0) == 0)
             {
