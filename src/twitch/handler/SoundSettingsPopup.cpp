@@ -496,7 +496,6 @@ void SoundSettingsPopup::onSelectSound(CCObject *sender)
     std::string sound = static_cast<CCString *>(btn->getUserObject())->getCString();
     m_selectedSound = sound;
 
-    // Visual feedback: highlight selected button and scale it up
     // Find parent content layer and update all buttons
     if (btn->getParent() && btn->getParent()->getParent())
     {
@@ -557,7 +556,7 @@ void SoundSettingsPopup::onPlaySound(CCObject *sender)
     // Disallow preview while in a level (PlayLayer exists)
     if (PlayLayer::get())
     {
-        FLAlertLayer::create("Preview not available", "You can't preview sounds while playing a level. You can preview the audio through the Creator Page.", "OK")->show();
+        FLAlertLayer::create("Preview not available", "You can't preview sounds while playing a level.", "OK")->show();
         return;
     }
 

@@ -8,11 +8,13 @@ bool CommandUserSettingsPopup::setup()
     setTitle("Command User/Role Settings");
     setID("command-user-settings-popup");
 
+    this->m_noElasticity = true;
+
     float y = 160.f;
     float x = m_mainLayer->getContentSize().width / 2;
 
     // Username input
-    m_userInput = geode::TextInput::create(160, "Twitch Username (leave blank for any)", "bigFont.fnt");
+    m_userInput = geode::TextInput::create(160, "Twitch Username", "bigFont.fnt");
     m_userInput->setCommonFilter(CommonFilter::Any);
     m_userInput->setString(m_allowedUser.c_str());
     m_userInput->setPosition(x, y);

@@ -150,7 +150,7 @@ void HandbookPopup::onUserRoleBtn(CCObject *)
         "Command User/Role restrictions let you control who can use a command in your Twitch chat. You can open User/Role restriction at the top right of the command settings\n\n"
 
         "## Available Restrictions\n"
-        "- **User**: Only the specified username can use the command.\n"
+        "- **User**: Only the specified username can use the command. *(Leave blank for any user)*\n"
         "- **Everyone**: No restrictions, anyone can use the command *(Have all checkbox unticked)*.\n"
         "- **VIP**: Users with Twitch VIP role can use the command.\n"
         "- **Mod**: Users with Twitch Mod role can use the command.\n"
