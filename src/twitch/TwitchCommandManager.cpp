@@ -8,6 +8,7 @@
 
 #include <Geode/utils/file.hpp>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Mod.hpp>
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 using namespace geode::prelude;
@@ -140,6 +141,19 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
 
     if (!loaded)
     {
+        auto configDirPath = geode::dirs::getModConfigDir();
+        log::debug("[TwitchCommandManager] Mod config dir: \"{}\"", configDirPath.string());
+
+        auto sfxDirPath = (configDirPath / "arcticwoof.twitch_interactive" / "sfx").string();
+        if (!geode::utils::file::createDirectoryAll(sfxDirPath))
+        {
+            log::warn("[TwitchCommandManager] Failed to create sfx directory: \"{}\"", sfxDirPath);
+        }
+        else
+        {
+            log::debug("[TwitchCommandManager] Ensured sfx directory exists: \"{}\"", sfxDirPath);
+        }
+
         instance.loadCommands();
         loaded = true;
     };
