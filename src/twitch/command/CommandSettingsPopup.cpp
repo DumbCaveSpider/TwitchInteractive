@@ -359,6 +359,42 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
         menu_selector(CommandSettingsPopup::onCloseBtn));
     closeBtn->setID("command-settings-close-btn");
 
+    // Show Cooldown checkbox and label node
+    auto showCooldownCheckbox = CCMenuItemToggler::create(
+        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
+        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+        this,
+        menu_selector(CommandSettingsPopup::onShowCooldownToggled));
+    showCooldownCheckbox->setID("show-cooldown-checkbox");
+    showCooldownCheckbox->setPosition(0.f, 0.f);
+    m_showCooldownCheckbox = showCooldownCheckbox;
+
+    auto showCooldownLabel = CCLabelBMFont::create("Show\nCooldown", "bigFont.fnt");
+    showCooldownLabel->setScale(0.4f);
+    showCooldownLabel->setAnchorPoint({1.f, 0.5f});
+    showCooldownLabel->setID("show-cooldown-label");
+    showCooldownLabel->setAlignment(kCCTextAlignmentLeft);
+    showCooldownLabel->setPosition(-20.f, 0.f);
+
+    // Place checkbox and label at bottom left
+    auto showCooldownMenu = CCMenu::create();
+    showCooldownMenu->setID("show-cooldown-menu");
+    showCooldownMenu->addChild(showCooldownCheckbox);
+    showCooldownMenu->setAnchorPoint({0.f, 0.f});
+    showCooldownMenu->addChild(showCooldownLabel);
+
+    showCooldownMenu->setPosition({winSize.width - 5.f, 28.f});
+    m_mainLayer->addChild(showCooldownMenu, 10);
+
+    // Set the Show Cooldown checkbox based on the value loaded from command.json (TwitchCommand::showCooldown)
+    m_showCooldown = m_command.showCooldown;
+    if (m_showCooldownCheckbox) {
+        // Always set the checkbox to match the loaded value
+        if (m_showCooldownCheckbox->isToggled() != m_showCooldown) {
+            m_showCooldownCheckbox->toggle(m_showCooldown);
+        }
+    }
+
     // Menu for buttons
     auto commandBtnMenu = CCMenu::create();
     commandBtnMenu->setID("command-settings-button-menu");
@@ -384,11 +420,45 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     float mainH = m_mainLayer->getContentSize().height;
 
     commandBtnMenu->setPosition(mainW / 2 - menuWidth / 2, 15.f);
-
     m_mainLayer->addChild(commandBtnMenu);
 
     return true;
-};
+}
+
+// Handler for Show Cooldown checkbox
+void CommandSettingsPopup::onShowCooldownToggled(CCObject* sender) {
+    if (auto toggler = dynamic_cast<CCMenuItemToggler*>(sender)) {
+        m_showCooldown = toggler->isToggled();
+        m_command.showCooldown = m_showCooldown;
+        // Always sync the checkbox UI to the value
+        if (m_showCooldownCheckbox && m_showCooldownCheckbox->isToggled() != m_showCooldown) {
+            m_showCooldownCheckbox->toggle(m_showCooldown);
+        }
+        // Persist immediately so reopening reflects the change even before pressing Save
+        if (auto mgr = TwitchCommandManager::getInstance()) {
+            for (auto &cmd : mgr->getCommands()) {
+                if (cmd.name == m_command.name) {
+                    cmd.showCooldown = m_showCooldown;
+                    break;
+                }
+            }
+            mgr->saveCommands();
+        }
+    }
+}
+
+// Store Show Cooldown state
+bool CommandSettingsPopup::getShowCooldown() const {
+    return m_showCooldown;
+}
+
+void CommandSettingsPopup::setShowCooldown(bool value) {
+    m_showCooldown = value;
+    m_command.showCooldown = value;
+    if (m_showCooldownCheckbox && m_showCooldownCheckbox->isToggled() != value) {
+        m_showCooldownCheckbox->toggle(value);
+    }
+}
 
 void CommandSettingsPopup::onProfileUserSettings(CCObject *sender)
 {
@@ -1714,6 +1784,13 @@ void CommandSettingsPopup::onSave(CCObject *sender)
 
     // Replace m_command.actions with actionsVec (preserve order, no size limit)
     m_command.actions = actionsVec;
+
+
+    // Save the cooldown checkbox
+    if (m_showCooldownCheckbox) {
+        m_showCooldown = m_showCooldownCheckbox->isToggled();
+    }
+    m_command.showCooldown = m_showCooldown;
 
     // Rebuild m_commandActions from m_command.actions to ensure UI and data are in sync
     m_commandActions.clear();

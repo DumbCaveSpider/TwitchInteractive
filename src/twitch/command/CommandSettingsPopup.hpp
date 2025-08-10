@@ -62,6 +62,13 @@ public:
     void onEditCameraSettings(cocos2d::CCObject *sender);
     void onGravitySettings(CCObject *sender);
     void onSpeedSettings(CCObject *sender);
+    
+        // Show Cooldown checkbox state and UI
+        bool m_showCooldown = false;
+        CCMenuItemToggler* m_showCooldownCheckbox = nullptr;
+        void onShowCooldownToggled(CCObject* sender);
+        bool getShowCooldown() const;
+        void setShowCooldown(bool value);
 
     float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;

@@ -84,6 +84,8 @@ struct TwitchCommand
     bool allowStreamer = false;
     bool allowSubscriber = false;
 
+    bool showCooldown = false; // Show cooldown notification when on cooldown
+
     bool enabled = true; // If the command is enabled
     int cooldown = 0;    // Cooldown in seconds
 
