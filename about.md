@@ -10,7 +10,7 @@ This mod was heavily inspired by **ArcticWoof's Interactive Level Request** stre
 It provides a lot of quality of life and ease of use and in-game events that makes your interactive streaming more <cg>fun</c> or <cr>chaotic</c>!
 ## Usage
 - Open the <cp>**Twitch Dashboard**</c> button which is located at the bottom left of the **Creator Page** or top right at the **Pause Menu**
-- Read the Handbook which is located at the **Dashboard** or at the **Commands Settings** to learn more about the mod.
+- Read the <cg>**Handbook**</c> which is located at the **Dashboard** or at the **Commands Settings** to learn more about the mod.
 - This is a <cr>very complex and in-depth mod</c> so please take your time to read over everything this mod has to offer.
 ## Disclaimer
 - <cr>The mod is not a chatbot replacement, you may need an external way to moderate the usage of this mod.</c>

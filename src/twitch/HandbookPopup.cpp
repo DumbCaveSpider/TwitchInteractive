@@ -170,12 +170,11 @@ void HandbookPopup::onCommandsBtn(CCObject *)
         "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
 
         "## How to Use\n"
-        "- Every command starts with an exclamation mark (e.g., `!jump`).\n"
-        "- All commands ARE CASE SENSITIVE. It only triggers when you type the command exactly.\n"
-        "- You can add, edit, or remove commands in the Dashboard.\n"
+        "- Every command starts with an exclamation mark (e.g., `!say`).\n"
+        "- You can add, edit, remove or toggle commands in the Dashboard.\n"
         "- Apply cooldown on a specific command to prevent spamming by setting a cooldown in the settings.\n"
-        "- You can disable commands by unchecking the 'Enabled' checkbox in the Dashboard.\n"
-        "- Each command can have one or more actions that are executed when the command is triggered.\n\n"
+        "- Click on the command name to copy the chat command to your clipboard.\n"
+        "- Each command can have one or multiple actions that are executed when the command is triggered.\n\n"
 
         "**Tip:** Use commands to make your stream interactive and fun!";
 
@@ -189,10 +188,10 @@ void HandbookPopup::onDashboardBtn(CCObject *)
         "The Dashboard is your main control center for the Twitch Interactive mod.\n\n"
 
         "## How to Use\n"
-        "- By default, all commands are disabled upon game bootup and only starts listening when you open the Dashboard.\n"
+        "- By default, all commands are disabled upon game bootup and only starts listening when you open the Dashboard once\n"
         "- You can change each commands you created in the Dashboard with the buttons on the right.\n"
         "- If you want to pause all commands in the chat, you can toggle the 'Listen' button in the Dashboard.\n"
-        "- The Dashboard must be open and connected for chat commands to work.\n\n"
+        "- You can disable certain commands by unchecking the 'Enabled' checkbox in the Dashboard.\n\n"
 
         "**Tip:** Use the Dashboard to quickly test, enable, or disable commands while streaming!";
 
@@ -213,7 +212,7 @@ void HandbookPopup::onIdentifiersBtn(CCObject *)
         "- `${streamer}`: Replaced with the configured Twitch channel (streamer's username).\n\n"
 
         "## Usage Example\n"
-        "- If your notification action is `Hello, ${arg}!`, and a user types `!hello world`, the notification will show `Hello, world!`\n\n"
+        "- If your notification action is `${displayname}: ${arg}!`, and a user types `!say Hello`, the notification will show `ArcticWoofLive: Hello`\n\n"
 
         "**Tip:** Identifiers can be used in any action argument that supports text.";
 
@@ -230,7 +229,7 @@ void HandbookPopup::onActionBtn(CCObject *)
         "- You can move actions up or down to change their order of execution.\n"
         "- You can remove actions by clicking the delete button on the right.\n"
         "- Add multiple actions to a command to create complex effects.\n"
-        "- Use identifiers like `${arg}` to insert chat arguments into actions.\n\n"
+        "- Use the **Wait** action to delay each action by set seconds.\n\n"
 
         "**Tip:** Combine multiple actions for complex command effects!";
 

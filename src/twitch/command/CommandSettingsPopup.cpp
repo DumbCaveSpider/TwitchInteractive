@@ -388,11 +388,9 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 
     // Set the Show Cooldown checkbox based on the value loaded from command.json (TwitchCommand::showCooldown)
     m_showCooldown = m_command.showCooldown;
-    if (m_showCooldownCheckbox)
-    {
+    if (m_showCooldownCheckbox) {
         // Always set the checkbox to match the loaded value
-        if (m_showCooldownCheckbox->isToggled() != m_showCooldown)
-        {
+        if (m_showCooldownCheckbox->isToggled() != m_showCooldown) {
             m_showCooldownCheckbox->toggle(m_showCooldown);
         }
     }
@@ -428,24 +426,18 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 }
 
 // Handler for Show Cooldown checkbox
-void CommandSettingsPopup::onShowCooldownToggled(CCObject *sender)
-{
-    if (auto toggler = dynamic_cast<CCMenuItemToggler *>(sender))
-    {
+void CommandSettingsPopup::onShowCooldownToggled(CCObject* sender) {
+    if (auto toggler = dynamic_cast<CCMenuItemToggler*>(sender)) {
         m_showCooldown = toggler->isToggled();
         m_command.showCooldown = m_showCooldown;
         // Always sync the checkbox UI to the value
-        if (m_showCooldownCheckbox && m_showCooldownCheckbox->isToggled() != m_showCooldown)
-        {
+        if (m_showCooldownCheckbox && m_showCooldownCheckbox->isToggled() != m_showCooldown) {
             m_showCooldownCheckbox->toggle(m_showCooldown);
         }
         // Persist immediately so reopening reflects the change even before pressing Save
-        if (auto mgr = TwitchCommandManager::getInstance())
-        {
-            for (auto &cmd : mgr->getCommands())
-            {
-                if (cmd.name == m_command.name)
-                {
+        if (auto mgr = TwitchCommandManager::getInstance()) {
+            for (auto &cmd : mgr->getCommands()) {
+                if (cmd.name == m_command.name) {
                     cmd.showCooldown = m_showCooldown;
                     break;
                 }
@@ -456,17 +448,14 @@ void CommandSettingsPopup::onShowCooldownToggled(CCObject *sender)
 }
 
 // Store Show Cooldown state
-bool CommandSettingsPopup::getShowCooldown() const
-{
+bool CommandSettingsPopup::getShowCooldown() const {
     return m_showCooldown;
 }
 
-void CommandSettingsPopup::setShowCooldown(bool value)
-{
+void CommandSettingsPopup::setShowCooldown(bool value) {
     m_showCooldown = value;
     m_command.showCooldown = value;
-    if (m_showCooldownCheckbox && m_showCooldownCheckbox->isToggled() != value)
-    {
+    if (m_showCooldownCheckbox && m_showCooldownCheckbox->isToggled() != value) {
         m_showCooldownCheckbox->toggle(value);
     }
 }
@@ -1036,17 +1025,13 @@ void CommandSettingsPopup::refreshActionsList()
                     std::string iconTypeStr = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
                     thirdColon = actionIdRaw.rfind(":");
                     float timeVal = 0.0f;
-                    if (thirdColon != std::string::npos && thirdColon > secondColon)
-                    {
+                    if (thirdColon != std::string::npos && thirdColon > secondColon) {
                         notifText = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
                         std::string tStr = actionIdRaw.substr(thirdColon + 1);
                         tStr.erase(0, tStr.find_first_not_of(" \t\n\r"));
                         auto parsedT = numFromString<float>(tStr);
-                        if (parsedT)
-                            timeVal = parsedT.unwrap();
-                    }
-                    else
-                    {
+                        if (parsedT) timeVal = parsedT.unwrap();
+                    } else {
                         notifText = actionIdRaw.substr(secondColon + 1);
                     }
                     std::string iconName = "Info";
@@ -1088,10 +1073,12 @@ void CommandSettingsPopup::refreshActionsList()
                     };
                     if (thirdColon != std::string::npos && thirdColon > secondColon)
                         settingsLabelText = fmt::format("Icon: {} | Text: {} | Time: {:.2f}s", iconName, notifText, timeVal);
+                    else
+                        settingsLabelText = fmt::format("Icon: {} | Text: {}", iconName, notifText);
                 };
                 if (notifText.empty())
                 {
-                    settingsLabelText = "Icon: Info | Text: - | Time: 0.00s";
+                    settingsLabelText = "Icon: Info | Text: -";
                 }
             }
             else if (actionIdLower.rfind("keycode", 0) == 0)
@@ -1252,36 +1239,23 @@ void CommandSettingsPopup::refreshActionsList()
             {
                 // sound_effect:<sound>:<speed>:<volume>:<pitch>:<start>:<end>
                 size_t firstColon = actionIdRaw.find(":");
-                if (firstColon == std::string::npos || firstColon + 1 >= actionIdRaw.size())
-                {
+                if (firstColon == std::string::npos || firstColon + 1 >= actionIdRaw.size()) {
                     settingsLabelText = "No sound selected";
-                }
-                else
-                {
+                } else {
                     std::string rest = actionIdRaw.substr(firstColon + 1);
                     std::vector<std::string> parts;
                     size_t start = 0;
-                    while (true)
-                    {
+                    while (true) {
                         size_t pos = rest.find(":", start);
-                        if (pos == std::string::npos)
-                        {
-                            parts.push_back(rest.substr(start));
-                            break;
-                        }
+                        if (pos == std::string::npos) { parts.push_back(rest.substr(start)); break; }
                         parts.push_back(rest.substr(start, pos - start));
                         start = pos + 1;
                     }
-                    if (parts.empty() || parts[0].empty())
-                    {
+                    if (parts.empty() || parts[0].empty()) {
                         settingsLabelText = "No sound selected";
-                    }
-                    else if (parts.size() == 1)
-                    {
+                    } else if (parts.size() == 1) {
                         settingsLabelText = parts[0];
-                    }
-                    else
-                    {
+                    } else {
                         // Try parse numbers for nicer formatting
                         float spd = (parts.size() > 1) ? strtof(parts[1].c_str(), nullptr) : 1.f;
                         float vol = (parts.size() > 2) ? strtof(parts[2].c_str(), nullptr) : 1.f;
@@ -1513,10 +1487,8 @@ void CommandSettingsPopup::onClose(CCObject *sender)
         "Close Without Saving?",
         "Are you sure you want to close the settings without saving? <cr>Any unsaved changes will be lost.</c>",
         "Cancel", "Close",
-        [this](auto, bool btn2)
-        {
-            if (btn2)
-            {
+        [this](auto, bool btn2) {
+            if (btn2) {
                 this->removeFromParent();
             }
         });
@@ -1796,18 +1768,14 @@ void CommandSettingsPopup::onSave(CCObject *sender)
                     iconTypeInt = parsedIcon.unwrap();
 
                 size_t thirdColon = actionIdRaw.rfind(":");
-                if (thirdColon != std::string::npos && thirdColon > secondColon)
-                {
+                if (thirdColon != std::string::npos && thirdColon > secondColon) {
                     notifText = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
                     std::string timeStr = actionIdRaw.substr(thirdColon + 1);
                     timeStr.erase(0, timeStr.find_first_not_of(" \t\n\r"));
                     timeStr.erase(timeStr.find_last_not_of(" \t\n\r") + 1);
                     auto parsedTime = numFromString<float>(timeStr);
-                    if (parsedTime)
-                        notifTime = parsedTime.unwrap();
-                }
-                else
-                {
+                    if (parsedTime) notifTime = parsedTime.unwrap();
+                } else {
                     notifText = actionIdRaw.substr(secondColon + 1);
                 }
             }
@@ -1840,9 +1808,9 @@ void CommandSettingsPopup::onSave(CCObject *sender)
     // Replace m_command.actions with actionsVec (preserve order, no size limit)
     m_command.actions = actionsVec;
 
+
     // Save the cooldown checkbox
-    if (m_showCooldownCheckbox)
-    {
+    if (m_showCooldownCheckbox) {
         m_showCooldown = m_showCooldownCheckbox->isToggled();
     }
     m_command.showCooldown = m_showCooldown;

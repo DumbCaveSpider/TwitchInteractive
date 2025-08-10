@@ -99,7 +99,7 @@ void NotificationSettingsPopup::onSave(cocos2d::CCObject *sender)
 {
     std::string text = m_input ? m_input->getString() : "";
     // Parse time
-    float time = 0.0f;
+    float time = 1.0f;
     if (m_timeInput) {
         std::string t = m_timeInput->getString();
         t.erase(0, t.find_first_not_of(" \t\n\r"));

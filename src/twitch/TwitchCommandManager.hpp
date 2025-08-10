@@ -683,7 +683,7 @@ struct ActionContext : public CCObject
 
             std::string notifText;
             std::string argStr = action.arg;
-            float notifTime = 0.0f;
+            float notifTime = 1.0f;
 
             if (argStr.size() >= 13)
             {
