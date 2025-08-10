@@ -1,4 +1,4 @@
-# v0.2.0-beta.1
+# v0.1.12-beta.1
 - Added **HoverAPI** dependency for **Action Tooltips**
 
 # v0.1.11-beta.1
