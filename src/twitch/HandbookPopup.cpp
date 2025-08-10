@@ -206,6 +206,7 @@ void HandbookPopup::onIdentifiersBtn(CCObject *)
 
         "## Available Identifiers\n"
         "- `${arg}`: Replaced with the argument(s) provided by the user in chat.\n"
+        "- `${rng<min>:<max>}`: Replace with a random range between the min and max. *eg. `${rng1:10}` will output a random number between 1 and 10.*\n"
         "- `${username}`: Replaced with the username of the user who triggered the command.\n"
         "- `${displayname}`: Replaced with the display name of the user who triggered the command.\n"
         "- `${userid}`: Replaced with the user ID of the user who triggered the command.\n"

@@ -9,6 +9,7 @@
 - Added Time value on the **Notification** action settings.
 - Added Copy Action
 - Added **Custom SFX** support for the **Sound Effect** action.
+- Added `${rng<min>:<max>}` support for random number generation. *(More info on the Handbook Identifiers)*
 
 # v0.1.10-beta.1
 - Added **Experimental Features** option in the Mod Settings.

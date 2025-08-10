@@ -9,6 +9,7 @@
 #include <functional>
 #include <unordered_map>
 #include <filesystem>
+#include <random>
 
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Dirs.hpp>
@@ -192,6 +193,69 @@ struct ActionContext : public CCObject
             result.replace(pos, 11, streamerUsername);
             pos += streamerUsername.length();
         };
+
+        // Replace all ${rng<min>:<max>} with a random integer in [min, max]
+        size_t rpos = 0;
+        static std::mt19937 rng(std::random_device{}());
+        while ((rpos = result.find("${rng", rpos)) != std::string::npos)
+        {
+            size_t start = rpos;                 // position of '${rng'
+            size_t paramsBegin = rpos + 5;       // after '${rng'
+            size_t endBrace = result.find('}', paramsBegin);
+            if (endBrace == std::string::npos)
+                break; // malformed; stop processing further
+
+            std::string params = result.substr(paramsBegin, endBrace - paramsBegin); // expected '<min>:<max>'
+
+            // Expect optional '<' and '>' around min:max; tolerate both with or without angle brackets
+            // Strip optional leading '<' and trailing '>'
+            if (!params.empty() && params.front() == '<' && params.back() == '>')
+                params = params.substr(1, params.size() - 2);
+
+            size_t colon = params.find(':');
+            if (colon == std::string::npos)
+            {
+                rpos = endBrace + 1; // skip malformed
+                continue;
+            }
+
+            auto trim = [](std::string s)
+            {
+                s.erase(0, s.find_first_not_of(" \t\n\r"));
+                s.erase(s.find_last_not_of(" \t\n\r") + 1);
+                return s;
+            };
+
+            std::string minStr = trim(params.substr(0, colon));
+            std::string maxStr = trim(params.substr(colon + 1));
+
+            auto isInt = [](const std::string &s) -> bool
+            {
+                if (s.empty()) return false;
+                size_t i = 0;
+                if (s[0] == '-' || s[0] == '+') i = 1;
+                if (i >= s.size()) return false;
+                for (; i < s.size(); ++i) if (s[i] < '0' || s[i] > '9') return false;
+                return true;
+            };
+
+            if (!isInt(minStr) || !isInt(maxStr))
+            {
+                rpos = endBrace + 1;
+                continue;
+            }
+
+            int minV = numFromString<int>(minStr).unwrapOrDefault();
+            int maxV = numFromString<int>(maxStr).unwrapOrDefault();
+            if (minV > maxV) std::swap(minV, maxV);
+
+            std::uniform_int_distribution<int> dist(minV, maxV);
+            int value = dist(rng);
+            std::string replacement = std::to_string(value);
+
+            result.replace(start, endBrace - start + 1, replacement);
+            rpos = start + replacement.size();
+        }
 
         return result;
     };
