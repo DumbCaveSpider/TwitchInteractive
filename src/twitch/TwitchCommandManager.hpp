@@ -8,6 +8,7 @@
 #include <vector>
 #include <functional>
 #include <unordered_map>
+#include <filesystem>
 
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Dirs.hpp>
@@ -439,6 +440,17 @@ struct ActionContext : public CCObject
 
                     std::string soundName = parts.size() >= 1 ? parts[0] : std::string("");
 
+                    auto resolveSfxPath = [](const std::string &name) -> std::string
+                    {
+                        std::error_code ec;
+                        if (std::filesystem::exists(name, ec))
+                            return name; // already a path
+                        auto p = geode::dirs::getModConfigDir() / "arcticwoof.twitch_interactive" / "sfx" / name;
+                        if (std::filesystem::exists(p, ec))
+                            return p.string();
+                        return name; // fallback to builtin resource
+                    };
+
                     if (soundName.empty())
                     {
                         log::warn("Sound effect action has empty sound name (command: {})", ctx->commandName);
@@ -468,15 +480,16 @@ struct ActionContext : public CCObject
                         if (parts.size() == 1)
                         {
                             log::info("Playing sound effect '{}' (legacy) (command: {})", soundName, ctx->commandName);
-                            audioEngine->playEffect(soundName);
+                            audioEngine->playEffect(resolveSfxPath(soundName));
                         }
                         else
                         {
                             log::info(
                                 "Playing sound effect '{}' with speed={} vol={} pitch={} start={} end={} (command: {})",
                                 soundName, speed, volume, pitch, startMillis, endMillis, ctx->commandName);
+                            auto soundPath = resolveSfxPath(soundName);
                             audioEngine->playEffectAdvanced(
-                                soundName, speed, 0.0f, volume, pitch, false, false, startMillis, endMillis,
+                                soundPath, speed, 0.0f, volume, pitch, false, false, startMillis, endMillis,
                                 0, 0, false, 0, false, false, 0, 0.0f, 0.f, 0);
                         }
                     }

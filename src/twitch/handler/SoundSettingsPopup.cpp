@@ -1,6 +1,9 @@
 #include "SoundSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
+#include <Geode/loader/Dirs.hpp>
+#include <algorithm>
+#include <filesystem>
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -10,7 +13,7 @@ using namespace cocos2d;
 // Unified sound list for settings
 static std::vector<std::string> getAvailableSounds()
 {
-    return {
+    std::vector<std::string> sounds = {
         "BackOnTrack.mp3",
         "BaseAfterBase.mp3",
         "BlastProcessing.mp3",
@@ -77,6 +80,46 @@ static std::vector<std::string> getAvailableSounds()
         "quitSound_01.ogg",
         "reward01.ogg",
     };
+
+    // Add user-provided sfx from the mod config directory (mod-id/sfx subfolder)
+    auto sfxDir = geode::dirs::getModConfigDir() / "arcticwoof.twitch_interactive" / "sfx";
+    std::error_code ec;
+    if (std::filesystem::exists(sfxDir, ec))
+    {
+        for (auto it = std::filesystem::directory_iterator(sfxDir, ec);
+             !ec && it != std::filesystem::end(it);
+             it.increment(ec))
+        {
+            const auto &entry = *it;
+            if (!entry.is_regular_file(ec))
+                continue;
+            auto path = entry.path();
+            std::string ext = path.extension().string();
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            if (ext == ".mp3" || ext == ".ogg")
+            {
+                std::string name = path.filename().string();
+                if (std::find(sounds.begin(), sounds.end(), name) == sounds.end())
+                    sounds.push_back(name);
+            }
+        }
+    }
+
+    return sounds;
+}
+
+// Resolve a sound name to a full path if it exists in the sfx folder
+static std::string resolveSfxPath(const std::string &name)
+{
+    std::error_code ec;
+    if (std::filesystem::exists(name, ec))
+        return name; // already a valid path
+
+    auto p = geode::dirs::getModConfigDir() / "arcticwoof.twitch_interactive" / "sfx" / name;
+    if (std::filesystem::exists(p, ec))
+        return p.string();
+
+    return name; // fall back to original (builtin resource)
 }
 
 bool SoundSettingsPopup::setup()
@@ -584,8 +627,9 @@ void SoundSettingsPopup::onPlaySound(CCObject *sender)
         int startMillis = numFromString<int>(startMillisInput->getString()).unwrapOrDefault();
         int endMillis = numFromString<int>(endMillisInput->getString()).unwrapOrDefault();
 
-        // Play sound with advanced options
-        audioEngine->playEffectAdvanced(sound, speed, 0.0f, volume, pitch, false, false, startMillis, endMillis, 0, 0, false, 0, false, false, 0, 0.0f, 0.f, 0);
+        // Play sound with advanced options (resolve sfx path if needed)
+        auto soundPath = resolveSfxPath(sound);
+        audioEngine->playEffectAdvanced(soundPath, speed, 0.0f, volume, pitch, false, false, startMillis, endMillis, 0, 0, false, 0, false, false, 0, 0.0f, 0.f, 0);
     }
 };
 

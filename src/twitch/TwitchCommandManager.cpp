@@ -141,11 +141,11 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
 
     if (!loaded)
     {
-        auto configDirPath = geode::dirs::getModConfigDir();
-        log::debug("[TwitchCommandManager] Mod config dir: \"{}\"", configDirPath.string());
+    auto configDirPath = geode::dirs::getModConfigDir();
+    log::debug("[TwitchCommandManager] Mod config dir: {}", configDirPath.string());
 
-        auto sfxDirPath = (configDirPath / "arcticwoof.twitch_interactive" / "sfx").string();
-        if (!geode::utils::file::createDirectoryAll(sfxDirPath))
+    auto sfxDirPath = (configDirPath / "arcticwoof.twitch_interactive" / "sfx").string();
+    if (!geode::utils::file::createDirectoryAll(sfxDirPath))
         {
             log::warn("[TwitchCommandManager] Failed to create sfx directory: \"{}\"", sfxDirPath);
         }
