@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include <natrium.hoverapi/include/Hover.hpp>
+
 #include "CommandSettingsPopup.hpp"
 #include "CommandActionEventNode.hpp"
 #include "CommandUserSettingsPopup.hpp"
@@ -424,13 +426,51 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     commandBtnMenu->setPosition(mainW / 2 - menuWidth / 2, 15.f);
     m_mainLayer->addChild(commandBtnMenu);
 
+    // Prepare tooltip layer (hidden by default)
+    if (!m_tooltipLayer)
+    {
+        m_tooltipLayer = CCNode::create();
+        m_tooltipLayer->setID("action-tooltip-layer");
+        m_tooltipLayer->setContentSize({200.f, 60.f});
+        m_tooltipLayer->setVisible(false);
+
+        if (auto bg = CCScale9Sprite::create("square01_001.png"))
+        {
+            // bg->setOpacity(190);
+            bg->setContentSize({220.f, 60.f});
+            bg->setAnchorPoint({1.f, 0.5f});
+            bg->setPosition({0.f, 0.f});
+            bg->setID("action-tooltip-bg");
+            m_tooltipBg = bg;
+            m_tooltipLayer->addChild(bg);
+        }
+
+        m_tooltipTitle = CCLabelBMFont::create("", "bigFont.fnt");
+        m_tooltipTitle->setScale(0.45f);
+        m_tooltipTitle->setAnchorPoint({0.f, 1.f});
+        m_tooltipTitle->setAlignment(kCCTextAlignmentLeft);
+        m_tooltipTitle->setPosition({0.f, 0.f});
+        m_tooltipTitle->setID("action-tooltip-title");
+        m_tooltipLayer->addChild(m_tooltipTitle);
+
+        m_tooltipBody = CCLabelBMFont::create("", "chatFont.fnt");
+        m_tooltipBody->setScale(0.5f);
+        m_tooltipBody->setAnchorPoint({0.f, 1.f});
+        m_tooltipBody->setAlignment(kCCTextAlignmentLeft);
+        m_tooltipBody->setPosition({0.f, -20.f});
+        m_tooltipBody->setID("action-tooltip-body");
+        m_tooltipLayer->addChild(m_tooltipBody);
+
+        m_mainLayer->addChild(m_tooltipLayer, 2000);
+    }
+
     return true;
 }
 
 // Handler for Show Cooldown checkbox
 void CommandSettingsPopup::onShowCooldownToggled(CCObject *sender)
 {
-    if (auto toggler = dynamic_cast<CCMenuItemToggler *>(sender))
+    if (auto toggler = typeinfo_cast<CCMenuItemToggler *>(sender))
     {
         m_showCooldown = toggler->isToggled();
         m_command.showCooldown = m_showCooldown;
@@ -864,6 +904,21 @@ void CommandSettingsPopup::refreshActionsList()
 {
     if (!m_actionContent)
         return;
+    // Stop any ongoing tooltip follow to avoid dangling node pointers during rebuild
+    this->unscheduleTooltipFollow();
+    this->hideTooltip();
+    if (auto hover = Hover::get(this))
+        hover->clear();
+
+    // Respect mod setting for showing tooltips; hide immediately if disabled
+    bool tooltipsEnabled = false;
+    if (auto mod = Mod::get())
+        tooltipsEnabled = mod->getSettingValue<bool>("tooltip");
+    if (!tooltipsEnabled)
+    {
+        this->unscheduleTooltipFollow();
+        this->hideTooltip();
+    }
 
     m_actionContent->removeAllChildren();
 
@@ -1119,12 +1174,16 @@ void CommandSettingsPopup::refreshActionsList()
                 }
 
                 // Trim whitespace
-                auto trim = [](std::string &s) {
-                    if (s.empty()) return;
+                auto trim = [](std::string &s)
+                {
+                    if (s.empty())
+                        return;
                     s.erase(0, s.find_first_not_of(" \t\n\r"));
                     size_t end = s.find_last_not_of(" \t\n\r");
-                    if (end != std::string::npos) s.erase(end + 1);
-                    else s.clear();
+                    if (end != std::string::npos)
+                        s.erase(end + 1);
+                    else
+                        s.clear();
                 };
                 trim(key);
                 trim(duration);
@@ -1532,8 +1591,186 @@ void CommandSettingsPopup::refreshActionsList()
 
         actionNodeY -= (nodeHeight + actionNodeGap);
         actionIndex++;
+
+        // Hover tooltip wiring using HoverAPI
+        auto hover = Hover::get(this);
+        if (hover && tooltipsEnabled)
+        {
+            // Make hover area slightly larger for easier activation
+            hover->setHoverPadding(actionNode, 3.f);
+
+            // Compute final title/body used in tooltip
+            std::string tooltipTitle = mainLabelText;
+            std::string tooltipBody = hasSettingsHandler ? settingsLabelText : "";
+
+            hover->watch(
+                actionNode,
+                [this, actionNode, tooltipTitle, tooltipBody](CCNode *)
+                {
+                    // Start following this node; position near cursor using hover rect
+                    this->scheduleTooltipFollow(actionNode, tooltipTitle, tooltipBody);
+                },
+                [this](CCNode *)
+                {
+                    this->unscheduleTooltipFollow();
+                    this->hideTooltip();
+                });
+        }
     };
 };
+
+void CommandSettingsPopup::showTooltip(const std::string &title, const std::string &body, const CCPoint &parentPos)
+{
+    // Respect mod setting; don't show if disabled
+    bool tooltipsEnabled = false;
+    if (auto mod = Mod::get())
+        tooltipsEnabled = mod->getSettingValue<bool>("tooltip");
+    if (!tooltipsEnabled)
+    {
+        this->hideTooltip();
+        return;
+    }
+
+    m_tooltipTitleText = title;
+    m_tooltipBodyText = body;
+    if (m_tooltipTitle)
+        m_tooltipTitle->setString(title.c_str());
+    if (m_tooltipBody)
+        m_tooltipBody->setString(body.c_str());
+
+    // Resize background to fit text
+    float paddingX = 22.f;
+    float paddingY = 10.f;
+    float width = 0.f;
+    if (m_tooltipTitle)
+        width = std::max(width, m_tooltipTitle->getContentSize().width * m_tooltipTitle->getScale());
+    if (m_tooltipBody && !body.empty())
+        width = std::max(width, m_tooltipBody->getContentSize().width * m_tooltipBody->getScale());
+    width = std::max(width, 100.f);
+    float height = 36.f + (body.empty() ? 0.f : 18.f);
+    if (auto bg = typeinfo_cast<CCScale9Sprite *>(m_tooltipBg))
+        bg->setContentSize({width + paddingX, height + paddingY});
+
+    // Position with a small offset from provided parent coordinates
+    CCPoint pos = parentPos;
+    pos.x += 14.f;
+    pos.y -= 10.f;
+    if (m_tooltipLayer)
+    {
+        m_tooltipLayer->setPosition(pos);
+        m_tooltipLayer->setVisible(true);
+    }
+
+    // Center title and body inside the tooltip background
+    if (auto bg = typeinfo_cast<CCScale9Sprite *>(m_tooltipBg))
+    {
+        const CCSize sz = bg->getContentSize();
+        const CCPoint ap = bg->getAnchorPoint();
+        const CCPoint bgPos = bg->getPosition();
+
+        // Center point of background in tooltip layer coordinates
+        CCPoint center = {bgPos.x + (0.5f - ap.x) * sz.width, bgPos.y + (0.5f - ap.y) * sz.height};
+
+        const float gap = 2.f;
+        float titleH = m_tooltipTitle ? (m_tooltipTitle->getContentSize().height * m_tooltipTitle->getScale()) : 0.f;
+        float bodyH = (m_tooltipBody && !body.empty()) ? (m_tooltipBody->getContentSize().height * m_tooltipBody->getScale()) : 0.f;
+        float totalH = titleH + (bodyH > 0.f ? gap + bodyH : 0.f);
+        float topY = center.y + totalH / 2.f;
+
+        if (m_tooltipTitle)
+        {
+            m_tooltipTitle->setAnchorPoint({0.5f, 1.f});
+            m_tooltipTitle->setAlignment(kCCTextAlignmentCenter);
+            m_tooltipTitle->setPosition({center.x, topY});
+        }
+
+        if (m_tooltipBody)
+        {
+            m_tooltipBody->setAnchorPoint({0.5f, 1.f});
+            m_tooltipBody->setAlignment(kCCTextAlignmentCenter);
+            if (bodyH > 0.f)
+            {
+                float bodyTop = topY - titleH - gap;
+                m_tooltipBody->setPosition({center.x, bodyTop});
+            }
+            else
+            {
+                m_tooltipBody->setPosition({center.x, center.y});
+            }
+        }
+    }
+}
+
+void CommandSettingsPopup::hideTooltip()
+{
+    if (m_tooltipLayer)
+        m_tooltipLayer->setVisible(false);
+}
+
+void CommandSettingsPopup::scheduleTooltipFollow(CCNode *watchedNode, const std::string &title, const std::string &body)
+{
+    // Respect mod setting; don't schedule if disabled
+    bool tooltipsEnabled = false;
+    if (auto mod = Mod::get())
+        tooltipsEnabled = mod->getSettingValue<bool>("tooltip");
+    if (!tooltipsEnabled)
+        return;
+    // Release any previous node we were following
+    if (m_tooltipFollowNode)
+    {
+        m_tooltipFollowNode->release();
+        m_tooltipFollowNode = nullptr;
+    }
+    // Retain the node to ensure it isn't deleted while we are following it
+    m_tooltipFollowNode = watchedNode;
+    if (m_tooltipFollowNode)
+        m_tooltipFollowNode->retain();
+    // Show immediately at current hover rect
+    auto hover = Hover::get(this);
+    if (hover && watchedNode)
+    {
+        auto rect = hover->getHoverRect(watchedNode);
+        // Use top-left of hover rect as anchor; CommandSettingsPopup is parent of tooltip layer
+        CCPoint pos = {rect.getMinX(), rect.getMaxY()};
+        showTooltip(title, body, pos);
+    }
+    this->schedule(schedule_selector(CommandSettingsPopup::updateTooltipFollow), 0.05f);
+}
+
+void CommandSettingsPopup::unscheduleTooltipFollow()
+{
+    this->unschedule(schedule_selector(CommandSettingsPopup::updateTooltipFollow));
+    if (m_tooltipFollowNode)
+    {
+        m_tooltipFollowNode->release();
+        m_tooltipFollowNode = nullptr;
+    }
+}
+
+void CommandSettingsPopup::updateTooltipFollow(float)
+{
+    // If disabled at runtime, stop following and hide
+    bool tooltipsEnabled = false;
+    if (auto mod = Mod::get())
+        tooltipsEnabled = mod->getSettingValue<bool>("tooltip");
+    if (!tooltipsEnabled)
+    {
+        this->unscheduleTooltipFollow();
+        this->hideTooltip();
+        return;
+    }
+
+    if (!m_tooltipFollowNode)
+        return;
+    auto hover = Hover::get(this);
+    if (!hover)
+        return;
+    // Move tooltip to follow the hover rectangle, approximating cursor location
+    auto rect = hover->getHoverRect(m_tooltipFollowNode);
+    CCPoint pos = {rect.getMinX(), rect.getMaxY()};
+    if (m_tooltipLayer)
+        m_tooltipLayer->setPosition({pos.x + 14.f, pos.y - 10.f});
+}
 
 void CommandSettingsPopup::onRemoveAction(CCObject *sender)
 {
@@ -1565,6 +1802,9 @@ void CommandSettingsPopup::onClose(CCObject *sender)
         {
             if (btn2)
             {
+                // Stop tooltip follow and release any retained node before closing
+                this->unscheduleTooltipFollow();
+                this->hideTooltip();
                 this->removeFromParent();
             }
         });

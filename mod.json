@@ -8,7 +8,7 @@
 	},
 	"id": "arcticwoof.twitch_interactive",
 	"name": "Twitch Interactive",
-	"version": "v0.1.11-beta.1",
+	"version": "v0.1.12-beta.1",
 	"developer": "ArcticWoof",
 	"description": "Allows Twitch viewers to interact in game",
 	"tags": [
@@ -36,6 +36,10 @@
 		"alphalaneous.twitch_chat_api": {
 			"importance": "required",
 			"version": ">=0.1.0-alpha.1"
+		},
+		"natrium.hoverapi": {
+			"importance": "recommended",
+			"version": ">=1.0.0"
 		}
 	},
 	"settings": {
@@ -44,6 +48,12 @@
 			"name": "Experimental Features",
 			"description": "Enable experimental features. <co>Watch out for bugs!</c>",
 			"default": false
+		},
+		"tooltip": {
+			"type": "bool",
+			"name": "Tooltip",
+			"description": "Enable tooltips for Action Nodes. <co>Required HoverAPI mod</c>",
+			"default": true
 		}
 	}
 }

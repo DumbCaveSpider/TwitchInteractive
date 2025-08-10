@@ -1,8 +1,10 @@
 TODO:
 [Important]
 - Add a way to sort twitch commands
+- Add preview colors in the color settings
 [Minor]
 - add Open Level Info (allows users/viewers to directly open a level xd "LevelInfo" (broken atm cuz forgor how to do it properly))
+- force open level (basically opens forcefully open a level based on the id)
 - custom global prefix command
 - Add custom jumpscare images (use lazysprite)
 [Future-Features]

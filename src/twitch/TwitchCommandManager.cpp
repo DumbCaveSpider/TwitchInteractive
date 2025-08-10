@@ -337,7 +337,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage &chatMessage)
                 {
                     if (auto *popup = scene->getChildByID("command-settings-popup"))
                     {
-                        if (auto *cmdPopup = dynamic_cast<CommandSettingsPopup *>(popup))
+                        if (auto *cmdPopup = typeinfo_cast<CommandSettingsPopup *>(popup))
                         {
                             showCooldown = cmdPopup->getShowCooldown();
                         }

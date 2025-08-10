@@ -28,8 +28,8 @@ protected:
     CommandListPopup *m_parent = nullptr;
     std::string m_eventSearchString;
     std::string m_lastEventSearchString;
-    geode::TextInput* m_eventSearchInput = nullptr;
-    std::function<void(const std::string&)> m_refreshEventNodeList = nullptr;
+    geode::TextInput *m_eventSearchInput = nullptr;
+    std::function<void(const std::string &)> m_refreshEventNodeList = nullptr;
     void onEventSearchPoll(float);
 
     bool setup(TwitchCommand command) override;
@@ -63,13 +63,27 @@ public:
     void onEditCameraSettings(cocos2d::CCObject *sender);
     void onGravitySettings(CCObject *sender);
     void onSpeedSettings(CCObject *sender);
-    
-        // Show Cooldown checkbox state and UI
-        bool m_showCooldown = false;
-        CCMenuItemToggler* m_showCooldownCheckbox = nullptr;
-        void onShowCooldownToggled(CCObject* sender);
-        bool getShowCooldown() const;
-        void setShowCooldown(bool value);
+
+    // Show Cooldown checkbox state and UI
+    bool m_showCooldown = false;
+    CCMenuItemToggler *m_showCooldownCheckbox = nullptr;
+    void onShowCooldownToggled(CCObject *sender);
+    bool getShowCooldown() const;
+    void setShowCooldown(bool value);
+
+    // Tooltip state (HoverAPI-driven)
+    cocos2d::CCNode *m_tooltipLayer = nullptr;
+    cocos2d::CCNode *m_tooltipBg = nullptr;
+    cocos2d::CCLabelBMFont *m_tooltipTitle = nullptr;
+    cocos2d::CCLabelBMFont *m_tooltipBody = nullptr;
+    cocos2d::CCNode *m_tooltipFollowNode = nullptr;
+    std::string m_tooltipTitleText;
+    std::string m_tooltipBodyText;
+    void showTooltip(const std::string &title, const std::string &body, const cocos2d::CCPoint &parentPos);
+    void hideTooltip();
+    void scheduleTooltipFollow(cocos2d::CCNode *watchedNode, const std::string &title, const std::string &body);
+    void unscheduleTooltipFollow();
+    void updateTooltipFollow(float dt);
 
     float m_actionSectionHeight = 0.f;
     std::unordered_map<int, std::string> m_notificationActionTexts;
@@ -83,5 +97,5 @@ public:
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string &nextKey);
     void updateColorPlayerLabel(int actionIdx);
 
-    void onClose(CCObject* sender);
+    void onClose(CCObject *sender);
 };
