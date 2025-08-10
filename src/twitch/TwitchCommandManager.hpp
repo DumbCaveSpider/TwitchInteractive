@@ -683,6 +683,7 @@ struct ActionContext : public CCObject
 
             std::string notifText;
             std::string argStr = action.arg;
+            float notifTime = 0.0f;
 
             if (argStr.size() >= 13)
             {
@@ -695,20 +696,23 @@ struct ActionContext : public CCObject
                 {
                     std::string rest = argStr.substr(13);
                     size_t colonPos = rest.find(":");
-
                     if (colonPos != std::string::npos)
                     {
                         std::string iconPart = rest.substr(0, colonPos);
-
+                        std::string afterIcon = rest.substr(colonPos + 1);
+                        size_t timeSep = afterIcon.rfind(":");
                         if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos)
                         {
                             iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
-                            notifText = rest.substr(colonPos + 1);
                         }
-                        else
-                        {
-                            notifText = rest.substr(colonPos + 1);
-                        };
+                        if (timeSep != std::string::npos) {
+                            notifText = afterIcon.substr(0, timeSep);
+                            std::string timeStr = afterIcon.substr(timeSep + 1);
+                            if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
+                                notifTime = numFromString<float>(timeStr).unwrapOrDefault();
+                        } else {
+                            notifText = afterIcon;
+                        }
                     }
                     else
                     {
@@ -718,20 +722,23 @@ struct ActionContext : public CCObject
                 else
                 {
                     size_t colonPos = argStr.find(":");
-
                     if (colonPos != std::string::npos)
                     {
                         std::string iconPart = argStr.substr(0, colonPos);
-
+                        std::string afterIcon = argStr.substr(colonPos + 1);
+                        size_t timeSep = afterIcon.rfind(":");
                         if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos)
                         {
                             iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
-                            notifText = argStr.substr(colonPos + 1);
                         }
-                        else
-                        {
-                            notifText = argStr.substr(colonPos + 1);
-                        };
+                        if (timeSep != std::string::npos) {
+                            notifText = afterIcon.substr(0, timeSep);
+                            std::string timeStr = afterIcon.substr(timeSep + 1);
+                            if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
+                                notifTime = numFromString<float>(timeStr).unwrapOrDefault();
+                        } else {
+                            notifText = afterIcon;
+                        }
                     }
                     else
                     {
@@ -742,20 +749,23 @@ struct ActionContext : public CCObject
             else
             {
                 size_t colonPos = argStr.find(":");
-
                 if (colonPos != std::string::npos)
                 {
                     std::string iconPart = argStr.substr(0, colonPos);
-
+                    std::string afterIcon = argStr.substr(colonPos + 1);
+                    size_t timeSep = afterIcon.rfind(":");
                     if (!iconPart.empty() && iconPart.find_first_not_of("0123456789") == std::string::npos)
                     {
                         iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
-                        notifText = argStr.substr(colonPos + 1);
                     }
-                    else
-                    {
-                        notifText = argStr.substr(colonPos + 1);
-                    };
+                    if (timeSep != std::string::npos) {
+                        notifText = afterIcon.substr(0, timeSep);
+                        std::string timeStr = afterIcon.substr(timeSep + 1);
+                        if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
+                            notifTime = numFromString<float>(timeStr).unwrapOrDefault();
+                    } else {
+                        notifText = afterIcon;
+                    }
                 }
                 else
                 {
@@ -797,8 +807,8 @@ struct ActionContext : public CCObject
                 break;
             };
 
-            log::info("Showing notification: {} (icon: {}, command: {})", notifText, iconTypeInt, ctx->commandName);
-            Notification::create(notifText, icon)->show();
+            log::info("Showing notification: {} (icon: {}, time: {:.2f}, command: {})", notifText, iconTypeInt, notifTime, ctx->commandName);
+            Notification::create(notifText, icon, notifTime)->show();
         };
 
         // Add more action types here as needed

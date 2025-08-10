@@ -507,11 +507,12 @@ namespace SettingsHandler {
             return;
 
         int iconTypeInt = 1;
-
         std::string notifText;
+        float notifTime = 0.0f;
 
         size_t firstColon = actionStr.find(":");
         size_t secondColon = actionStr.find(":", firstColon + 1);
+    size_t thirdColon = std::string::npos;
 
         if (firstColon != std::string::npos && secondColon != std::string::npos) {
             {
@@ -522,7 +523,19 @@ namespace SettingsHandler {
                 if (parsedIcon)
                     iconTypeInt = parsedIcon.unwrap();
             }
-            notifText = actionStr.substr(secondColon + 1);
+            // check for optional :time
+            thirdColon = actionStr.rfind(":");
+            if (thirdColon != std::string::npos && thirdColon > secondColon) {
+                notifText = actionStr.substr(secondColon + 1, thirdColon - secondColon - 1);
+                std::string timeStr = actionStr.substr(thirdColon + 1);
+                timeStr.erase(0, timeStr.find_first_not_of(" \t\n\r"));
+                timeStr.erase(timeStr.find_last_not_of(" \t\n\r") + 1);
+                auto parsedTime = numFromString<float>(timeStr);
+                if (parsedTime)
+                    notifTime = parsedTime.unwrap();
+            } else {
+                notifText = actionStr.substr(secondColon + 1);
+            }
         } else if (actionStr.length() > 13) {
             notifText = actionStr.substr(13);
         } else {
@@ -531,11 +544,12 @@ namespace SettingsHandler {
 
         NotificationSettingsPopup::create(
             notifText,
-            [popup, idx](const std::string& newText, NotificationIconType newIconType) {
-                popup->updateNotificationNextTextLabel(idx, newText, newIconType);
+            [popup, idx](const std::string& newText, NotificationIconType newIconType, float newTime) {
+                popup->updateNotificationNextTextLabel(idx, newText, newIconType, newTime);
                 popup->refreshActionsList();
             },
-            static_cast<NotificationIconType>(iconTypeInt))
+            static_cast<NotificationIconType>(iconTypeInt),
+            notifTime)
             ->show();
     };
 

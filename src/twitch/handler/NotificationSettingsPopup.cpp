@@ -13,7 +13,7 @@ bool NotificationSettingsPopup::setup(std::string notificationText)
     setTitle("Edit Notification");
     setID("notification-settings-popup");
 
-    float y = 100.f;
+    float y = 120.f;
     float x = m_mainLayer->getContentSize().width / 2;
 
     m_noElasticity = true;
@@ -28,8 +28,18 @@ bool NotificationSettingsPopup::setup(std::string notificationText)
 
     m_mainLayer->addChild(m_input);
 
+    // Time input for notification duration (seconds)
+    float timeY = y - 20.f;
+    m_timeInput = TextInput::create(80, "Time (s)", "bigFont.fnt");
+    m_timeInput->setCommonFilter(CommonFilter::Float);
+    m_timeInput->setID("notification-time-input");
+    m_timeInput->setString(fmt::format("{:.2f}", m_time).c_str());
+    m_timeInput->setPosition(x, timeY);
+    m_timeInput->setScale(0.6f);
+    m_mainLayer->addChild(m_timeInput);
+
     // Icon selector UI
-    float iconY = y - 28.f;
+    float iconY = y - 48.f;
     float arrowOffset = 60.f;
 
     // Left arrow
@@ -88,8 +98,19 @@ bool NotificationSettingsPopup::setup(std::string notificationText)
 void NotificationSettingsPopup::onSave(cocos2d::CCObject *sender)
 {
     std::string text = m_input ? m_input->getString() : "";
+    // Parse time
+    float time = 0.0f;
+    if (m_timeInput) {
+        std::string t = m_timeInput->getString();
+        t.erase(0, t.find_first_not_of(" \t\n\r"));
+        if (!t.empty()) {
+            auto parsed = numFromString<float>(t);
+            if (parsed) time = parsed.unwrap();
+        }
+    }
+    m_time = time;
     if (m_onSelect)
-        m_onSelect(text, m_iconType);
+        m_onSelect(text, m_iconType, m_time);
 
     onClose(nullptr);
 };
@@ -128,14 +149,15 @@ void NotificationSettingsPopup::updateIconLabel()
     float arrowOffset = 60.f;
 };
 
-NotificationSettingsPopup *NotificationSettingsPopup::create(const std::string &notificationText, std::function<void(const std::string &, NotificationIconType)> onSelect, NotificationIconType iconType)
+NotificationSettingsPopup *NotificationSettingsPopup::create(const std::string &notificationText, std::function<void(const std::string &, NotificationIconType, float)> onSelect, NotificationIconType iconType, float time)
 {
     auto ret = new NotificationSettingsPopup();
 
     ret->m_onSelect = onSelect;
     ret->m_iconType = iconType;
+    ret->m_time = time;
 
-    if (ret && ret->initAnchored(220.f, 160.f, notificationText))
+    if (ret && ret->initAnchored(220.f, 180.f, notificationText))
     {
         ret->autorelease();
         return ret;

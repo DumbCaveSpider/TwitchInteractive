@@ -78,7 +78,7 @@ public:
 
     void refreshActionsList();
 
-    void updateNotificationNextTextLabel(int actionIdx, const std::string &nextText, NotificationIconType iconType);
+    void updateNotificationNextTextLabel(int actionIdx, const std::string &nextText, NotificationIconType iconType, float timeSeconds);
     void updateKeyCodeNextTextLabel(int actionIdx, const std::string &nextKey);
     void updateColorPlayerLabel(int actionIdx);
 

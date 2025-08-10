@@ -21,15 +21,17 @@ protected:
     CCMenuItemSpriteExtra *m_rightArrow = nullptr;
     std::string m_notificationText;
     NotificationIconType m_iconType = NotificationIconType::Info;
-    std::function<void(const std::string &, NotificationIconType)> m_onSelect;
+    std::function<void(const std::string &, NotificationIconType, float)> m_onSelect;
     bool setup(std::string notificationText) override;
     void onSave(cocos2d::CCObject *sender);
     void onLeftIcon(cocos2d::CCObject *sender);
     void onRightIcon(cocos2d::CCObject *sender);
     geode::TextInput *m_input = nullptr;
+    geode::TextInput *m_timeInput = nullptr;
     cocos2d::CCLabelBMFont *m_iconLabel = nullptr;
     void updateIconLabel();
+    float m_time = 0.0f;
 
 public:
-    static NotificationSettingsPopup *create(const std::string &notificationText, std::function<void(const std::string &, NotificationIconType)> onSelect, NotificationIconType iconType = NotificationIconType::Info);
+    static NotificationSettingsPopup *create(const std::string &notificationText, std::function<void(const std::string &, NotificationIconType, float)> onSelect, NotificationIconType iconType = NotificationIconType::Info, float time = 0.0f);
 };

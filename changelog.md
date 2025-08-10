@@ -6,6 +6,7 @@
 - Added extra options for the **Sound Effect** action settings (Speed, Volume, Pitch, Start, End)
 - Fixed **Wait** action time value disappearing when adding/moving actions.
 - Replaced the input fonts to **Pusab**
+- Added Time value on the **Notification** action settings.
 
 # v0.1.10-beta.1
 - Added **Experimental Features** option in the Mod Settings.
