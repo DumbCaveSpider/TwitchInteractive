@@ -22,7 +22,7 @@ protected:
     bool setup() override;
     void onAdd(CCObject *sender);
     CCMenu *createButtonMenu();
-    void onClose(CCObject *sender);
+    void onClose(CCObject *sender) override;
 
 public:
     static CommandInputPopup *create(std::function<void(const std::string &, const std::string &)> callback);

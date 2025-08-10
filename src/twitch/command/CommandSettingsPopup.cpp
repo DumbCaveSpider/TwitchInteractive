@@ -1098,14 +1098,46 @@ void CommandSettingsPopup::refreshActionsList()
             }
             else if (actionIdLower.rfind("keycode", 0) == 0)
             {
-                size_t colon = actionIdRaw.find(":");
+                // keycode:<key>
+                // keycode:<key>:<duration>
                 std::string key;
-                if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
+                std::string duration;
+
+                size_t firstColon = actionIdRaw.find(":");
+                if (firstColon != std::string::npos)
                 {
-                    key = actionIdRaw.substr(colon + 1);
-                    settingsLabelText = "Key: " + key;
+                    size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                    if (secondColon != std::string::npos)
+                    {
+                        key = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                        duration = actionIdRaw.substr(secondColon + 1);
+                    }
+                    else
+                    {
+                        key = actionIdRaw.substr(firstColon + 1);
+                    }
+                }
+
+                // Trim whitespace
+                auto trim = [](std::string &s) {
+                    if (s.empty()) return;
+                    s.erase(0, s.find_first_not_of(" \t\n\r"));
+                    size_t end = s.find_last_not_of(" \t\n\r");
+                    if (end != std::string::npos) s.erase(end + 1);
+                    else s.clear();
                 };
-                if (key.empty())
+                trim(key);
+                trim(duration);
+
+                if (!key.empty())
+                {
+                    settingsLabelText = "Key: " + key;
+                    if (!duration.empty())
+                    {
+                        settingsLabelText += " (" + duration + "s)";
+                    }
+                }
+                else
                 {
                     settingsLabelText = "Key: None";
                 }
