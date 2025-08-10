@@ -200,8 +200,8 @@ struct ActionContext : public CCObject
         static std::mt19937 rng(std::random_device{}());
         while ((rpos = result.find("${rng", rpos)) != std::string::npos)
         {
-            size_t start = rpos;                 // position of '${rng'
-            size_t paramsBegin = rpos + 5;       // after '${rng'
+            size_t start = rpos;           // position of '${rng'
+            size_t paramsBegin = rpos + 5; // after '${rng'
             size_t endBrace = result.find('}', paramsBegin);
             if (endBrace == std::string::npos)
                 break; // malformed; stop processing further
@@ -232,11 +232,16 @@ struct ActionContext : public CCObject
 
             auto isInt = [](const std::string &s) -> bool
             {
-                if (s.empty()) return false;
+                if (s.empty())
+                    return false;
                 size_t i = 0;
-                if (s[0] == '-' || s[0] == '+') i = 1;
-                if (i >= s.size()) return false;
-                for (; i < s.size(); ++i) if (s[i] < '0' || s[i] > '9') return false;
+                if (s[0] == '-' || s[0] == '+')
+                    i = 1;
+                if (i >= s.size())
+                    return false;
+                for (; i < s.size(); ++i)
+                    if (s[i] < '0' || s[i] > '9')
+                        return false;
                 return true;
             };
 
@@ -248,7 +253,8 @@ struct ActionContext : public CCObject
 
             int minV = numFromString<int>(minStr).unwrapOrDefault();
             int maxV = numFromString<int>(maxStr).unwrapOrDefault();
-            if (minV > maxV) std::swap(minV, maxV);
+            if (minV > maxV)
+                std::swap(minV, maxV);
 
             std::uniform_int_distribution<int> dist(minV, maxV);
             int value = dist(rng);
@@ -399,39 +405,133 @@ struct ActionContext : public CCObject
                     // punctuation by known VK codes used elsewhere
                     switch (c)
                     {
-                    case ';': code = static_cast<cocos2d::enumKeyCodes>(4101); found = true; break;
-                    case '=': code = static_cast<cocos2d::enumKeyCodes>(4097); found = true; break;
-                    case ',': code = static_cast<cocos2d::enumKeyCodes>(188);  found = true; break;
-                    case '-': code = static_cast<cocos2d::enumKeyCodes>(189);  found = true; break;
-                    case '.': code = static_cast<cocos2d::enumKeyCodes>(190);  found = true; break;
-                    case '/': code = static_cast<cocos2d::enumKeyCodes>(4103); found = true; break;
-                    case '`': code = static_cast<cocos2d::enumKeyCodes>(4096); found = true; break;
-                    case '[': code = static_cast<cocos2d::enumKeyCodes>(4098); found = true; break;
-                    case '\\': code = static_cast<cocos2d::enumKeyCodes>(4100); found = true; break;
-                    case ']': code = static_cast<cocos2d::enumKeyCodes>(4099); found = true; break;
-                    case '\'': code = static_cast<cocos2d::enumKeyCodes>(4102); found = true; break;
-                    default: break;
+                    case ';':
+                        code = static_cast<cocos2d::enumKeyCodes>(4101);
+                        found = true;
+                        break;
+                    case '=':
+                        code = static_cast<cocos2d::enumKeyCodes>(4097);
+                        found = true;
+                        break;
+                    case ',':
+                        code = static_cast<cocos2d::enumKeyCodes>(188);
+                        found = true;
+                        break;
+                    case '-':
+                        code = static_cast<cocos2d::enumKeyCodes>(189);
+                        found = true;
+                        break;
+                    case '.':
+                        code = static_cast<cocos2d::enumKeyCodes>(190);
+                        found = true;
+                        break;
+                    case '/':
+                        code = static_cast<cocos2d::enumKeyCodes>(4103);
+                        found = true;
+                        break;
+                    case '`':
+                        code = static_cast<cocos2d::enumKeyCodes>(4096);
+                        found = true;
+                        break;
+                    case '[':
+                        code = static_cast<cocos2d::enumKeyCodes>(4098);
+                        found = true;
+                        break;
+                    case '\\':
+                        code = static_cast<cocos2d::enumKeyCodes>(4100);
+                        found = true;
+                        break;
+                    case ']':
+                        code = static_cast<cocos2d::enumKeyCodes>(4099);
+                        found = true;
+                        break;
+                    case '\'':
+                        code = static_cast<cocos2d::enumKeyCodes>(4102);
+                        found = true;
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
             else
             {
                 // named keys
-                if (up == "SPACE") { code = cocos2d::KEY_Space; found = true; }
-                else if (up == "ENTER" || up == "RETURN") { code = cocos2d::KEY_Enter; found = true; }
-                else if (up == "ESC" || up == "ESCAPE") { code = cocos2d::KEY_Escape; found = true; }
-                else if (up == "LEFT") { code = cocos2d::KEY_Left; found = true; }
-                else if (up == "RIGHT") { code = cocos2d::KEY_Right; found = true; }
-                else if (up == "UP") { code = cocos2d::KEY_Up; found = true; }
-                else if (up == "DOWN") { code = cocos2d::KEY_Down; found = true; }
-                else if (up == "TAB") { code = cocos2d::KEY_Tab; found = true; }
-                else if (up == "BACKSPACE" || up == "BKSP") { code = cocos2d::KEY_Backspace; found = true; }
-                else if (up == "SHIFT") { code = cocos2d::KEY_Shift; found = true; }
-                else if (up == "CTRL" || up == "CONTROL") { code = cocos2d::KEY_Control; found = true; }
-                else if (up == "ALT") { code = cocos2d::KEY_Alt; found = true; }
-                else if (up == "CAPSLOCK") { code = static_cast<cocos2d::enumKeyCodes>(20); found = true; }
-                else if (up == "LEFTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(160); found = true; }
-                else if (up == "RIGHTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(161); found = true; }
+                if (up == "SPACE")
+                {
+                    code = cocos2d::KEY_Space;
+                    found = true;
+                }
+                else if (up == "ENTER" || up == "RETURN")
+                {
+                    code = cocos2d::KEY_Enter;
+                    found = true;
+                }
+                else if (up == "ESC" || up == "ESCAPE")
+                {
+                    code = cocos2d::KEY_Escape;
+                    found = true;
+                }
+                else if (up == "LEFT")
+                {
+                    code = cocos2d::KEY_Left;
+                    found = true;
+                }
+                else if (up == "RIGHT")
+                {
+                    code = cocos2d::KEY_Right;
+                    found = true;
+                }
+                else if (up == "UP")
+                {
+                    code = cocos2d::KEY_Up;
+                    found = true;
+                }
+                else if (up == "DOWN")
+                {
+                    code = cocos2d::KEY_Down;
+                    found = true;
+                }
+                else if (up == "TAB")
+                {
+                    code = cocos2d::KEY_Tab;
+                    found = true;
+                }
+                else if (up == "BACKSPACE" || up == "BKSP")
+                {
+                    code = cocos2d::KEY_Backspace;
+                    found = true;
+                }
+                else if (up == "SHIFT")
+                {
+                    code = cocos2d::KEY_Shift;
+                    found = true;
+                }
+                else if (up == "CTRL" || up == "CONTROL")
+                {
+                    code = cocos2d::KEY_Control;
+                    found = true;
+                }
+                else if (up == "ALT")
+                {
+                    code = cocos2d::KEY_Alt;
+                    found = true;
+                }
+                else if (up == "CAPSLOCK")
+                {
+                    code = static_cast<cocos2d::enumKeyCodes>(20);
+                    found = true;
+                }
+                else if (up == "LEFTSHIFT")
+                {
+                    code = static_cast<cocos2d::enumKeyCodes>(160);
+                    found = true;
+                }
+                else if (up == "RIGHTSHIFT")
+                {
+                    code = static_cast<cocos2d::enumKeyCodes>(161);
+                    found = true;
+                }
             }
 
             if (!found)
@@ -455,9 +555,8 @@ struct ActionContext : public CCObject
                     {
                         if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                         {
-                            auto node = KeyReleaseScheduler::create([disp, code]() {
-                                disp->dispatchKeyboardMSG(code, false, false);
-                            }, duration);
+                            auto node = KeyReleaseScheduler::create([disp, code]()
+                                                                    { disp->dispatchKeyboardMSG(code, false, false); }, duration);
                             if (node)
                                 scene->addChild(node);
                         }
@@ -518,44 +617,148 @@ struct ActionContext : public CCObject
                 if (keyStr.size() == 1)
                 {
                     char c = keyStr[0];
-                    if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
-                    if (c >= 'A' && c <= 'Z') { code = static_cast<cocos2d::enumKeyCodes>(cocos2d::KEY_A + (c - 'A')); found = true; }
-                    else if (c >= '0' && c <= '9') { code = static_cast<cocos2d::enumKeyCodes>(c); found = true; }
-                    else {
+                    if (c >= 'a' && c <= 'z')
+                        c = static_cast<char>(c - 'a' + 'A');
+                    if (c >= 'A' && c <= 'Z')
+                    {
+                        code = static_cast<cocos2d::enumKeyCodes>(cocos2d::KEY_A + (c - 'A'));
+                        found = true;
+                    }
+                    else if (c >= '0' && c <= '9')
+                    {
+                        code = static_cast<cocos2d::enumKeyCodes>(c);
+                        found = true;
+                    }
+                    else
+                    {
                         switch (c)
                         {
-                        case ';': code = static_cast<cocos2d::enumKeyCodes>(4101); found = true; break;
-                        case '=': code = static_cast<cocos2d::enumKeyCodes>(4097); found = true; break;
-                        case ',': code = static_cast<cocos2d::enumKeyCodes>(188);  found = true; break;
-                        case '-': code = static_cast<cocos2d::enumKeyCodes>(189);  found = true; break;
-                        case '.': code = static_cast<cocos2d::enumKeyCodes>(190);  found = true; break;
-                        case '/': code = static_cast<cocos2d::enumKeyCodes>(4103); found = true; break;
-                        case '`': code = static_cast<cocos2d::enumKeyCodes>(4096); found = true; break;
-                        case '[': code = static_cast<cocos2d::enumKeyCodes>(4098); found = true; break;
-                        case '\\': code = static_cast<cocos2d::enumKeyCodes>(4100); found = true; break;
-                        case ']': code = static_cast<cocos2d::enumKeyCodes>(4099); found = true; break;
-                        case '\'': code = static_cast<cocos2d::enumKeyCodes>(4102); found = true; break;
-                        default: break;
+                        case ';':
+                            code = static_cast<cocos2d::enumKeyCodes>(4101);
+                            found = true;
+                            break;
+                        case '=':
+                            code = static_cast<cocos2d::enumKeyCodes>(4097);
+                            found = true;
+                            break;
+                        case ',':
+                            code = static_cast<cocos2d::enumKeyCodes>(188);
+                            found = true;
+                            break;
+                        case '-':
+                            code = static_cast<cocos2d::enumKeyCodes>(189);
+                            found = true;
+                            break;
+                        case '.':
+                            code = static_cast<cocos2d::enumKeyCodes>(190);
+                            found = true;
+                            break;
+                        case '/':
+                            code = static_cast<cocos2d::enumKeyCodes>(4103);
+                            found = true;
+                            break;
+                        case '`':
+                            code = static_cast<cocos2d::enumKeyCodes>(4096);
+                            found = true;
+                            break;
+                        case '[':
+                            code = static_cast<cocos2d::enumKeyCodes>(4098);
+                            found = true;
+                            break;
+                        case '\\':
+                            code = static_cast<cocos2d::enumKeyCodes>(4100);
+                            found = true;
+                            break;
+                        case ']':
+                            code = static_cast<cocos2d::enumKeyCodes>(4099);
+                            found = true;
+                            break;
+                        case '\'':
+                            code = static_cast<cocos2d::enumKeyCodes>(4102);
+                            found = true;
+                            break;
+                        default:
+                            break;
                         }
                     }
                 }
                 else
                 {
-                    if (up == "SPACE") { code = cocos2d::KEY_Space; found = true; }
-                    else if (up == "ENTER" || up == "RETURN") { code = cocos2d::KEY_Enter; found = true; }
-                    else if (up == "ESC" || up == "ESCAPE") { code = cocos2d::KEY_Escape; found = true; }
-                    else if (up == "LEFT") { code = cocos2d::KEY_Left; found = true; }
-                    else if (up == "RIGHT") { code = cocos2d::KEY_Right; found = true; }
-                    else if (up == "UP") { code = cocos2d::KEY_Up; found = true; }
-                    else if (up == "DOWN") { code = cocos2d::KEY_Down; found = true; }
-                    else if (up == "TAB") { code = cocos2d::KEY_Tab; found = true; }
-                    else if (up == "BACKSPACE" || up == "BKSP") { code = cocos2d::KEY_Backspace; found = true; }
-                    else if (up == "SHIFT") { code = cocos2d::KEY_Shift; found = true; }
-                    else if (up == "CTRL" || up == "CONTROL") { code = cocos2d::KEY_Control; found = true; }
-                    else if (up == "ALT") { code = cocos2d::KEY_Alt; found = true; }
-                    else if (up == "CAPSLOCK") { code = static_cast<cocos2d::enumKeyCodes>(20); found = true; }
-                    else if (up == "LEFTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(160); found = true; }
-                    else if (up == "RIGHTSHIFT") { code = static_cast<cocos2d::enumKeyCodes>(161); found = true; }
+                    if (up == "SPACE")
+                    {
+                        code = cocos2d::KEY_Space;
+                        found = true;
+                    }
+                    else if (up == "ENTER" || up == "RETURN")
+                    {
+                        code = cocos2d::KEY_Enter;
+                        found = true;
+                    }
+                    else if (up == "ESC" || up == "ESCAPE")
+                    {
+                        code = cocos2d::KEY_Escape;
+                        found = true;
+                    }
+                    else if (up == "LEFT")
+                    {
+                        code = cocos2d::KEY_Left;
+                        found = true;
+                    }
+                    else if (up == "RIGHT")
+                    {
+                        code = cocos2d::KEY_Right;
+                        found = true;
+                    }
+                    else if (up == "UP")
+                    {
+                        code = cocos2d::KEY_Up;
+                        found = true;
+                    }
+                    else if (up == "DOWN")
+                    {
+                        code = cocos2d::KEY_Down;
+                        found = true;
+                    }
+                    else if (up == "TAB")
+                    {
+                        code = cocos2d::KEY_Tab;
+                        found = true;
+                    }
+                    else if (up == "BACKSPACE" || up == "BKSP")
+                    {
+                        code = cocos2d::KEY_Backspace;
+                        found = true;
+                    }
+                    else if (up == "SHIFT")
+                    {
+                        code = cocos2d::KEY_Shift;
+                        found = true;
+                    }
+                    else if (up == "CTRL" || up == "CONTROL")
+                    {
+                        code = cocos2d::KEY_Control;
+                        found = true;
+                    }
+                    else if (up == "ALT")
+                    {
+                        code = cocos2d::KEY_Alt;
+                        found = true;
+                    }
+                    else if (up == "CAPSLOCK")
+                    {
+                        code = static_cast<cocos2d::enumKeyCodes>(20);
+                        found = true;
+                    }
+                    else if (up == "LEFTSHIFT")
+                    {
+                        code = static_cast<cocos2d::enumKeyCodes>(160);
+                        found = true;
+                    }
+                    else if (up == "RIGHTSHIFT")
+                    {
+                        code = static_cast<cocos2d::enumKeyCodes>(161);
+                        found = true;
+                    }
                 }
 
                 if (!found)
@@ -565,7 +768,8 @@ struct ActionContext : public CCObject
                 else
                 {
                     auto disp = cocos2d::CCKeyboardDispatcher::get();
-                    if (!disp) disp = CCDirector::sharedDirector()->getKeyboardDispatcher();
+                    if (!disp)
+                        disp = CCDirector::sharedDirector()->getKeyboardDispatcher();
                     if (disp)
                     {
                         // key down
@@ -578,10 +782,10 @@ struct ActionContext : public CCObject
                         }
                         else if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                         {
-                            auto node = KeyReleaseScheduler::create([disp, code]() {
-                                disp->dispatchKeyboardMSG(code, false, false);
-                            }, duration);
-                            if (node) scene->addChild(node);
+                            auto node = KeyReleaseScheduler::create([disp, code]()
+                                                                    { disp->dispatchKeyboardMSG(code, false, false); }, duration);
+                            if (node)
+                                scene->addChild(node);
                         }
                         else
                         {
@@ -589,8 +793,6 @@ struct ActionContext : public CCObject
                         }
                     }
                 }
-
-                // continue to next action
             }
 
             // Noclip event: noclip:true or noclip:false
@@ -1028,12 +1230,15 @@ struct ActionContext : public CCObject
                         {
                             iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
                         }
-                        if (timeSep != std::string::npos) {
+                        if (timeSep != std::string::npos)
+                        {
                             notifText = afterIcon.substr(0, timeSep);
                             std::string timeStr = afterIcon.substr(timeSep + 1);
                             if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
                                 notifTime = numFromString<float>(timeStr).unwrapOrDefault();
-                        } else {
+                        }
+                        else
+                        {
                             notifText = afterIcon;
                         }
                     }
@@ -1054,12 +1259,15 @@ struct ActionContext : public CCObject
                         {
                             iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
                         }
-                        if (timeSep != std::string::npos) {
+                        if (timeSep != std::string::npos)
+                        {
                             notifText = afterIcon.substr(0, timeSep);
                             std::string timeStr = afterIcon.substr(timeSep + 1);
                             if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
                                 notifTime = numFromString<float>(timeStr).unwrapOrDefault();
-                        } else {
+                        }
+                        else
+                        {
                             notifText = afterIcon;
                         }
                     }
@@ -1081,12 +1289,15 @@ struct ActionContext : public CCObject
                     {
                         iconTypeInt = numFromString<int>(iconPart).unwrapOrDefault();
                     }
-                    if (timeSep != std::string::npos) {
+                    if (timeSep != std::string::npos)
+                    {
                         notifText = afterIcon.substr(0, timeSep);
                         std::string timeStr = afterIcon.substr(timeSep + 1);
                         if (!timeStr.empty() && timeStr.find_first_not_of("-.0123456789") == std::string::npos)
                             notifTime = numFromString<float>(timeStr).unwrapOrDefault();
-                    } else {
+                    }
+                    else
+                    {
                         notifText = afterIcon;
                     }
                 }
