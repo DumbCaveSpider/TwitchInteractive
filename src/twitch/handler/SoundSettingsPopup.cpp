@@ -1,6 +1,7 @@
 #include "SoundSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
+#include <Geode/utils/file.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <algorithm>
 #include <filesystem>
@@ -396,7 +397,11 @@ bool SoundSettingsPopup::setup()
     this->schedule(schedule_selector(SoundSettingsPopup::onSoundSearchPoll), 0.1f);
     m_lastSoundSearchString = "";
 
-    // Add save button below the scroll layer
+    // Add Custom SFX button (bottom-left) and Save button (center below scroll)
+    auto customBtnSprite = ButtonSprite::create("Custom SFX", "bigFont.fnt", "GJ_button_01.png", 0.5f);
+    auto customBtn = CCMenuItemSpriteExtra::create(customBtnSprite, this, menu_selector(SoundSettingsPopup::onOpenCustomSfx));
+    customBtn->setID("sound-custom-sfx-btn");
+
     auto saveBtnSprite = ButtonSprite::create("Save", "bigFont.fnt", "GJ_button_01.png", 0.6f);
     auto saveBtn = CCMenuItemSpriteExtra::create(saveBtnSprite, this, menu_selector(SoundSettingsPopup::onSaveBtn));
     saveBtn->setID("sound-settings-save-btn");
@@ -404,11 +409,16 @@ bool SoundSettingsPopup::setup()
     // Create a btnMenu for the button
     auto btnMenu = CCMenu::create();
     btnMenu->setID("sound-settings-btn-btnMenu");
+    btnMenu->addChild(customBtn);
     btnMenu->addChild(saveBtn);
 
     // Position the btnMenu centered horizontally, below the scroll layer
     float btnY = scrollLayer->getPositionY() - 25.f;
-    btnMenu->setPosition(popupSize.width / 2, btnY);
+    // Place custom on bottom-left, save centered
+    customBtn->setPosition({35.f, btnY});
+    customBtn->setAnchorPoint({0, 0.5f});
+    saveBtn->setPosition({popupSize.width / 2, btnY});
+    btnMenu->setPosition(0, 0);
 
     m_mainLayer->addChild(btnMenu);
 
@@ -528,6 +538,21 @@ void SoundSettingsPopup::onClose(CCObject *)
         audioEngine->stopAllEffects();
     }
     removeFromParentAndCleanup(true);
+}
+
+void SoundSettingsPopup::onOpenCustomSfx(CCObject *)
+{
+    // Ensure the directory exists then open it
+    auto base = geode::dirs::getModConfigDir();
+    auto sfx = (base / "arcticwoof.twitch_interactive" / "sfx").string();
+    if (!geode::utils::file::createDirectoryAll(sfx))
+    {
+        log::warn("[SoundSettingsPopup] Failed to create sfx folder: {}", sfx);
+    }
+    if (auto res = geode::utils::file::openFolder(sfx); !res)
+    {
+        log::warn("[SoundSettingsPopup] Failed to open sfx folder: {}", sfx);
+    }
 }
 
 // Select sound button handler

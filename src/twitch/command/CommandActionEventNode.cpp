@@ -535,7 +535,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"profile", "Profile", "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>"},
         {"nothing", "Nothing", "Does nothing at all."},
         {"scale_player", "Scale Player", "Scales the player in-game. <cr>Does not affect the player hitbox.</c>"},
-        {"sound", "Sound Effect", "Plays a sound effect. <cg>Only uses the provided sound effect included in game.</c>"},
+        {"sound", "Sound Effect", "Plays a sound effect. <cg>Supports Custom SFX and & GD default SFX.</c>"},
         {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately"},
         {"gravity", "Gravity Player", "Sets the player's gravity to a specified value for a duration."},
         {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration."},
