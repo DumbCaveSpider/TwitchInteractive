@@ -51,7 +51,7 @@
 		},
 		"tooltip": {
 			"type": "bool",
-			"name": "Tooltip",
+			"name": "Action Tooltip",
 			"description": "Enable tooltips for Action Nodes. <co>Required HoverAPI mod</c>",
 			"default": true
 		}
