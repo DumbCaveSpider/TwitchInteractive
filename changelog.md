@@ -7,6 +7,7 @@
 - Fixed **Wait** action time value disappearing when adding/moving actions.
 - Replaced the input fonts to **Pusab**
 - Added Time value on the **Notification** action settings.
+- Added Copy Action
 
 # v0.1.10-beta.1
 - Added **Experimental Features** option in the Mod Settings.

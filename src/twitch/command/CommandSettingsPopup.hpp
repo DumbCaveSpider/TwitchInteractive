@@ -42,6 +42,7 @@ protected:
     void onEventInfoBtn(cocos2d::CCObject *sender);
     void onAddEventAction(cocos2d::CCObject *sender);
     void onRemoveAction(cocos2d::CCObject *sender);
+    void onCopyAction(cocos2d::CCObject *sender);
 
     void onMoveActionUp(cocos2d::CCObject *sender);
     void onMoveActionDown(cocos2d::CCObject *sender);
