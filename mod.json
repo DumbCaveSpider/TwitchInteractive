@@ -38,7 +38,7 @@
 			"version": ">=0.1.0-alpha.1"
 		},
 		"natrium.hoverapi": {
-			"importance": "recommended",
+			"importance": "required",
 			"version": ">=1.0.0"
 		}
 	},
