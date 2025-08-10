@@ -375,8 +375,8 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
     showCooldownLabel->setScale(0.4f);
     showCooldownLabel->setAnchorPoint({1.f, 0.5f});
     showCooldownLabel->setID("show-cooldown-label");
-    showCooldownLabel->setAlignment(kCCTextAlignmentLeft);
-    showCooldownLabel->setPosition(-20.f, 0.f);
+    showCooldownLabel->setAlignment(kCCTextAlignmentRight);
+    showCooldownLabel->setPosition(showCooldownCheckbox->getPositionX() - 20.f, 0.f);
 
     // Place checkbox and label at bottom left
     auto showCooldownMenu = CCMenu::create();
@@ -470,7 +470,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 // Handler for Show Cooldown checkbox
 void CommandSettingsPopup::onShowCooldownToggled(CCObject *sender)
 {
-    if (auto toggler = typeinfo_cast<CCMenuItemToggler *>(sender))
+    if (auto toggler = dynamic_cast<CCMenuItemToggler *>(sender))
     {
         m_showCooldown = toggler->isToggled();
         m_command.showCooldown = m_showCooldown;

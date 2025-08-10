@@ -158,31 +158,31 @@ bool SoundSettingsPopup::setup()
     auto speedInput = TextInput::create(100, "Speed", "bigFont.fnt");
     speedInput->setID("sound-speed-input");
     speedInput->setCommonFilter(CommonFilter::Float);
-    speedInput->setPosition(popupSize.width - 100.f, popupSize.height - 70.f);
+    speedInput->setPosition(popupSize.width / 2 + 170.f, popupSize.height - 70.f);
     m_mainLayer->addChild(speedInput);
 
     auto volumeInput = TextInput::create(100, "Volume", "bigFont.fnt");
     volumeInput->setID("sound-volume-input");
     volumeInput->setCommonFilter(CommonFilter::Float);
-    volumeInput->setPosition(popupSize.width - 100.f, popupSize.height - 120.f);
+    volumeInput->setPosition(popupSize.width / 2 + 170.f, popupSize.height - 120.f);
     m_mainLayer->addChild(volumeInput);
 
     auto pitchInput = TextInput::create(100, "Pitch", "bigFont.fnt");
     pitchInput->setID("sound-pitch-input");
     pitchInput->setCommonFilter(CommonFilter::Float);
-    pitchInput->setPosition(popupSize.width - 100.f, popupSize.height - 170.f);
+    pitchInput->setPosition(popupSize.width / 2 + 170.f, popupSize.height - 170.f);
     m_mainLayer->addChild(pitchInput);
 
     auto startMillisInput = TextInput::create(100, "Start (ms)", "bigFont.fnt");
     startMillisInput->setID("sound-startmillis-input");
     startMillisInput->setCommonFilter(CommonFilter::Int);
-    startMillisInput->setPosition(popupSize.width - 100.f, popupSize.height - 220.f);
+    startMillisInput->setPosition(popupSize.width / 2 + 170.f, popupSize.height - 220.f);
     m_mainLayer->addChild(startMillisInput);
 
     auto endMillisInput = TextInput::create(100, "End (ms)", "bigFont.fnt");
     endMillisInput->setID("sound-endmillis-input");
     endMillisInput->setCommonFilter(CommonFilter::Int);
-    endMillisInput->setPosition(popupSize.width - 100.f, popupSize.height - 270.f);
+    endMillisInput->setPosition(popupSize.width / 2 + 170.f, popupSize.height - 270.f);
     m_mainLayer->addChild(endMillisInput);
 
     // Add labels for text inputs
@@ -414,9 +414,7 @@ bool SoundSettingsPopup::setup()
 
     // Position the btnMenu centered horizontally, below the scroll layer
     float btnY = scrollLayer->getPositionY() - 25.f;
-    // Place custom on bottom-left, save centered
-    customBtn->setPosition({35.f, btnY});
-    customBtn->setAnchorPoint({0, 0.5f});
+    customBtn->setPosition({popupSize.width / 5, btnY});
     saveBtn->setPosition({popupSize.width / 2, btnY});
     btnMenu->setPosition(0, 0);
 
