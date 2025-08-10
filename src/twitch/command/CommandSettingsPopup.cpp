@@ -373,10 +373,9 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 
     auto showCooldownLabel = CCLabelBMFont::create("Show\nCooldown", "bigFont.fnt");
     showCooldownLabel->setScale(0.4f);
-    showCooldownLabel->setAnchorPoint({1.f, 0.5f});
     showCooldownLabel->setID("show-cooldown-label");
     showCooldownLabel->setAlignment(kCCTextAlignmentRight);
-    showCooldownLabel->setPosition(showCooldownCheckbox->getPositionX() - 20.f, 0.f);
+    showCooldownLabel->setPosition(showCooldownCheckbox->getPositionX() - 55.f, 0.f);
 
     // Place checkbox and label at bottom left
     auto showCooldownMenu = CCMenu::create();

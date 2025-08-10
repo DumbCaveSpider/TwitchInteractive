@@ -414,7 +414,7 @@ bool SoundSettingsPopup::setup()
 
     // Position the btnMenu centered horizontally, below the scroll layer
     float btnY = scrollLayer->getPositionY() - 25.f;
-    customBtn->setPosition({popupSize.width / 5, btnY});
+    customBtn->setPosition({popupSize.width / 4, btnY});
     saveBtn->setPosition({popupSize.width / 2, btnY});
     btnMenu->setPosition(0, 0);
 
