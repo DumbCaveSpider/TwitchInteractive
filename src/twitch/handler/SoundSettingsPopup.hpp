@@ -20,7 +20,7 @@ protected:
     void onSaveBtn(CCObject *);
     void onSoundSelect(CCObject *);
     void onPlaySound(CCObject *sender);
-    void onClose(CCObject *);
+    void onClose(CCObject *) override;
     void onOpenCustomSfx(CCObject *);
 
 public:
