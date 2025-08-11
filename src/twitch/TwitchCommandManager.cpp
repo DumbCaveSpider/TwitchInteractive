@@ -141,10 +141,10 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
 
     if (!loaded)
     {
-    auto configDirPath = geode::dirs::getModConfigDir();
+    auto configDirPath = Mod::get()->getConfigDir();
     log::debug("[TwitchCommandManager] Mod config dir: {}", configDirPath.string());
 
-    auto sfxDirPath = (configDirPath / "arcticwoof.twitch_interactive" / "sfx").string();
+    auto sfxDirPath = (configDirPath / "sfx").string();
     if (!geode::utils::file::createDirectoryAll(sfxDirPath))
         {
             log::warn("[TwitchCommandManager] Failed to create sfx directory: \"{}\"", sfxDirPath);
@@ -155,7 +155,7 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
         }
 
         // Ensure jumpscare image directory exists
-        auto jumpscareDirPath = (configDirPath / "arcticwoof.twitch_interactive" / "jumpscare").string();
+        auto jumpscareDirPath = (configDirPath / "jumpscare").string();
         if (!geode::utils::file::createDirectoryAll(jumpscareDirPath))
         {
             log::warn("[TwitchCommandManager] Failed to create jumpscare directory: \"{}\"", jumpscareDirPath);

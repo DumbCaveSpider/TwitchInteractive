@@ -11,6 +11,8 @@
 #include "CommandActionEventNode.hpp"
 #include "CommandUserSettingsPopup.hpp"
 
+#include <Geode/utils/string.hpp>
+
 #include "../TwitchCommandManager.hpp"
 #include "../handler/KeyCodesSettingsPopup.hpp"
 #include "../handler/ProfileSettingsPopup.hpp"
@@ -247,9 +249,9 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
             std::string labelLower = info.label;
             std::string idLower = info.id;
             std::string searchLower = searchStr;
-            std::transform(labelLower.begin(), labelLower.end(), labelLower.begin(), ::tolower);
-            std::transform(idLower.begin(), idLower.end(), idLower.begin(), ::tolower);
-            std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+            geode::utils::string::toLowerIP(labelLower);
+            geode::utils::string::toLowerIP(idLower);
+            geode::utils::string::toLowerIP(searchLower);
             if (searchLower.empty() || labelLower.find(searchLower) != std::string::npos || idLower.find(searchLower) != std::string::npos)
             {
                 filteredNodes.push_back(info);
@@ -574,7 +576,7 @@ void CommandSettingsPopup::onMoveActionUp(cocos2d::CCObject *sender)
             for (int i = 0; i < maxCount; ++i)
             {
                 std::string lower = m_commandActions[i];
-                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                geode::utils::string::toLowerIP(lower);
                 if (lower.rfind("wait:", 0) == 0)
                 {
                     if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
@@ -626,7 +628,7 @@ void CommandSettingsPopup::onMoveActionDown(cocos2d::CCObject *sender)
             for (int i = 0; i < maxCount; ++i)
             {
                 std::string lower = m_commandActions[i];
-                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                geode::utils::string::toLowerIP(lower);
                 if (lower.rfind("wait:", 0) == 0)
                 {
                     if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
@@ -744,7 +746,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
             for (int i = 0; i < maxCount; ++i)
             {
                 std::string lower = m_commandActions[i];
-                std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                geode::utils::string::toLowerIP(lower);
                 if (lower.rfind("wait:", 0) == 0)
                 {
                     if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
@@ -944,8 +946,8 @@ void CommandSettingsPopup::refreshActionsList()
     for (int i = 0; i < actionCount; ++i)
     {
         std::string &actionIdRaw = m_commandActions[i];
-        std::string actionIdLower = actionIdRaw;
-        std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
+    std::string actionIdLower = actionIdRaw;
+    geode::utils::string::toLowerIP(actionIdLower);
 
         // Create the action node and align to left edge of scroll content
         TwitchCommandAction actionObj(CommandActionType::Event, actionIdRaw, 0);
@@ -1884,9 +1886,9 @@ void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx)
 {
     if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size()))
     {
-        std::string &actionStr = m_commandActions[actionIdx];
-        std::string actionStrLower = actionStr;
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    std::string &actionStr = m_commandActions[actionIdx];
+    std::string actionStrLower = actionStr;
+    geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("color_player", 0) == 0)
         {
@@ -2356,7 +2358,7 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
     std::string &actionStr = m_commandActions[actionIdx];
     std::string actionStrLower = actionStr;
 
-    std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionStrLower);
 
     // Only one handler should be called per action
     if (actionStrLower.rfind("alert_popup", 0) == 0)
@@ -2419,7 +2421,7 @@ void CommandSettingsPopup::onCopyAction(CCObject *sender)
     // Start with the raw action string
     std::string actionIdRaw = m_commandActions[idx];
     std::string actionIdLower = actionIdRaw;
-    std::transform(actionIdLower.begin(), actionIdLower.end(), actionIdLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionIdLower);
 
     // If the action has inline UI state, read it to keep latest values
     if (m_actionContent)

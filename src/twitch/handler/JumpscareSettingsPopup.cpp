@@ -84,14 +84,19 @@ bool JumpscareSettingsPopup::setup()
 
 void JumpscareSettingsPopup::onInfoBtn(cocos2d::CCObject *)
 {
-    FLAlertLayer::create(
-        nullptr,
+    // FLAlertLayer doesn't fit correctly with these text so this is better
+    geode::createQuickPopup(
         "How to Import Images",
-        "To use a custom image for the jumpscare, click 'Open Folder' and place your PNG or JPG file in the folder that opens.\nThen, enter the file name (including extension) in the 'Image file name' box. The image will be displayed when the jumpscare action is triggered.\n<cg>If you want the image to cover the entire screen, make sure you get an image with the correct aspect ratio.",
+        "To use a custom image for the jumpscare, click <cg>'Open Folder'</c> and place your <co>PNG or JPG</c> file in the folder that opens.\n"
+        "Then, enter the file name (including extension) in the <cg>'Image file name'</c> box. The image will be displayed when the jumpscare action is triggered.\n"
+        "<cg>If you want the image to cover the entire screen, make sure the image is the same resolution as your screen.</c>",
         "OK",
         nullptr,
-        360.f)
-        ->show();
+        360.f,
+        [](FLAlertLayer*, bool) {},
+        false,
+        false
+    )->show();
 }
 
 void JumpscareSettingsPopup::onSaveBtn(cocos2d::CCObject *)
@@ -126,8 +131,8 @@ void JumpscareSettingsPopup::onSaveBtn(cocos2d::CCObject *)
 
 void JumpscareSettingsPopup::onOpenFolder(cocos2d::CCObject *)
 {
-    auto base = geode::dirs::getModConfigDir();
-    auto folder = (base / "arcticwoof.twitch_interactive" / "jumpscare").string();
+    auto base = Mod::get()->getConfigDir();
+    auto folder = (base / "jumpscare").string();
     if (!geode::utils::file::createDirectoryAll(folder))
     {
         log::warn("[JumpscareSettingsPopup] Failed to create jumpscare folder: {}", folder);

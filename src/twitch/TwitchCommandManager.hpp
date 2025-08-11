@@ -14,12 +14,14 @@
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
+#include <Geode/utils/string.hpp>
 #include <Geode/ui/LazySprite.hpp>
 #include "command/events/KeyReleaseScheduler.hpp"
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
 
 using namespace geode::prelude;
+
 
 // Command arguments
 enum class CommandIdentifiers
@@ -377,7 +379,7 @@ struct ActionContext : public CCObject
 
             auto toUpper = [](std::string s)
             {
-                std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+                geode::utils::string::toUpperIP(s);
                 return s;
             };
 
@@ -628,8 +630,8 @@ struct ActionContext : public CCObject
                         layer->addChild(ls);
 
                         // Build absolute path to custom jumpscare folder
-                        auto base = geode::dirs::getModConfigDir();
-                        auto fullPath = (base / "arcticwoof.twitch_interactive" / "jumpscare" / url).string();
+                        auto base = Mod::get()->getConfigDir();
+                        auto fullPath = (base / "jumpscare" / url).string();
                         if (!std::filesystem::exists(fullPath))
                         {
                             log::warn("[Jumpscare] Image file does not exist: {}", fullPath);
@@ -693,7 +695,7 @@ struct ActionContext : public CCObject
 
                 auto toUpper = [](std::string s)
                 {
-                    std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+                    geode::utils::string::toUpperIP(s);
                     return s;
                 };
 
@@ -1044,7 +1046,7 @@ struct ActionContext : public CCObject
                         std::error_code ec;
                         if (std::filesystem::exists(name, ec))
                             return name; // already a path
-                        auto p = geode::dirs::getModConfigDir() / "arcticwoof.twitch_interactive" / "sfx" / name;
+                        auto p = Mod::get()->getConfigDir() / "sfx" / name;
                         if (std::filesystem::exists(p, ec))
                             return p.string();
                         return name; // fallback to builtin resource
@@ -1302,7 +1304,7 @@ struct ActionContext : public CCObject
                 std::string prefix = argStr.substr(0, 13);
                 std::string prefixLower = prefix;
 
-                std::transform(prefixLower.begin(), prefixLower.end(), prefixLower.begin(), ::tolower);
+                geode::utils::string::toLowerIP(prefixLower);
 
                 if (prefixLower == "notification:")
                 {

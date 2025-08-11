@@ -1,3 +1,10 @@
+# v0.1.13-beta.1
+- Fixing codebase
+  - Fixed the hash mismatch
+  - Replace `std::transform` with provided string utils
+  - Fixed the Mod Config directory not being used correctly.
+- Fancying Jumpscare Info Popup :D
+
 # v0.1.12-beta.1
 - Added **HoverAPI** dependency for **Action Tooltips** *(dont let me stop cooking rah)*
 - Fixed UI issues with **Sound Settings Popup**

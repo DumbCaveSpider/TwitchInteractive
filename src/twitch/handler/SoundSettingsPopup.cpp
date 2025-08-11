@@ -11,6 +11,8 @@ using namespace cocos2d;
 
 // @geode-ignore-all(unknown-resource)
 
+#include <Geode/utils/string.hpp>
+
 // Unified sound list for settings
 static std::vector<std::string> getAvailableSounds()
 {
@@ -83,7 +85,7 @@ static std::vector<std::string> getAvailableSounds()
     };
 
     // Add user-provided sfx from the mod config directory (mod-id/sfx subfolder)
-    auto sfxDir = geode::dirs::getModConfigDir() / "arcticwoof.twitch_interactive" / "sfx";
+    auto sfxDir = Mod::get()->getConfigDir() / "sfx";
     std::error_code ec;
     if (std::filesystem::exists(sfxDir, ec))
     {
@@ -96,7 +98,7 @@ static std::vector<std::string> getAvailableSounds()
                 continue;
             auto path = entry.path();
             std::string ext = path.extension().string();
-            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            geode::utils::string::toLowerIP(ext);
             if (ext == ".mp3" || ext == ".ogg")
             {
                 std::string name = path.filename().string();
@@ -116,7 +118,7 @@ static std::string resolveSfxPath(const std::string &name)
     if (std::filesystem::exists(name, ec))
         return name; // already a valid path
 
-    auto p = geode::dirs::getModConfigDir() / "arcticwoof.twitch_interactive" / "sfx" / name;
+    auto p = Mod::get()->getConfigDir() / "sfx" / name;
     if (std::filesystem::exists(p, ec))
         return p.string();
 
@@ -444,11 +446,11 @@ void SoundSettingsPopup::onSoundSearchPoll(float)
         else
         {
             std::string searchLower = text;
-            std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+            geode::utils::string::toLowerIP(searchLower);
             for (const auto &s : allSounds)
             {
                 std::string sLower = s;
-                std::transform(sLower.begin(), sLower.end(), sLower.begin(), ::tolower);
+                geode::utils::string::toLowerIP(sLower);
                 if (sLower.find(searchLower) != std::string::npos)
                     filtered.push_back(s);
             }
@@ -541,8 +543,8 @@ void SoundSettingsPopup::onClose(CCObject *)
 void SoundSettingsPopup::onOpenCustomSfx(CCObject *)
 {
     // Ensure the directory exists then open it
-    auto base = geode::dirs::getModConfigDir();
-    auto sfx = (base / "arcticwoof.twitch_interactive" / "sfx").string();
+    auto base = Mod::get()->getConfigDir();
+    auto sfx = (base / "sfx").string();
     if (!geode::utils::file::createDirectoryAll(sfx))
     {
         log::warn("[SoundSettingsPopup] Failed to create sfx folder: {}", sfx);

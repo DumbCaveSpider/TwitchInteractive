@@ -8,7 +8,7 @@
 	},
 	"id": "arcticwoof.twitch_interactive",
 	"name": "Twitch Interactive",
-	"version": "v0.1.12-beta.1",
+	"version": "v0.1.13-beta.1",
 	"developer": "ArcticWoof",
 	"description": "Allows Twitch viewers to interact in game",
 	"tags": [
@@ -39,6 +39,10 @@
 		},
 		"natrium.hoverapi": {
 			"importance": "required",
+			"version": ">=1.0.0"
+		},
+		"prevter.imageplus": {
+			"importance": "recommended",
 			"version": ">=1.0.0"
 		}
 	},

@@ -4,6 +4,7 @@
 #include "../TwitchDashboard.hpp"
 
 #include <Geode/Geode.hpp>
+#include <Geode/utils/string.hpp>
 
 using namespace geode::prelude;
 
@@ -138,7 +139,7 @@ void CommandInputPopup::onAdd(CCObject* sender) {
     cooldownStr.erase(cooldownStr.find_last_not_of(" \t\n\r") + 1);
 
     // Convert commandName to lowercase
-    std::transform(commandName.begin(), commandName.end(), commandName.begin(), ::tolower);
+    geode::utils::string::toLowerIP(commandName);
 
     // Check if command name is empty
     if (commandName.empty()) {

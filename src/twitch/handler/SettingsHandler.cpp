@@ -16,6 +16,8 @@
 
 using namespace cocos2d;
 
+#include <Geode/utils/string.hpp>
+
 namespace SettingsHandler {
     void handleJumpscareSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
         auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
@@ -62,9 +64,9 @@ namespace SettingsHandler {
         if (!popup || idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
             return;
 
-        std::string& actionStr = popup->m_commandActions[idx];
-        std::string actionStrLower = actionStr;
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
+    geode::utils::string::toLowerIP(actionStrLower);
 
         float gravity = 1.0f;
         float duration = 2.0f;
@@ -260,10 +262,10 @@ namespace SettingsHandler {
         if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
             return;
 
-        std::string& actionStr = popup->m_commandActions[idx];
-        std::string actionStrLower = actionStr;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
 
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("edit_camera", 0) != 0 && actionStrLower.rfind("edit camera", 0) != 0)
             return;
@@ -293,10 +295,10 @@ namespace SettingsHandler {
         if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
             return;
 
-        std::string& actionStr = popup->m_commandActions[idx];
-        std::string actionStrLower = actionStr;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
 
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("profile", 0) != 0)
             return;
@@ -368,10 +370,10 @@ namespace SettingsHandler {
         if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
             return;
 
-        std::string& actionStr = popup->m_commandActions[idx];
-        std::string actionStrLower = actionStr;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
 
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("color_player", 0) != 0 && actionStrLower.rfind("color player", 0) != 0)
             return;
@@ -456,10 +458,10 @@ namespace SettingsHandler {
         if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
             return;
 
-        std::string& actionStr = popup->m_commandActions[idx];
-        std::string actionStrLower = actionStr;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
 
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("move", 0) != 0)
             return;
@@ -535,10 +537,10 @@ namespace SettingsHandler {
         if (idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
             return;
 
-        std::string& actionStr = popup->m_commandActions[idx];
-        std::string actionStrLower = actionStr;
+    std::string& actionStr = popup->m_commandActions[idx];
+    std::string actionStrLower = actionStr;
 
-        std::transform(actionStrLower.begin(), actionStrLower.end(), actionStrLower.begin(), ::tolower);
+    geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("notification", 0) != 0)
             return;
