@@ -469,7 +469,7 @@ bool CommandSettingsPopup::setup(TwitchCommand command)
 // Handler for Show Cooldown checkbox
 void CommandSettingsPopup::onShowCooldownToggled(CCObject *sender)
 {
-    if (auto toggler = dynamic_cast<CCMenuItemToggler *>(sender))
+    if (auto toggler = static_cast<CCMenuItemToggler *>(sender))
     {
         m_showCooldown = toggler->isToggled();
         m_command.showCooldown = m_showCooldown;

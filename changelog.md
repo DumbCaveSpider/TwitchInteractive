@@ -1,6 +1,8 @@
 # v0.1.12-beta.1
-- Added **HoverAPI** dependency for **Action Tooltips**
+- Added **HoverAPI** dependency for **Action Tooltips** *(dont let me stop cooking rah)*
 - Fixed UI issues with **Sound Settings Popup**
+- Added **Jumpscare** event
+- Handbook UI looking pretty
 
 # v0.1.11-beta.1
 - **Noclip** event will be disabled when exiting the level (Also added extra info about the event)

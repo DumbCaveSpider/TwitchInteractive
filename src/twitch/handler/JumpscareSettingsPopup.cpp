@@ -20,14 +20,14 @@ bool JumpscareSettingsPopup::setup()
     m_urlInput = TextInput::create(static_cast<int>(inputW), "Image file name", "bigFont.fnt");
     m_urlInput->setCommonFilter(CommonFilter::Any);
     m_urlInput->setString(m_initUrl);
-    m_urlInput->setPosition(size.width / 2.f, size.height / 2.f + 20.f);
+    m_urlInput->setPosition(size.width / 2.f, size.height / 2.f + 30.f);
     m_mainLayer->addChild(m_urlInput);
 
     // Fade time input
     m_fadeInput = TextInput::create(120, "Fade (s)", "bigFont.fnt");
     m_fadeInput->setCommonFilter(CommonFilter::Float);
     m_fadeInput->setString(fmt::format("{:.2f}", m_initFade));
-    m_fadeInput->setPosition(size.width / 2.f, size.height / 2.f - 20.f);
+    m_fadeInput->setPosition(size.width / 2.f, size.height / 2.f - 10.f);
     m_fadeInput->setScale(0.9f);
     m_mainLayer->addChild(m_fadeInput);
 
@@ -59,7 +59,7 @@ bool JumpscareSettingsPopup::setup()
     float openW = openBtnSprite->getContentSize().width * openBtnSprite->getScale();
     float totalW = saveW + openW + spacing;
     float centerX = size.width / 2.f;
-    float y = 24.f;
+    float y = 30.f;
 
     auto saveBtn = CCMenuItemSpriteExtra::create(
         saveBtnSprite,
@@ -87,7 +87,7 @@ void JumpscareSettingsPopup::onInfoBtn(cocos2d::CCObject *)
     FLAlertLayer::create(
         nullptr,
         "How to Import Images",
-        "To use a custom image for the jumpscare, click 'Open Folder' and place your PNG or JPG file in the folder that opens.\nThen, enter the file name (including extension) in the 'Image file name' box. The image will be displayed fullscreen when the jumpscare action is triggered.",
+        "To use a custom image for the jumpscare, click 'Open Folder' and place your PNG or JPG file in the folder that opens.\nThen, enter the file name (including extension) in the 'Image file name' box. The image will be displayed when the jumpscare action is triggered.\n<cg>If you want the image to cover the entire screen, make sure you get an image with the correct aspect ratio.",
         "OK",
         nullptr,
         360.f)
