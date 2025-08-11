@@ -1,7 +1,8 @@
 # v0.1.13-beta.1
 - Fixing codebase
   - Fixed the hash mismatch
-  - Replace `std::transform` with provided string utils
+  - Replaced `std::transform` with provided string utils
+  - Replaced `dynamic_cast` with `typeinfo_cast` for better compatibility
   - Fixed the Mod Config directory not being used correctly.
 - Fancying Jumpscare Info Popup :D
 
