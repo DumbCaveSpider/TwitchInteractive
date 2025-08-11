@@ -782,6 +782,11 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
             m_commandActions.push_back("jump:1");
             refreshActionsList();
         }
+        else if (eventId == "jumpscare")
+        {
+            m_commandActions.push_back("jumpscare::0.50");
+            refreshActionsList();
+        }
         else if (eventId == "notification")
         {
             m_commandActions.push_back("notification:");
@@ -965,14 +970,25 @@ void CommandSettingsPopup::refreshActionsList()
         // Main label for the action node (always use Event Label if available)
         std::string mainLabelId = "action-main-label-" + std::to_string(i);
         std::string mainLabelText = actionIdRaw;
-        // Always use the event label from CommandActionEventNode::getAllEventNodes if available
-        for (const auto &info : CommandActionEventNode::getAllEventNodes())
+        // Prefer the longest valid ID match and require ':' boundary to avoid 'jump' matching 'jumpscare'
         {
-            if (actionIdLower.rfind(info.id, 0) == 0)
+            std::string bestLabel;
+            size_t bestLen = 0;
+            for (const auto &info : CommandActionEventNode::getAllEventNodes())
             {
-                mainLabelText = info.label;
-                break;
+                if (actionIdLower.rfind(info.id, 0) == 0)
+                {
+                    const size_t len = info.id.size();
+                    const bool boundaryOK = (actionIdLower.size() == len) || (actionIdLower.size() > len && actionIdLower[len] == ':');
+                    if (boundaryOK && len > bestLen)
+                    {
+                        bestLen = len;
+                        bestLabel = info.label;
+                    }
+                }
             }
+            if (!bestLabel.empty())
+                mainLabelText = bestLabel;
         }
 
         //
@@ -1004,7 +1020,7 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "move-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
-        else if (actionIdLower.rfind("jump", 0) == 0)
+    else if (actionIdLower.rfind("jump:", 0) == 0)
         {
             btnId = "jump-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
@@ -1029,12 +1045,17 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "speed-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
+        else if (actionIdLower.rfind("jumpscare", 0) == 0)
+        {
+            btnId = "jumpscare-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
         else if (actionIdLower.rfind("scale_player", 0) == 0)
         {
             btnId = "scale-player-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
-        else if (actionIdLower.rfind("sound", 0) == 0)
+        else if (actionIdLower.rfind("sound_effect", 0) == 0)
         {
             btnId = "sound-effect-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
@@ -1252,7 +1273,7 @@ void CommandSettingsPopup::refreshActionsList()
                         settingsLabelText += " (" + amountStr + ")";
                 };
             }
-            else if (actionIdLower.rfind("jump", 0) == 0)
+            else if (actionIdLower.rfind("jump:", 0) == 0)
             {
                 size_t colon = actionIdRaw.find(":");
                 if (colon != std::string::npos && colon + 1 < actionIdRaw.size())
@@ -1340,7 +1361,7 @@ void CommandSettingsPopup::refreshActionsList()
                 auto buf = fmt::format("Scale: {:.2f}, Time: {:.2f}", scale, time);
                 settingsLabelText = buf;
             }
-            else if (actionIdLower.rfind("sound", 0) == 0)
+            else if (actionIdLower.rfind("sound_effect", 0) == 0)
             {
                 // sound_effect:<sound>:<speed>:<volume>:<pitch>:<start>:<end>
                 size_t firstColon = actionIdRaw.find(":");
@@ -1399,6 +1420,39 @@ void CommandSettingsPopup::refreshActionsList()
                 {
                     settingsLabelText = "Gravity: 1.00 | Duration: 2.00";
                 }
+            }
+            else if (actionIdLower.rfind("jumpscare", 0) == 0)
+            {
+                // Format: jumpscare:<url>:<fade>
+                std::string url;
+                std::string fadeStr;
+                size_t firstColon = actionIdRaw.find(":");
+                size_t secondColon = (firstColon != std::string::npos ? actionIdRaw.find(":", firstColon + 1) : std::string::npos);
+                if (firstColon != std::string::npos)
+                {
+                    if (secondColon != std::string::npos)
+                    {
+                        url = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                        fadeStr = actionIdRaw.substr(secondColon + 1);
+                    }
+                    else
+                    {
+                        url = actionIdRaw.substr(firstColon + 1);
+                    }
+                }
+                // Trim
+                auto trim = [](std::string &s) {
+                    if (s.empty()) return; s.erase(0, s.find_first_not_of(" \t\n\r")); size_t end = s.find_last_not_of(" \t\n\r"); if (end != std::string::npos) s.erase(end + 1); else s.clear();
+                };
+                trim(url);
+                trim(fadeStr);
+                if (!fadeStr.empty())
+                {
+                    // Normalize to float with 2 decimals if possible
+                    if (auto parsed = numFromString<float>(fadeStr))
+                        fadeStr = fmt::format("{:.2f}", parsed.unwrap());
+                }
+                settingsLabelText = fmt::format("File: {}{}", url.empty() ? std::string("-") : url, !fadeStr.empty() ? fmt::format(" | Fade: {}s", fadeStr) : std::string(""));
             }
             else if (actionIdLower.rfind("speed_player", 0) == 0)
             {
@@ -1645,7 +1699,7 @@ void CommandSettingsPopup::showTooltip(const std::string &title, const std::stri
         width = std::max(width, m_tooltipTitle->getContentSize().width * m_tooltipTitle->getScale());
     if (m_tooltipBody && !body.empty())
         width = std::max(width, m_tooltipBody->getContentSize().width * m_tooltipBody->getScale());
-    width = std::max(width, 100.f);
+    width = std::max(width, 120.f);
     float height = 36.f + (body.empty() ? 0.f : 18.f);
     if (auto bg = typeinfo_cast<CCScale9Sprite *>(m_tooltipBg))
         bg->setContentSize({width + paddingX, height + paddingY});
@@ -2315,7 +2369,7 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleProfileSettings(this, sender);
     else if (actionStrLower.rfind("move", 0) == 0)
         SettingsHandler::handleMoveSettings(this, sender);
-    else if (actionStrLower.rfind("jump", 0) == 0)
+    else if (actionStrLower.rfind("jump:", 0) == 0)
         SettingsHandler::handleJumpSettings(this, sender);
     else if (actionStrLower.rfind("color_player", 0) == 0)
         SettingsHandler::handleColorPlayerSettings(this, sender);
@@ -2325,10 +2379,12 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleScalePlayerSettings(this, sender);
     else if (actionStrLower.rfind("speed_player", 0) == 0)
         SettingsHandler::handleSpeedSettings(this, sender);
-    else if (actionStrLower.rfind("sound", 0) == 0)
+    else if (actionStrLower.rfind("sound_effect", 0) == 0)
         SettingsHandler::handleSoundEffectSettings(this, sender);
     else if (actionStrLower.rfind("gravity", 0) == 0)
         SettingsHandler::handleGravitySettings(this, sender);
+    else if (actionStrLower.rfind("jumpscare", 0) == 0)
+        SettingsHandler::handleJumpscareSettings(this, sender);
 }
 // Polling function for event search input
 void CommandSettingsPopup::onEventSearchPoll(float)

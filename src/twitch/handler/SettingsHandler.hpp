@@ -20,4 +20,5 @@ namespace SettingsHandler
     void handleSoundEffectSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
     void handleGravitySettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
     void handleSpeedSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleJumpscareSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
 }

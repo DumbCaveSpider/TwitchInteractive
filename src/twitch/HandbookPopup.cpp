@@ -133,6 +133,51 @@ bool HandbookPopup::setup()
 
     m_mainLayer->addChild(supportMenu);
 
+    float cornerScale = 1.25f;
+    // Top-left
+    auto cornerTL = CCSprite::createWithSpriteFrameName("rewardCorner_001.png");
+    cornerTL->setRotation(90);
+    cornerTL->setAnchorPoint({0.f, 0.f});
+    cornerTL->setPosition({0.f, height});
+    cornerTL->setScale(cornerScale);
+    cornerTL->setID("corner-tl");
+    m_mainLayer->addChild(cornerTL);
+
+    // Top-right
+    auto cornerTR = CCSprite::createWithSpriteFrameName("rewardCorner_001.png");
+    cornerTR->setPosition({width, height});
+    cornerTR->setAnchorPoint({0.f, 0.f});
+    cornerTR->setRotation(180);
+    cornerTR->setScale(cornerScale);
+    cornerTR->setID("corner-tr");
+    m_mainLayer->addChild(cornerTR);
+
+    // Bottom-left
+    auto cornerBL = CCSprite::createWithSpriteFrameName("rewardCorner_001.png");
+    cornerBL->setScale(cornerScale);
+    cornerBL->setAnchorPoint({0.f, 0.f});
+    cornerBL->setZOrder(1);
+    cornerBL->setID("corner-bl");
+    m_mainLayer->addChild(cornerBL);
+
+    // Bottom-right
+    auto cornerBR = CCSprite::createWithSpriteFrameName("rewardCorner_001.png");
+    cornerBR->setRotation(270);
+    cornerBR->setAnchorPoint({0.f, 0.f});
+    cornerBR->setPosition({width, 0.f});
+    cornerBR->setScale(cornerScale);
+    cornerBR->setID("corner-br");
+    m_mainLayer->addChild(cornerBR);
+
+    // goof ball
+    auto king = CCSprite::create("shrug.png"_spr);
+    king->setAnchorPoint({0.f, 0.f});
+    king->setRotation(10);
+    king->setPosition({5.f, 20.f});
+    king->setID("king");
+    king->setScale(2.0f);
+    m_mainLayer->addChild(king);
+
     return true;
 }
 // Support Discord button callback

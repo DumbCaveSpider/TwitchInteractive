@@ -1,13 +1,19 @@
 TODO:
 [Important]
-- Add a way to sort twitch commands
+- Add a way to sort twitch commands (search, tags)
 - Add preview colors in the color settings
 - Add import and export commands
 [Minor]
 - add Open Level Info (allows users/viewers to directly open a level xd "LevelInfo" (broken atm cuz forgor how to do it properly))
 - force open level (basically opens forcefully open a level based on the id)
 - custom global prefix command
-- Add custom jumpscare images (use lazysprite)
+- Make commmands per user instead of global
+- Add a limit characters for notification and popup
+- Add alias on the commands
 [Future-Features]
 - Loop conditions (conditions)
 - Change Player Gamemode
+- make arguments split eg ${arg1}, ${arg2}
+- add change fps action (evil)
+- streamer badge (given to those who uses the mod)
+- easter egg (for myself, doing sneaky)

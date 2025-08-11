@@ -24,7 +24,7 @@
 	},
 	"resources": {
 		"sprites": [
-			"resources/AW_creatortwitchBtn_001.png",
+			"resources/*",
 			"previews/*"
 		]
 	},

@@ -154,6 +154,17 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
             log::debug("[TwitchCommandManager] Ensured sfx directory exists: \"{}\"", sfxDirPath);
         }
 
+        // Ensure jumpscare image directory exists
+        auto jumpscareDirPath = (configDirPath / "arcticwoof.twitch_interactive" / "jumpscare").string();
+        if (!geode::utils::file::createDirectoryAll(jumpscareDirPath))
+        {
+            log::warn("[TwitchCommandManager] Failed to create jumpscare directory: \"{}\"", jumpscareDirPath);
+        }
+        else
+        {
+            log::debug("[TwitchCommandManager] Ensured jumpscare directory exists: \"{}\"", jumpscareDirPath);
+        }
+
         instance.loadCommands();
         loaded = true;
     };
@@ -347,7 +358,7 @@ void TwitchCommandManager::handleChatMessage(const ChatMessage &chatMessage)
             if (showCooldown)
             {
                 int seconds = static_cast<int>(cooldownIt->second - now);
-                geode::Notification::create(fmt::format("{}: {}s cooldown", commandName, seconds))->show();
+                geode::Notification::create(fmt::format("{}: {}s cooldown", commandName, seconds), NotificationIcon::Loading, 1.f)->show();
             }
             return;
         };

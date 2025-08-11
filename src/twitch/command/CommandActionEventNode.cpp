@@ -524,7 +524,7 @@ CommandActionEventNode *CommandActionEventNode::createEventNode(const std::strin
 std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
 {
     std::vector<EventNodeInfo> nodes = {
-        {"reverse_player", "Reverse Player", "Reverses the player direction. <cg>Only works well on classic level</c>."},
+        {"reverse_player", "Reverse Player", "Reverses the player direction. <cg>Only works well on classic level.</c>."},
         {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. <cr>Don't use this while beating extremes!</c>"},
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move. <cg>Works only on Platformers.</c>"},
@@ -533,16 +533,16 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"notification", "Notification", "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>."},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading. <cg>Supports the use of identifiers.</c>."},
         {"profile", "Profile", "Opens the Player Profile in-game. <cg>Only accepts Account ID only!</c>"},
-        {"keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users</c>"},
+        {"keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users.</c>"},
         {"scale_player", "Scale Player", "Scales the player in-game. <cr>Does not affect the player hitbox.</c>"},
-        {"sound", "Sound Effect", "Plays a sound effect. <cg>Supports Custom SFX and & GD default SFX.</c>"},
+        {"sound_effect", "Sound Effect", "Plays a sound effect. <cg>Supports Custom SFX and & GD default SFX.</c>"},
         {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately"},
         {"gravity", "Gravity Player", "Sets the player's gravity to a specified value for a duration."},
         {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration."},
         {"restart_level", "Restart Level", "Restarts the entire level."},
-        //{"jumpscare", "Jumpscare", "Shows a custom jumpscare to scare the streamer. <cy>boo</c>"},
-        {"noclip", "Noclip", "Enables or disables noclip mode for the player. <cr>This does not have Safe Mode, use with caution!</c> <cy>Disables upon exiting the level</c>"},
-        {"nothing", "Nothing", "Does nothing at all. <cy>Dev note: this is added so i can just copy paste new events easily</c>"}};
+        {"jumpscare", "Jumpscare", "Shows a custom jumpscare image to scare the streamer. <cy>boo!</c>"},
+        {"noclip", "Noclip", "Enables or disables noclip mode for the player. <cr>This does not have Safe Mode, use with caution!</c> <cy>Disables upon exiting the level.</c>"},
+        {"nothing", "Nothing", "Does nothing at all. <cy>Dev note: this is added so i can just copy paste new events easily.</c>"}};
 
     auto mod = Mod::get();
     if (mod && mod->getSettingValue<bool>("experimental"))

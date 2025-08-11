@@ -10,12 +10,49 @@
 #include "SoundSettingsPopup.hpp"
 #include "GravitySettingsPopup.hpp"
 #include "SpeedSettingsPopup.hpp"
+#include "JumpscareSettingsPopup.hpp"
 
 #include <algorithm>
 
 using namespace cocos2d;
 
 namespace SettingsHandler {
+    void handleJumpscareSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
+        auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+        int idx = 0;
+        if (btn && btn->getUserObject())
+            idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+        if (!popup || idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
+            return;
+
+        std::string& actionStr = popup->m_commandActions[idx];
+        // Format: jumpscare:<url>:<fade>
+        std::string url;
+        float fade = 0.5f;
+        size_t firstColon = actionStr.find(":");
+        size_t secondColon = (firstColon != std::string::npos ? actionStr.find(":", firstColon + 1) : std::string::npos);
+        if (firstColon != std::string::npos) {
+            if (secondColon != std::string::npos) {
+                url = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string fadeStr = actionStr.substr(secondColon + 1);
+                if (!fadeStr.empty()) {
+                    fadeStr.erase(0, fadeStr.find_first_not_of(" \t\n\r"));
+                    fadeStr.erase(fadeStr.find_last_not_of(" \t\n\r") + 1);
+                    if (auto parsed = numFromString<float>(fadeStr)) fade = parsed.unwrap();
+                }
+            } else {
+                url = actionStr.substr(firstColon + 1);
+            }
+        }
+
+        auto popupWindow = JumpscareSettingsPopup::create(url, fade, [popup, idx](const std::string& newUrl, float newFade) {
+            std::string safeUrl = newUrl; // could be empty
+            float safeFade = newFade;
+            popup->m_commandActions[idx] = fmt::format("jumpscare:{}:{:.2f}", safeUrl, safeFade);
+            popup->refreshActionsList();
+        });
+        if (popupWindow) popupWindow->show();
+    }
     // Process the gravity action settings
     void handleGravitySettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
         auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);

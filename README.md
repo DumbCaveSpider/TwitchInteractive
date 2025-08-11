@@ -1,6 +1,8 @@
 # Twitch Interactive
 <img alt="Mod Downloads" src="https://img.shields.io/github/downloads/DumbCaveSpider/TwitchInteractive/total?logo=geode&logoColor=ffffff&label=Downloads">
 
+### i cant bother updating this read me so the updated readme is at `about.md`
+
 > [!WARNING]
 > This is still in Beta and not all features are currently present at this build. Expect bugs!
 
