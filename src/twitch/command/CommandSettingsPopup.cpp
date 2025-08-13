@@ -787,7 +787,7 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
         }
         else if (eventId == "jumpscare")
         {
-            m_commandActions.push_back("jumpscare::0.50");
+            m_commandActions.push_back("jumpscare::0.50:1.00");
             refreshActionsList();
         }
         else if (eventId == "notification")
@@ -1466,17 +1466,27 @@ void CommandSettingsPopup::refreshActionsList()
             }
             else if (actionIdLower.rfind("jumpscare", 0) == 0)
             {
-                // Format: jumpscare:<url>:<fade>
+                // Format: jumpscare:<url>:<fade>[:<scale>]
                 std::string url;
                 std::string fadeStr;
+                std::string scaleStr;
                 size_t firstColon = actionIdRaw.find(":");
                 size_t secondColon = (firstColon != std::string::npos ? actionIdRaw.find(":", firstColon + 1) : std::string::npos);
+                size_t thirdColon = (secondColon != std::string::npos ? actionIdRaw.find(":", secondColon + 1) : std::string::npos);
                 if (firstColon != std::string::npos)
                 {
                     if (secondColon != std::string::npos)
                     {
                         url = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
-                        fadeStr = actionIdRaw.substr(secondColon + 1);
+                        if (thirdColon != std::string::npos)
+                        {
+                            fadeStr = actionIdRaw.substr(secondColon + 1, thirdColon - secondColon - 1);
+                            scaleStr = actionIdRaw.substr(thirdColon + 1);
+                        }
+                        else
+                        {
+                            fadeStr = actionIdRaw.substr(secondColon + 1);
+                        }
                     }
                     else
                     {
@@ -1497,13 +1507,24 @@ void CommandSettingsPopup::refreshActionsList()
                 };
                 trim(url);
                 trim(fadeStr);
+                trim(scaleStr);
                 if (!fadeStr.empty())
                 {
                     // Normalize to float with 2 decimals if possible
                     if (auto parsed = numFromString<float>(fadeStr))
                         fadeStr = fmt::format("{:.2f}", parsed.unwrap());
                 }
-                settingsLabelText = fmt::format("File: {}{}", url.empty() ? std::string("-") : url, !fadeStr.empty() ? fmt::format(" | Fade: {}s", fadeStr) : std::string(""));
+                if (!scaleStr.empty())
+                {
+                    if (auto parsed = numFromString<float>(scaleStr))
+                        scaleStr = fmt::format("{:.2f}", parsed.unwrap());
+                }
+                settingsLabelText = fmt::format(
+                    "File: {}{}{}",
+                    url.empty() ? std::string("-") : url,
+                    !fadeStr.empty() ? fmt::format(" | Fade: {}s", fadeStr) : std::string(""),
+                    !scaleStr.empty() ? fmt::format(" | Scale: {}x", scaleStr) : std::string("")
+                );
             }
             else if (actionIdLower.rfind("speed_player", 0) == 0)
             {

@@ -67,29 +67,45 @@ namespace SettingsHandler {
             return;
 
         std::string& actionStr = popup->m_commandActions[idx];
-        // Format: jumpscare:<url>:<fade>
+        // Format: jumpscare:<url>:<fade>[:<scale>]
         std::string url;
         float fade = 0.5f;
+        float scaleMul = 1.0f;
         size_t firstColon = actionStr.find(":");
         size_t secondColon = (firstColon != std::string::npos ? actionStr.find(":", firstColon + 1) : std::string::npos);
+        size_t thirdColon = (secondColon != std::string::npos ? actionStr.find(":", secondColon + 1) : std::string::npos);
         if (firstColon != std::string::npos) {
             if (secondColon != std::string::npos) {
                 url = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
-                std::string fadeStr = actionStr.substr(secondColon + 1);
+                std::string rest = actionStr.substr(secondColon + 1);
+                std::string fadeStr;
+                std::string scaleStr;
+                if (thirdColon != std::string::npos) {
+                    fadeStr = actionStr.substr(secondColon + 1, thirdColon - secondColon - 1);
+                    scaleStr = actionStr.substr(thirdColon + 1);
+                } else {
+                    fadeStr = rest;
+                }
                 if (!fadeStr.empty()) {
                     fadeStr.erase(0, fadeStr.find_first_not_of(" \t\n\r"));
                     fadeStr.erase(fadeStr.find_last_not_of(" \t\n\r") + 1);
                     if (auto parsed = numFromString<float>(fadeStr)) fade = parsed.unwrap();
+                }
+                if (!scaleStr.empty()) {
+                    scaleStr.erase(0, scaleStr.find_first_not_of(" \t\n\r"));
+                    scaleStr.erase(scaleStr.find_last_not_of(" \t\n\r") + 1);
+                    if (auto parsed = numFromString<float>(scaleStr)) scaleMul = parsed.unwrap();
                 }
             } else {
                 url = actionStr.substr(firstColon + 1);
             }
         }
 
-        auto popupWindow = JumpscareSettingsPopup::create(url, fade, [popup, idx](const std::string& newUrl, float newFade) {
+    auto popupWindow = JumpscareSettingsPopup::create(url, fade, scaleMul, [popup, idx](const std::string& newUrl, float newFade, float newScale) {
             std::string safeUrl = newUrl; // could be empty
             float safeFade = newFade;
-            popup->m_commandActions[idx] = fmt::format("jumpscare:{}:{:.2f}", safeUrl, safeFade);
+            float safeScale = (newScale <= 0.f ? 1.f : newScale);
+            popup->m_commandActions[idx] = fmt::format("jumpscare:{}:{:.2f}:{:.2f}", safeUrl, safeFade, safeScale);
             popup->refreshActionsList();
         });
         if (popupWindow) popupWindow->show();

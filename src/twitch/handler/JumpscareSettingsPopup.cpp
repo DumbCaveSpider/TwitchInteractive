@@ -2,6 +2,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/ui/LazySprite.hpp>
 #include <filesystem>
 
 using namespace geode::prelude;
@@ -45,13 +46,23 @@ bool JumpscareSettingsPopup::setup()
     updateFileLabel();
     updateArrowPositions();
 
-    // Fade time input
+    // Fade time input + Scale input side by side
     m_fadeInput = TextInput::create(120, "Fade (s)", "bigFont.fnt");
     m_fadeInput->setCommonFilter(CommonFilter::Float);
     m_fadeInput->setString(fmt::format("{:.2f}", m_initFade));
-    m_fadeInput->setPosition(size.width / 2.f, size.height / 2.f - 10.f);
+    float inputsY = size.height / 2.f - 10.f;
+    float centerXInputs = size.width / 2.f;
+    float offsetX = 70.f;
+    m_fadeInput->setPosition(CCPointMake(centerXInputs - offsetX, inputsY));
     m_fadeInput->setScale(0.9f);
     m_mainLayer->addChild(m_fadeInput);
+
+    m_scaleInput = TextInput::create(120, "Scale (x)", "bigFont.fnt");
+    m_scaleInput->setCommonFilter(CommonFilter::Float);
+    m_scaleInput->setString(fmt::format("{:.2f}", m_initScale));
+    m_scaleInput->setPosition(CCPointMake(centerXInputs + offsetX, inputsY));
+    m_scaleInput->setScale(0.9f);
+    m_mainLayer->addChild(m_scaleInput);
 
     auto menu = CCMenu::create();
     menu->setPosition(0, 0);
@@ -109,6 +120,15 @@ bool JumpscareSettingsPopup::setup()
     refreshBtn->setPosition(20.f + 10.f, 20.f + 10.f);
     menu->addChild(refreshBtn);
 
+    // Test button above the refresh button
+    auto testSpr = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
+    testSpr->setScale(0.475f);
+    auto testBtn = CCMenuItemSpriteExtra::create(testSpr, this, menu_selector(JumpscareSettingsPopup::onTestJumpscare));
+    testBtn->setID("jumpscare-test-btn");
+    // Place it just above refresh button with small spacing
+    testBtn->setPosition(refreshBtn->getPositionX(), refreshBtn->getPositionY() + 48.f);
+    menu->addChild(testBtn);
+
     return true;
 }
 
@@ -117,9 +137,8 @@ void JumpscareSettingsPopup::onInfoBtn(cocos2d::CCObject *)
     // FLAlertLayer doesn't fit correctly with these text so this is better
     geode::createQuickPopup(
         "How to Import Images",
-        "To use a custom image for the jumpscare, click <cg>'Open Folder'</c> and place your <co>PNG or JPG</c> file in the folder that opens.\n"
-        "Then, use the <cg>left/right arrows</c> to select an image that will be displayed when the jumpscare action is triggered.\n"
-        "<cg>If you want the image to cover the entire screen, make sure the image is the same resolution as your screen.</c>",
+        "To use a custom image for the jumpscare, click <cg>'Open Folder'</c> and place your <co>PNG, JPG, GIF or WEBP</c> file in the folder that opens.\n"
+        "Then, use the <cg>left/right arrows</c> to select an image that will be displayed when the jumpscare action is triggered.\n",
         "OK",
         nullptr,
         360.f,
@@ -137,6 +156,7 @@ void JumpscareSettingsPopup::onSaveBtn(cocos2d::CCObject *)
     else
         url = "";
     std::string fadeStr = m_fadeInput ? m_fadeInput->getString() : "0";
+    std::string scaleStr = m_scaleInput ? m_scaleInput->getString() : "1";
 
     // Trim
     auto trim = [](std::string &s)
@@ -152,14 +172,19 @@ void JumpscareSettingsPopup::onSaveBtn(cocos2d::CCObject *)
     };
     trim(url);
     trim(fadeStr);
+    trim(scaleStr);
 
     float fade = 0.0f;
+    float scaleMul = 1.0f;
     if (!fadeStr.empty())
         if (auto parsed = numFromString<float>(fadeStr))
             fade = parsed.unwrap();
+    if (!scaleStr.empty())
+        if (auto parsed = numFromString<float>(scaleStr))
+            scaleMul = parsed.unwrap();
 
     if (m_onSave)
-        m_onSave(url, fade);
+        m_onSave(url, fade, scaleMul);
     this->removeFromParentAndCleanup(true);
 }
 
@@ -174,6 +199,14 @@ void JumpscareSettingsPopup::onOpenFolder(cocos2d::CCObject *)
     if (auto res = geode::utils::file::openFolder(folder); !res)
     {
         log::warn("[JumpscareSettingsPopup] Failed to open jumpscare folder: {}", folder);
+    }
+}
+
+void JumpscareSettingsPopup::cleanupTempNode(cocos2d::CCNode *node)
+{
+    if (node != nullptr)
+    {
+        node->removeFromParentAndCleanup(true);
     }
 }
 
@@ -296,14 +329,127 @@ void JumpscareSettingsPopup::onRefreshFiles(cocos2d::CCObject *)
     updateArrowPositions();
 }
 
-JumpscareSettingsPopup *JumpscareSettingsPopup::create(const std::string &initUrl, float initFade, std::function<void(const std::string &, float)> onSave)
+void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
+{
+    // Determine selected filename
+    if (m_selectedIdx < 0 || m_selectedIdx >= static_cast<int>(m_files.size()))
+    {
+        geode::createQuickPopup(
+            "No Image",
+            "No image selected. Add images in the jumpscare folder and select one.",
+            "OK",
+            nullptr,
+            260.f,
+            [](FLAlertLayer *, bool) {},
+            false,
+            false)
+            ->show();
+        return;
+    }
+
+    // Parse fade time from input
+    float fade = 0.0f;
+    if (m_fadeInput != nullptr)
+    {
+        auto fadeStr = m_fadeInput->getString();
+        if (!fadeStr.empty())
+        {
+            if (auto parsed = numFromString<float>(fadeStr))
+            {
+                fade = parsed.unwrap();
+            }
+        }
+    }
+    if (fade < 0.0f) fade = 0.0f;
+
+    // Parse scale multiplier
+    float scaleMul = 1.0f;
+    if (m_scaleInput != nullptr)
+    {
+        auto scaleStr = m_scaleInput->getString();
+        if (!scaleStr.empty())
+        {
+            if (auto parsed = numFromString<float>(scaleStr))
+            {
+                scaleMul = parsed.unwrap();
+            }
+        }
+    }
+    if (scaleMul <= 0.0f) scaleMul = 1.0f;
+
+    // Build absolute path
+    auto base = Mod::get()->getConfigDir();
+    auto absPath = (base / "jumpscare" / m_files[m_selectedIdx]).string();
+
+    // Create a temporary layer and a screen-sized LazySprite like in TwitchCommandManager
+    auto scene = CCDirector::sharedDirector()->getRunningScene();
+    if (scene == nullptr)
+    {
+        return;
+    }
+
+    auto layer = CCLayerColor::create({0, 0, 0, 0});
+    layer->setID("jumpscare-layer");
+    scene->addChild(layer, 9999);
+
+    auto win = CCDirector::sharedDirector()->getWinSize();
+    auto ls = geode::LazySprite::create({win.width, win.height}, true);
+    if (!ls)
+    {
+        geode::createQuickPopup(
+            "Load Failed",
+            "Could not create LazySprite.",
+            "OK",
+            nullptr,
+            240.f,
+            [](FLAlertLayer *, bool) {},
+            false,
+            false)
+            ->show();
+        layer->removeFromParentAndCleanup(true);
+        return;
+    }
+    ls->setID("jumpscare-image");
+    ls->setAnchorPoint({0.5f, 0.5f});
+    ls->setPosition({win.width / 2.f, win.height / 2.f});
+    ls->setOpacity(255);
+    layer->addChild(ls);
+
+    if (!std::filesystem::exists(absPath))
+    {
+        log::warn("[Jumpscare Test] Image file does not exist: {}", absPath);
+    }
+    ls->loadFromFile(absPath);
+    // Apply user scale multiplier relative to cover fit: LazySprite auto-fits area, so scale additionally
+    ls->setScale(scaleMul);
+
+    // Hold briefly, then fade out over the input fade duration
+    float hold = 0.25f;
+    float fadeDur = std::max(0.f, fade);
+
+    auto fadeSeq = CCSequence::create(
+        CCDelayTime::create(hold),
+        CCFadeTo::create(fadeDur, 0),
+        CCCallFunc::create(ls, callfunc_selector(CCNode::removeFromParent)),
+        nullptr);
+    ls->runAction(fadeSeq);
+
+    auto removeLayerSeq = CCSequence::create(
+        CCDelayTime::create(hold + fadeDur),
+        CCCallFunc::create(layer, callfunc_selector(CCNode::removeFromParent)),
+        nullptr);
+    layer->runAction(removeLayerSeq);
+}
+
+JumpscareSettingsPopup *JumpscareSettingsPopup::create(const std::string &initUrl, float initFade, float initScale, std::function<void(const std::string &, float, float)> onSave)
 {
     auto ret = new JumpscareSettingsPopup();
     if (ret)
     {
-        ret->m_onSave = onSave;
-        ret->m_initUrl = initUrl;
-        ret->m_initFade = initFade;
+    ret->m_onSave = onSave;
+    ret->m_initUrl = initUrl;
+    ret->m_initFade = initFade;
+    ret->m_initScale = initScale;
         // Reasonable default size
         if (ret->initAnchored(360.f, 180.f))
         {

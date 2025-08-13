@@ -22,9 +22,11 @@ protected:
     CCMenuItemSpriteExtra *m_rightBtn = nullptr;
 
     geode::TextInput *m_fadeInput = nullptr;
-    std::function<void(const std::string &, float)> m_onSave;
+    geode::TextInput *m_scaleInput = nullptr;
+    std::function<void(const std::string &, float, float)> m_onSave;
     std::string m_initUrl;
     float m_initFade = 0.5f;
+    float m_initScale = 1.0f;
 
     bool setup() override;
     void onSaveBtn(cocos2d::CCObject *);
@@ -33,10 +35,12 @@ protected:
     void onLeftFile(cocos2d::CCObject *);
     void onRightFile(cocos2d::CCObject *);
     void onRefreshFiles(cocos2d::CCObject *);
+    void onTestJumpscare(cocos2d::CCObject *);
+    void cleanupTempNode(cocos2d::CCNode *node);
     void loadFiles();
     void updateFileLabel();
     void updateArrowPositions();
 
 public:
-    static JumpscareSettingsPopup *create(const std::string &initUrl, float initFade, std::function<void(const std::string &, float)> onSave);
+    static JumpscareSettingsPopup *create(const std::string &initUrl, float initFade, float initScale, std::function<void(const std::string &, float, float)> onSave);
 };

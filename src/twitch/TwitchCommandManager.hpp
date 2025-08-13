@@ -575,34 +575,48 @@ struct ActionContext : public CCObject
         // Handle other Event types
         if (action.type == CommandActionType::Event)
         {
-            // Jumpscare event: jumpscare:<fileName>:<fade>
+            // Jumpscare event: jumpscare:<fileName>:<fade>:<scale>
             if (processedArg.rfind("jumpscare:", 0) == 0)
             {
-                std::string url; // now interpreted as file name inside custom folder
+                std::string imageJS;
                 float fade = 0.5f;
+                float scaleMul = 1.0f;
                 size_t firstColon = processedArg.find(":");
                 size_t secondColon = (firstColon != std::string::npos ? processedArg.find(":", firstColon + 1) : std::string::npos);
+                size_t thirdColon = (secondColon != std::string::npos ? processedArg.find(":", secondColon + 1) : std::string::npos);
                 if (firstColon != std::string::npos)
                 {
                     if (secondColon != std::string::npos)
                     {
-                        url = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
-                        std::string fadeStr = processedArg.substr(secondColon + 1);
+                        imageJS = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                        std::string fadeStr;
+                        if (thirdColon != std::string::npos)
+                        {
+                            fadeStr = processedArg.substr(secondColon + 1, thirdColon - secondColon - 1);
+                            std::string scaleStr = processedArg.substr(thirdColon + 1);
+                            scaleStr.erase(0, scaleStr.find_first_not_of(" \t\n\r"));
+                            if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
+                                scaleMul = numFromString<float>(scaleStr).unwrapOrDefault();
+                        }
+                        else
+                        {
+                            fadeStr = processedArg.substr(secondColon + 1);
+                        }
                         fadeStr.erase(0, fadeStr.find_first_not_of(" \t\n\r"));
                         if (!fadeStr.empty() && fadeStr.find_first_not_of("-.0123456789") == std::string::npos)
                             fade = numFromString<float>(fadeStr).unwrapOrDefault();
                     }
                     else
                     {
-                        url = processedArg.substr(firstColon + 1);
+                        imageJS = processedArg.substr(firstColon + 1);
                     }
                 }
 
                 // Trim file name
-                url.erase(0, url.find_first_not_of(" \t\n\r"));
-                url.erase(url.find_last_not_of(" \t\n\r") + 1);
+                imageJS.erase(0, imageJS.find_first_not_of(" \t\n\r"));
+                imageJS.erase(imageJS.find_last_not_of(" \t\n\r") + 1);
 
-                if (url.empty())
+                if (imageJS.empty())
                 {
                     log::warn("[Jumpscare] Empty file name; skipping (command: {})", ctx->commandName);
                 }
@@ -618,7 +632,7 @@ struct ActionContext : public CCObject
                     auto ls = geode::LazySprite::create({win.width, win.height}, true);
                     if (!ls)
                     {
-                        log::warn("[Jumpscare] Failed to create LazySprite for file: {}", url);
+                        log::warn("[Jumpscare] Failed to create LazySprite for file: {}", imageJS);
                     }
                     else
                     {
@@ -631,13 +645,15 @@ struct ActionContext : public CCObject
 
                         // Build absolute path to custom jumpscare folder
                         auto base = Mod::get()->getConfigDir();
-                        auto fullPath = (base / "jumpscare" / url).string();
+                        auto fullPath = (base / "jumpscare" / imageJS).string();
                         if (!std::filesystem::exists(fullPath))
                         {
                             log::warn("[Jumpscare] Image file does not exist: {}", fullPath);
                         }
-                        // Load image into LazySprite (blocking or lazy depending on implementation)
+                        // Load image into LazySprite
                         ls->loadFromFile(fullPath);
+                        if (scaleMul > 0.f && scaleMul != 1.f)
+                            ls->setScale(scaleMul);
 
                         // Fade-out after a small hold; if fade <= 0, just remove instantly
                         float hold = 0.25f;
