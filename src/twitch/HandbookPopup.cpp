@@ -282,7 +282,6 @@ void HandbookPopup::onActionBtn(CCObject *)
         "- Copy actions to duplicate the value on that specific action.\n"
         "- Remove actions by clicking the delete button on the right.\n"
         "- Add multiple actions to a command to create complex effects.\n"
-        "- "
         "- Use the **Wait** action to delay each action by set seconds.\n\n"
 
         "**Tip:** Combine multiple actions for complex command effects!";
