@@ -220,30 +220,17 @@ void JumpscareSettingsPopup::loadFiles()
         log::warn("[JumpscareSettingsPopup] Failed to ensure jumpscare directory exists: {}", dir.string());
     }
 
-    // collect PNG/JPG files
+    // collect all files
     if (auto res = geode::utils::file::readDirectory(dir.string(), false))
     {
         for (auto const &entry : res.unwrap())
         {
-            // entry may be a filesystem::path; convert to string then strip separators
-            std::string name = entry.string();
-            size_t pos1 = name.find_last_of('/');
-            size_t pos2 = name.find_last_of('\\');
-            size_t pos = std::string::npos;
-            if (pos1 != std::string::npos && pos2 != std::string::npos)
-                pos = std::max(pos1, pos2);
-            else if (pos1 != std::string::npos)
-                pos = pos1;
-            else if (pos2 != std::string::npos)
-                pos = pos2;
-            if (pos != std::string::npos)
-                name = name.substr(pos + 1);
-            // filter image extensions (case-insensitive)
-            auto lower = geode::utils::string::toLower(name);
-            if (geode::utils::string::endsWith(lower, ".png") || geode::utils::string::endsWith(lower, ".jpg") || geode::utils::string::endsWith(lower, ".jpeg"))
-            {
-                m_files.push_back(name);
-            }
+            std::filesystem::path p = entry;
+            std::filesystem::path full = p.is_absolute() ? p : (dir / p);
+            std::error_code ec;
+            if (!std::filesystem::is_regular_file(full, ec))
+                continue;
+            m_files.push_back(full.filename().string());
         }
     }
 
@@ -277,7 +264,7 @@ void JumpscareSettingsPopup::updateFileLabel()
     if (m_selectedIdx >= 0 && m_selectedIdx < static_cast<int>(m_files.size()))
         m_fileLabel->setString(m_files[m_selectedIdx].c_str());
     else
-        m_fileLabel->setString("No Image File Detected");
+        m_fileLabel->setString("No Files Detected");
 }
 
 void JumpscareSettingsPopup::updateArrowPositions()
@@ -360,7 +347,8 @@ void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
             }
         }
     }
-    if (fade < 0.0f) fade = 0.0f;
+    if (fade < 0.0f)
+        fade = 0.0f;
 
     // Parse scale multiplier
     float scaleMul = 1.0f;
@@ -375,7 +363,8 @@ void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
             }
         }
     }
-    if (scaleMul <= 0.0f) scaleMul = 1.0f;
+    if (scaleMul <= 0.0f)
+        scaleMul = 1.0f;
 
     // Build absolute path
     auto base = Mod::get()->getConfigDir();
@@ -446,10 +435,10 @@ JumpscareSettingsPopup *JumpscareSettingsPopup::create(const std::string &initUr
     auto ret = new JumpscareSettingsPopup();
     if (ret)
     {
-    ret->m_onSave = onSave;
-    ret->m_initUrl = initUrl;
-    ret->m_initFade = initFade;
-    ret->m_initScale = initScale;
+        ret->m_onSave = onSave;
+        ret->m_initUrl = initUrl;
+        ret->m_initFade = initFade;
+        ret->m_initScale = initScale;
         // Reasonable default size
         if (ret->initAnchored(360.f, 180.f))
         {
