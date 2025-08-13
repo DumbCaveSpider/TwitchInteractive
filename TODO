@@ -7,6 +7,7 @@ TODO:
 - custom global prefix command
 - Make commmands per user instead of global (add this at the CommandInputSettings)
 - Add a limit characters for notification and popup
+- Add timewarp
 - Add alias on the commands
 [Future-Features]
 - Loop conditions (conditions)

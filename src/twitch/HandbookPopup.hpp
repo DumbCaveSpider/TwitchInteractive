@@ -13,6 +13,7 @@ protected:
     void onActionBtn(cocos2d::CCObject *sender);
     void onIdentifiersBtn(cocos2d::CCObject *sender);
     void onDashboardBtn(cocos2d::CCObject *sender);
+    void onTutorialBtn(cocos2d::CCObject *sender);
     void onCommandsBtn(cocos2d::CCObject *sender);
     void onUserRoleBtn(cocos2d::CCObject *sender);
     void onDiscordBtn(cocos2d::CCObject *sender);

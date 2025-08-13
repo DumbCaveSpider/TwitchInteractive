@@ -86,9 +86,17 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onDashboardBtn));
     dashBtn->setID("handbook-dashboard-btn");
-    dashBtn->setPosition({width / 2 - 80.f, 24.f});
+    dashBtn->setPosition({width / 2 - 120.f, 24.f});
 
     dashMenu->addChild(dashBtn);
+
+    auto tutorialBtn = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Tutorial", "bigFont.fnt", "GJ_button_01.png", fixedBtnWidth),
+        this,
+        menu_selector(HandbookPopup::onTutorialBtn));
+    tutorialBtn->setID("handbook-tutorial-btn");
+    tutorialBtn->setPosition({width / 2, 24.f});
+    dashMenu->addChild(tutorialBtn);
 
     // Commands button
     auto commandsBtn = CCMenuItemSpriteExtra::create(
@@ -96,7 +104,7 @@ bool HandbookPopup::setup()
         this,
         menu_selector(HandbookPopup::onCommandsBtn));
     commandsBtn->setID("handbook-commands-btn");
-    commandsBtn->setPosition({width / 2 + 80.f, 24.f});
+    commandsBtn->setPosition({width / 2 + 120.f, 24.f});
 
     dashMenu->addChild(commandsBtn);
 
@@ -214,10 +222,9 @@ void HandbookPopup::onCommandsBtn(CCObject *)
         "# Commands\n\n"
         "Commands are custom triggers that viewers can use in Twitch chat to interact with your game.\n\n"
 
-        "## How to Use\n"
         "- Every command starts with an exclamation mark (e.g., `!say`).\n"
-        "- You can add, edit, remove or toggle commands in the Dashboard.\n"
-        "- Apply cooldown on a specific command to prevent spamming by setting a cooldown in the settings.\n"
+        "- Add, edit, remove or toggle commands in the Dashboard.\n"
+        "- Apply cooldown on a specific command to prevent spamming by setting a cooldown in the settings. (Setting the cooldown to '0' for no cooldown.\n"
         "- Click on the command name to copy the chat command to your clipboard.\n"
         "- Each command can have one or multiple actions that are executed when the command is triggered.\n\n"
 
@@ -232,11 +239,10 @@ void HandbookPopup::onDashboardBtn(CCObject *)
         "# Dashboard\n\n"
         "The Dashboard is your main control center for the Twitch Interactive mod.\n\n"
 
-        "## How to Use\n"
         "- By default, all commands are disabled upon game bootup and only starts listening when you open the Dashboard once\n"
-        "- You can change each commands you created in the Dashboard with the buttons on the right.\n"
-        "- If you want to pause all commands in the chat, you can toggle the 'Listen' button in the Dashboard.\n"
-        "- You can disable certain commands by unchecking the 'Enabled' checkbox in the Dashboard.\n\n"
+        "- Change each commands you created in the Dashboard with the buttons on the right.\n"
+        "- Pause all commands in the chat by toggling the 'Listen' button in the Dashboard. When the button is red, all commands won't be executed by chat anymore.\n"
+        "- Disable certain commands by unchecking the 'Enabled' checkbox in the Dashboard.\n\n"
 
         "**Tip:** Use the Dashboard to quickly test, enable, or disable commands while streaming!";
 
@@ -272,9 +278,11 @@ void HandbookPopup::onActionBtn(CCObject *)
         "Actions are the list of events that the command will trigger when activated.\n\n"
         "- Some actions can be modified using the settings button.\n"
         "- Actions are executed in order, from top to bottom.\n"
-        "- You can move actions up or down to change their order of execution.\n"
-        "- You can remove actions by clicking the delete button on the right.\n"
+        "- Move actions up or down to change their order of execution.\n"
+        "- Copy actions to duplicate the value on that specific action.\n"
+        "- Remove actions by clicking the delete button on the right.\n"
         "- Add multiple actions to a command to create complex effects.\n"
+        "- "
         "- Use the **Wait** action to delay each action by set seconds.\n\n"
 
         "**Tip:** Combine multiple actions for complex command effects!";
@@ -290,14 +298,57 @@ void HandbookPopup::onEventsBtn(CCObject *)
 
         "- Each event represents a specific in-game action (e.g., jump, kill player, keycode).\n"
         "- Click the info icon for more details on each event.\n"
-        "- Some events accept arguments, such as which player to affect.\n"
-        "- You can search for specific events using the search box\n"
+        "- Click on the plus button to add the event into the action list"
+        "- Search for specific events using the search box\n"
+        "- Some events are hidden behind an experimental features. You can enable it at the Mod Settings\n\n"
 
         "## Got an Events Suggestions?\n"
         "- Consider contacting ArcticWoof via Discord (@arcticwoof) on my server for events suggestions.\n\n";
 
     MDPopup::create("Events Help", md, "OK", nullptr, [](bool) {})->show();
 };
+
+void HandbookPopup::onTutorialBtn(CCObject *)
+{
+    std::string md =
+        "# Tutorial\n\n"
+        "This handbook will teach you how to create a common commands used by various of streamers to understand how to use this mod.\n"
+        "There will be 3 example commands you can make and each ranges from simple command to more complex ones.\n\n"
+        "## Tutorial 1: Create a Simple Jump Command\n\n"
+        "1. Click 'New Command'.\n"
+        "2. Create a new command called `jump`.\n"
+        "3. **(Optional)** Add a cooldown in Settings to prevent spam.\n"
+        "4. Add a Jump Event: Click the + on the 'Jump'.\n"
+        "5. **(Optional)** Click on the Jump Action Setting and pick which Player to affect.\n"
+        "6. Click Save on the Jump Settings and the Command Settings.\n"
+        "7. Play any level to test out the command."
+        "7. Now type `!jump` in chat to test the command.\n\n"
+        "## Tutorial 2: Create a Notification Command with Custom Chat\n\n"
+        "1. Click 'New Command'.\n"
+        "2. Set the command name. Example: `say`.\n"
+        "3. **(Optional)** Add a cooldown in Settings to prevent spam.\n"
+        "4. Add an Action: Click the + on the 'Notification'.\n"
+        "5. In the text, type: `${displayname}: ${arg}` to show the user's name and message.\n"
+        "6. Press 'Save' on the command settings.\n"
+        "7. Test it in chat: type `!say hello` and you'll see a popup: `YourName: hello`.\n"
+        "## Tutorial 3: Create a Complex Jumpscare command\n\n"
+        "1. Click 'New Command'.\n"
+        "2. Set the command name. Example: `jumpscare`.\n"
+        "3. **(Optional)** Add a cooldown in Settings to prevent spam.\n"
+        "4. Add an Action: Click the + on the 'Jumpscare'.\n"
+        "5. In the jumpscare settings, click 'Open Folder' and drag and drop any image on the folder.\n"
+        "6. Click refresh and you should see your image name on the selection, change the fade or scale and click 'Save'.\n"
+        "7. Now add another action: Click the + on the 'Sound Effect'.\n"
+        "8. In the sound effect settings, choose any sounds provided or use a custom one by opening 'Custom SFX' and drag and drop an audio file to the folder.\n"
+        "9. Search for specific sounds using the search box and click the arrow button or the audio name to select.\n"
+        "10. Press 'Save' on the command settings\n"
+        "11. Test it in chat: type `!jumpscare` and your image will show and the audio will play!\n"
+        "### Helpful Tips:\n"
+        "- Use User/Role to limit who can use the command.\n"
+        "- Add multiple actions for more effects (e.g., Wait, Keycode).";
+
+    MDPopup::create("Basic Command Tutorial", md, "OK", nullptr, [](bool) {})->show();
+}
 
 HandbookPopup *HandbookPopup::create()
 {
