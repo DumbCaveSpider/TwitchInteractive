@@ -64,7 +64,7 @@ bool TwitchLoginPopup::setup()
         float changeH = m_changeBtn->getContentSize().height * m_changeBtn->getScale();
 
         m_changeBtn->setPosition(0, -(loginH / 2.f) - (spacing / 2.f) - 20.f);
-
+        m_loginMenu->setPosition(layerSize.width / 2, layerSize.height / 2 + 10.f);
         m_loginMenu->addChild(m_changeBtn);
     }
 

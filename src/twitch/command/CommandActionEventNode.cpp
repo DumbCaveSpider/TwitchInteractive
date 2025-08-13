@@ -526,6 +526,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
     std::vector<EventNodeInfo> nodes = {
         {"reverse_player", "Reverse Player", "Reverses the player direction. <cg>Only works well on classic level.</c>."},
         {"kill_player", "Destroy Player", "Destroy player. Self-explanatory. <cr>Don't use this while beating extremes!</c>"},
+    {"player_effect", "Player Effect", "Play a player visual effect such as <cg>Spawn</c> or <cr>Death</c>."},
         {"jump", "Jump", "Force the player to jump. You can set it to also hold jump."},
         {"move", "Move Player", "Move the player left or right. Lets you pick the player, direction and the distance to move. <cg>Works only on Platformers.</c>"},
         {"color_player", "Color Player", "Set the player's color based on the RGB value. <cr>Broken on Android users at this moment.</c>"},

@@ -22,6 +22,7 @@
 #include "../handler/SettingsHandler.hpp"
 #include "../handler/AlertSettingsPopup.hpp"
 #include "../handler/CameraSettingsPopup.hpp"
+#include "../handler/PlayerEffectSettingsPopup.hpp"
 
 using namespace cocos2d;
 using namespace geode::prelude;
@@ -824,6 +825,12 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
             m_commandActions.push_back("reverse_player");
             refreshActionsList();
         }
+        else if (eventId == "player_effect")
+        {
+            // default to Player 1 death effect
+            m_commandActions.push_back("player_effect:1:death");
+            refreshActionsList();
+        }
         else if (eventId == "scale_player")
         {
             m_commandActions.push_back("scale_player:1.00");
@@ -946,8 +953,8 @@ void CommandSettingsPopup::refreshActionsList()
     for (int i = 0; i < actionCount; ++i)
     {
         std::string &actionIdRaw = m_commandActions[i];
-    std::string actionIdLower = actionIdRaw;
-    geode::utils::string::toLowerIP(actionIdLower);
+        std::string actionIdLower = actionIdRaw;
+        geode::utils::string::toLowerIP(actionIdLower);
 
         // Create the action node and align to left edge of scroll content
         TwitchCommandAction actionObj(CommandActionType::Event, actionIdRaw, 0);
@@ -1022,7 +1029,7 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "move-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
-    else if (actionIdLower.rfind("jump:", 0) == 0)
+        else if (actionIdLower.rfind("jump:", 0) == 0)
         {
             btnId = "jump-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
@@ -1060,6 +1067,11 @@ void CommandSettingsPopup::refreshActionsList()
         else if (actionIdLower.rfind("sound_effect", 0) == 0)
         {
             btnId = "sound-effect-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
+        else if (actionIdLower.rfind("player_effect", 0) == 0)
+        {
+            btnId = "player-effect-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
         else if (actionIdLower.rfind("gravity", 0) == 0)
@@ -1407,6 +1419,35 @@ void CommandSettingsPopup::refreshActionsList()
                     }
                 }
             }
+            else if (actionIdLower.rfind("player_effect", 0) == 0)
+            {
+                // player_effect:<player>:<kind>  (back-compat: player_effect:<kind>)
+                int p = 1;
+                std::string kind = "death";
+                size_t firstColon = actionIdRaw.find(":");
+                if (firstColon != std::string::npos)
+                {
+                    std::string rest = actionIdRaw.substr(firstColon + 1);
+                    size_t secondColon = rest.find(":");
+                    if (secondColon != std::string::npos)
+                    {
+                        std::string pStr = rest.substr(0, secondColon);
+                        std::string kindStr = rest.substr(secondColon + 1);
+                        if (!pStr.empty() && pStr.find_first_not_of("-0123456789") == std::string::npos)
+                            p = numFromString<int>(pStr).unwrapOrDefault();
+                        if (!kindStr.empty())
+                            kind = kindStr;
+                    }
+                    else
+                    {
+                        // legacy form
+                        if (!rest.empty())
+                            kind = rest;
+                    }
+                }
+                std::string pretty = (kind == "spawn" ? std::string("Spawn Effect") : std::string("Death Effect"));
+                settingsLabelText = fmt::format("{} | Player {}", pretty, p);
+            }
             else if (actionIdLower.rfind("gravity", 0) == 0)
             {
                 // Format: gravity:<gravity>:<duration>
@@ -1443,8 +1484,16 @@ void CommandSettingsPopup::refreshActionsList()
                     }
                 }
                 // Trim
-                auto trim = [](std::string &s) {
-                    if (s.empty()) return; s.erase(0, s.find_first_not_of(" \t\n\r")); size_t end = s.find_last_not_of(" \t\n\r"); if (end != std::string::npos) s.erase(end + 1); else s.clear();
+                auto trim = [](std::string &s)
+                {
+                    if (s.empty())
+                        return;
+                    s.erase(0, s.find_first_not_of(" \t\n\r"));
+                    size_t end = s.find_last_not_of(" \t\n\r");
+                    if (end != std::string::npos)
+                        s.erase(end + 1);
+                    else
+                        s.clear();
                 };
                 trim(url);
                 trim(fadeStr);
@@ -1886,9 +1935,9 @@ void CommandSettingsPopup::updateColorPlayerLabel(int actionIdx)
 {
     if (actionIdx >= 0 && actionIdx < static_cast<int>(m_commandActions.size()))
     {
-    std::string &actionStr = m_commandActions[actionIdx];
-    std::string actionStrLower = actionStr;
-    geode::utils::string::toLowerIP(actionStrLower);
+        std::string &actionStr = m_commandActions[actionIdx];
+        std::string actionStrLower = actionStr;
+        geode::utils::string::toLowerIP(actionStrLower);
 
         if (actionStrLower.rfind("color_player", 0) == 0)
         {
@@ -2170,6 +2219,10 @@ void CommandSettingsPopup::onSave(CCObject *sender)
             // Save as event with arg 'move:<player>:<direction>'
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
         }
+        else if (actionIdRaw.rfind("player_effect:", 0) == 0)
+        {
+            actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
+        }
         else if (actionIdRaw.rfind("scale_player:", 0) == 0)
         {
             actionsVec.push_back(TwitchCommandAction(CommandActionType::Event, actionIdRaw, 0));
@@ -2387,6 +2440,8 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleGravitySettings(this, sender);
     else if (actionStrLower.rfind("jumpscare", 0) == 0)
         SettingsHandler::handleJumpscareSettings(this, sender);
+    else if (actionStrLower.rfind("player_effect", 0) == 0)
+        SettingsHandler::handlePlayerEffectSettings(this, sender);
 }
 // Polling function for event search input
 void CommandSettingsPopup::onEventSearchPoll(float)

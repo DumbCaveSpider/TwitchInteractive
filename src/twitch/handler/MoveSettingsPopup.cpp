@@ -5,14 +5,15 @@
 using namespace geode::prelude;
 
 // Define static member variables
-CCMenuItemSpriteExtra* MoveSettingsPopup::playerLeftBtn = nullptr;
-CCMenuItemSpriteExtra* MoveSettingsPopup::playerRightBtn = nullptr;
-CCMenuItemSpriteExtra* MoveSettingsPopup::dirLeftBtn = nullptr;
-CCMenuItemSpriteExtra* MoveSettingsPopup::dirRightBtn = nullptr;
+CCMenuItemSpriteExtra *MoveSettingsPopup::playerLeftBtn = nullptr;
+CCMenuItemSpriteExtra *MoveSettingsPopup::playerRightBtn = nullptr;
+CCMenuItemSpriteExtra *MoveSettingsPopup::dirLeftBtn = nullptr;
+CCMenuItemSpriteExtra *MoveSettingsPopup::dirRightBtn = nullptr;
 
-TextInput* MoveSettingsPopup::distanceInput = nullptr;
+TextInput *MoveSettingsPopup::distanceInput = nullptr;
 
-bool MoveSettingsPopup::setup() {
+bool MoveSettingsPopup::setup()
+{
     setTitle("Edit Move Settings");
     setID("move-settings-popup");
 
@@ -27,12 +28,12 @@ bool MoveSettingsPopup::setup() {
 
     // Player selection (top row, centered)
     playerLeftBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Player 1", "bigFont.fnt", m_player == 1 ? "GJ_button_01.png" : "GJ_button_04.png", 0.5f),
+        ButtonSprite::create("Player 1", "bigFont.fnt", m_player == 1 ? "GJ_button_02.png" : "GJ_button_04.png", 0.5f),
         this,
         menu_selector(MoveSettingsPopup::onPlayerLeft));
 
     playerRightBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Player 2", "bigFont.fnt", m_player == 2 ? "GJ_button_01.png" : "GJ_button_04.png", 0.5f),
+        ButtonSprite::create("Player 2", "bigFont.fnt", m_player == 2 ? "GJ_button_02.png" : "GJ_button_04.png", 0.5f),
         this,
         menu_selector(MoveSettingsPopup::onPlayerRight));
 
@@ -59,12 +60,12 @@ bool MoveSettingsPopup::setup() {
 
     // Direction selection (middle row, centered)
     dirLeftBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Left", "bigFont.fnt", !m_moveRight ? "GJ_button_01.png" : "GJ_button_04.png", 0.5f),
+        ButtonSprite::create("Left", "bigFont.fnt", !m_moveRight ? "GJ_button_02.png" : "GJ_button_04.png", 0.5f),
         this,
         menu_selector(MoveSettingsPopup::onDirectionLeft));
 
     dirRightBtn = CCMenuItemSpriteExtra::create(
-        ButtonSprite::create("Right", "bigFont.fnt", m_moveRight ? "GJ_button_01.png" : "GJ_button_04.png", 0.5f),
+        ButtonSprite::create("Right", "bigFont.fnt", m_moveRight ? "GJ_button_02.png" : "GJ_button_04.png", 0.5f),
         this,
         menu_selector(MoveSettingsPopup::onDirectionRight));
 
@@ -99,50 +100,59 @@ bool MoveSettingsPopup::setup() {
     return true;
 };
 
-void MoveSettingsPopup::onPlayerLeft(CCObject* sender) {
+void MoveSettingsPopup::onPlayerLeft(CCObject *sender)
+{
     m_player = 1;
 
     // Update button states
-    playerLeftBtn->setSprite(ButtonSprite::create("Player 1", "bigFont.fnt", "GJ_button_01.png", 0.5f));
+    playerLeftBtn->setSprite(ButtonSprite::create("Player 1", "bigFont.fnt", "GJ_button_02.png", 0.5f));
     playerRightBtn->setSprite(ButtonSprite::create("Player 2", "bigFont.fnt", "GJ_button_04.png", 0.5f));
 };
 
-void MoveSettingsPopup::onPlayerRight(CCObject* sender) {
+void MoveSettingsPopup::onPlayerRight(CCObject *sender)
+{
     m_player = 2;
 
     // Update button states
     playerLeftBtn->setSprite(ButtonSprite::create("Player 1", "bigFont.fnt", "GJ_button_04.png", 0.5f));
-    playerRightBtn->setSprite(ButtonSprite::create("Player 2", "bigFont.fnt", "GJ_button_01.png", 0.5f));
+    playerRightBtn->setSprite(ButtonSprite::create("Player 2", "bigFont.fnt", "GJ_button_02.png", 0.5f));
 };
 
-void MoveSettingsPopup::onDirectionLeft(CCObject* sender) {
+void MoveSettingsPopup::onDirectionLeft(CCObject *sender)
+{
     m_moveRight = false;
 
     // Update button states
-    dirLeftBtn->setSprite(ButtonSprite::create("Left", "bigFont.fnt", "GJ_button_01.png", 0.5f));
+    dirLeftBtn->setSprite(ButtonSprite::create("Left", "bigFont.fnt", "GJ_button_02.png", 0.5f));
     dirRightBtn->setSprite(ButtonSprite::create("Right", "bigFont.fnt", "GJ_button_04.png", 0.5f));
 };
 
-void MoveSettingsPopup::onDirectionRight(CCObject* sender) {
+void MoveSettingsPopup::onDirectionRight(CCObject *sender)
+{
     m_moveRight = true;
 
     // Update button states
     dirLeftBtn->setSprite(ButtonSprite::create("Left", "bigFont.fnt", "GJ_button_04.png", 0.5f));
-    dirRightBtn->setSprite(ButtonSprite::create("Right", "bigFont.fnt", "GJ_button_01.png", 0.5f));
+    dirRightBtn->setSprite(ButtonSprite::create("Right", "bigFont.fnt", "GJ_button_02.png", 0.5f));
 };
 
-void MoveSettingsPopup::onSave(CCObject* sender) {
+void MoveSettingsPopup::onSave(CCObject *sender)
+{
     // Get distance from input
-    if (distanceInput) {
+    if (distanceInput)
+    {
         std::string distStr = distanceInput->getString();
 
         // Remove whitespace
         distStr.erase(0, distStr.find_first_not_of(" \t\n\r"));
         distStr.erase(distStr.find_last_not_of(" \t\n\r") + 1);
 
-        if (distStr == "${arg}") {
+        if (distStr == "${arg}")
+        {
             // Accept as-is, but do not set m_distance (let backend handle it)
-        } else if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos) {
+        }
+        else if (!distStr.empty() && distStr.find_first_not_of("-0123456789.") == std::string::npos)
+        {
             m_distance = numFromString<float>(distStr).unwrapOrDefault();
         };
 
@@ -154,14 +164,16 @@ void MoveSettingsPopup::onSave(CCObject* sender) {
     onClose(sender);
 };
 
-MoveSettingsPopup* MoveSettingsPopup::create(int player, bool moveRight, std::function<void(int, bool, float)> callback) {
+MoveSettingsPopup *MoveSettingsPopup::create(int player, bool moveRight, std::function<void(int, bool, float)> callback)
+{
     auto ret = new MoveSettingsPopup();
 
     ret->m_player = player;
     ret->m_moveRight = moveRight;
     ret->m_callback = callback;
 
-    if (ret && ret->initAnchored(250.f, 200.f)) {
+    if (ret && ret->initAnchored(250.f, 200.f))
+    {
         ret->autorelease();
         return ret;
     };

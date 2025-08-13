@@ -11,6 +11,7 @@
 #include "GravitySettingsPopup.hpp"
 #include "SpeedSettingsPopup.hpp"
 #include "JumpscareSettingsPopup.hpp"
+#include "PlayerEffectSettingsPopup.hpp"
 
 #include <algorithm>
 
@@ -19,6 +20,44 @@ using namespace cocos2d;
 #include <Geode/utils/string.hpp>
 
 namespace SettingsHandler {
+    void handlePlayerEffectSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
+        auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+        int idx = 0;
+        if (btn && btn->getUserObject())
+            idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+        if (!popup || idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
+            return;
+
+        std::string& actionStr = popup->m_commandActions[idx];
+        // Expect player_effect:<player>:<kind> or legacy player_effect:<kind>
+        int player = 1;
+        PlayerEffectType eff = PlayerEffectType::Death;
+        size_t firstColon = actionStr.find(":");
+        if (firstColon != std::string::npos) {
+            std::string rest = actionStr.substr(firstColon + 1);
+            size_t secondColon = rest.find(":");
+            if (secondColon != std::string::npos) {
+                std::string pStr = rest.substr(0, secondColon);
+                std::string kind = rest.substr(secondColon + 1);
+                if (!pStr.empty() && pStr.find_first_not_of("-0123456789") == std::string::npos)
+                    player = numFromString<int>(pStr).unwrapOrDefault();
+                geode::utils::string::toLowerIP(kind);
+                eff = (kind == "spawn" ? PlayerEffectType::Spawn : PlayerEffectType::Death);
+            } else {
+                std::string kind = rest;
+                geode::utils::string::toLowerIP(kind);
+                eff = (kind == "spawn" ? PlayerEffectType::Spawn : PlayerEffectType::Death);
+            }
+        }
+
+        auto win = PlayerEffectSettingsPopup::create(eff, player, [popup, idx](PlayerEffectType newEff, int newPlayer){
+            std::string kind = (newEff == PlayerEffectType::Spawn) ? "spawn" : "death";
+            // Always save with player index
+            popup->m_commandActions[idx] = fmt::format("player_effect:{}:{}", std::max(1, std::min(2, newPlayer)), kind);
+            popup->refreshActionsList();
+        });
+        if (win) win->show();
+    }
     void handleJumpscareSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
         auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
         int idx = 0;

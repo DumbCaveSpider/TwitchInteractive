@@ -1,5 +1,7 @@
 # v0.1.14-beta.1
 - Added a "Change Account" button to the Twitch login popup
+- Added **Player Effect** event, currently only supports inbuilt effects
+- Simplified the process for the **Jumpscare** settings.
 
 # v0.1.13-beta.1
 - Fixing codebase

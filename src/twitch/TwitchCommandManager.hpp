@@ -992,6 +992,49 @@ struct ActionContext : public CCObject
                 log::info("Triggering reverse player event for command: {}", ctx->commandName);
                 PlayLayerEvent::reversePlayer();
             }
+            else if (processedArg.rfind("player_effect:", 0) == 0)
+            {
+                // player_effect:<player>:<kind> or legacy player_effect:<kind>
+                int playerIdx = 1;
+                std::string kind;
+                std::string rest = processedArg.substr(std::string("player_effect:").size());
+                size_t sep = rest.find(":");
+                if (sep != std::string::npos) {
+                    std::string pStr = rest.substr(0, sep);
+                    kind = rest.substr(sep + 1);
+                    if (!pStr.empty() && pStr.find_first_not_of("-0123456789") == std::string::npos)
+                        playerIdx = numFromString<int>(pStr).unwrapOrDefault();
+                } else {
+                    kind = rest; // legacy
+                }
+                geode::utils::string::toLowerIP(kind);
+                auto playLayer = PlayLayer::get();
+                if (playLayer)
+                {
+                    PlayerObject* target = (playerIdx == 2 ? playLayer->m_player2 : playLayer->m_player1);
+                    if (target)
+                    {
+                        if (kind == "spawn")
+                        {
+                            log::info("Playing spawn effect on P{} (command: {})", playerIdx, ctx->commandName);
+                            target->playSpawnEffect();
+                        }
+                        else
+                        {
+                            log::info("Playing death effect on P{} (command: {})", playerIdx, ctx->commandName);
+                            target->playDeathEffect();
+                        }
+                    }
+                    else
+                    {
+                        log::warn("[PlayerEffect] Player {} not available", playerIdx);
+                    }
+                }
+                else
+                {
+                    log::warn("[PlayerEffect] PlayLayer not found");
+                }
+            }
             else if (processedArg == "restart_level")
             {
                 log::info("Triggering restart level event for command: {}", ctx->commandName);
