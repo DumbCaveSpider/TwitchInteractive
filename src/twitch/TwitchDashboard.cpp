@@ -74,7 +74,7 @@ bool TwitchDashboard::setup()
     // Create welcome label
     std::string welcomeText = "Welcome, " + channelName + "!";
     m_welcomeLabel = CCLabelBMFont::create(welcomeText.c_str(), "bigFont.fnt");
-    m_welcomeLabel->setPosition(20.f, layerSize.height - 22.f);
+    m_welcomeLabel->setPosition(25.f, layerSize.height - 22.f);
     m_welcomeLabel->setAnchorPoint({0.f, 0.5f});
     m_welcomeLabel->setScale(0.3f);
     m_welcomeLabel->setAlignment(kCCTextAlignmentLeft);
@@ -571,6 +571,15 @@ void TwitchDashboard::handleCommandEdit(const std::string &originalName, const s
     // Copy the old command's properties to the new command when command properties has changed
     newCmd.enabled = oldCommand.enabled;
     newCmd.actions = oldCommand.actions;
+
+    // Preserve user/role restrictions and Show Cooldown setting
+    newCmd.allowedUser = oldCommand.allowedUser;
+    newCmd.allowVip = oldCommand.allowVip;
+    newCmd.allowMod = oldCommand.allowMod;
+    newCmd.allowStreamer = oldCommand.allowStreamer;
+    newCmd.allowSubscriber = oldCommand.allowSubscriber;
+
+    newCmd.showCooldown = oldCommand.showCooldown;
 
     // Add the new command
     commandManager->addCommand(newCmd);

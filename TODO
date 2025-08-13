@@ -1,11 +1,9 @@
 TODO:
 [Important]
 - Add a way to sort twitch commands (search, tags)
-- Add preview colors in the color settings
 - Add import and export commands
 [Minor]
 - add Open Level Info (allows users/viewers to directly open a level xd "LevelInfo" (broken atm cuz forgor how to do it properly))
-- force open level (basically opens forcefully open a level based on the id)
 - custom global prefix command
 - Make commmands per user instead of global (add this at the CommandInputSettings)
 - Add a limit characters for notification and popup

@@ -92,6 +92,12 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value &v)
     int cooldown = (v.contains("cooldown") && v["cooldown"].asInt().ok()) ? static_cast<int>(v["cooldown"].asInt().unwrap()) : 0;
     bool enabled = (v.contains("enabled") && v["enabled"].asBool().ok()) ? v["enabled"].asBool().unwrap() : true;
     bool showCooldown = (v.contains("showCooldown") && v["showCooldown"].asBool().ok()) ? v["showCooldown"].asBool().unwrap() : false;
+    // Role/user fields (optional for backward compatibility)
+    std::string allowedUser = (v.contains("allowedUser") && v["allowedUser"].asString().ok()) ? v["allowedUser"].asString().unwrap() : "";
+    bool allowVip = (v.contains("allowVip") && v["allowVip"].asBool().ok()) ? v["allowVip"].asBool().unwrap() : false;
+    bool allowMod = (v.contains("allowMod") && v["allowMod"].asBool().ok()) ? v["allowMod"].asBool().unwrap() : false;
+    bool allowStreamer = (v.contains("allowStreamer") && v["allowStreamer"].asBool().ok()) ? v["allowStreamer"].asBool().unwrap() : false;
+    bool allowSubscriber = (v.contains("allowSubscriber") && v["allowSubscriber"].asBool().ok()) ? v["allowSubscriber"].asBool().unwrap() : false;
 
     std::vector<TwitchCommandAction> actions;
 
@@ -105,6 +111,12 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value &v)
     TwitchCommand cmd(name, description, cooldown, actions);
     cmd.enabled = enabled;
     cmd.showCooldown = showCooldown;
+    // Persist role/user fields
+    cmd.allowedUser = allowedUser;
+    cmd.allowVip = allowVip;
+    cmd.allowMod = allowMod;
+    cmd.allowStreamer = allowStreamer;
+    cmd.allowSubscriber = allowSubscriber;
     return cmd;
 };
 
@@ -127,6 +139,12 @@ matjson::Value TwitchCommand::toJson() const
     v["cooldown"] = cooldown;
     v["enabled"] = enabled;
     v["showCooldown"] = showCooldown;
+    // Serialize role/user restriction fields
+    v["allowedUser"] = allowedUser;
+    v["allowVip"] = allowVip;
+    v["allowMod"] = allowMod;
+    v["allowStreamer"] = allowStreamer;
+    v["allowSubscriber"] = allowSubscriber;
     std::vector<matjson::Value> actionsVec;
     for (const auto &action : actions)
         actionsVec.push_back(action.toJson());

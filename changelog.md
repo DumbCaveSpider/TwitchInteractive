@@ -3,6 +3,8 @@
 - Added **Player Effect** event, currently only supports inbuilt effects
 - Simplified the process for the **Jumpscare** settings
 - Fixed **Wait** action time value disappearing when removing/copying actions
+- Added Player Preview in the Color Player Settings Popup
+- Fixed the **Show Cooldown** and **User/Role Restrictions** not being preserved when editing commands
 
 # v0.1.13-beta.1
 - Fixing codebase

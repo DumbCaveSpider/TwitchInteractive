@@ -597,6 +597,8 @@ struct ActionContext : public CCObject
                             scaleStr.erase(0, scaleStr.find_first_not_of(" \t\n\r"));
                             if (!scaleStr.empty() && scaleStr.find_first_not_of("-.0123456789") == std::string::npos)
                                 scaleMul = numFromString<float>(scaleStr).unwrapOrDefault();
+                            if (!(scaleMul > 0.f))
+                                scaleMul = 1.0f;
                         }
                         else
                         {

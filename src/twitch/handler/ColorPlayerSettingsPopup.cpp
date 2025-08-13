@@ -1,5 +1,7 @@
 #include "ColorPlayerSettingsPopup.hpp"
 #include <Geode/Geode.hpp>
+#include <Geode/binding/SimplePlayer.hpp>
+#include <Geode/binding/GameManager.hpp>
 
 bool ColorPlayerSettingsPopup::setup()
 {
@@ -17,6 +19,29 @@ bool ColorPlayerSettingsPopup::setup()
     addChild(m_mainLayer);
 
     float pickerY = popupSize.height / 2 + 20.f;
+
+    // SimplePlayer preview at top-left using current player icon
+    if (!m_previewPlayer)
+    {
+        int iconID = 1;
+        if (auto gm = GameManager::sharedState())
+        {
+            iconID = gm->getPlayerFrame();
+        }
+        m_previewPlayer = SimplePlayer::create(iconID);
+        if (m_previewPlayer)
+        {
+            m_previewPlayer->setScale(0.8f);
+            // position with small padding
+            m_previewPlayer->setAnchorPoint({0.f, 1.f});
+            m_previewPlayer->setScale(1);
+            m_previewPlayer->setPosition({popupSize.width / 4 + 20.f, popupSize.height / 2 + 20.f});
+            // apply initial color
+            m_previewPlayer->setColor(m_selectedColor);
+            // ensure visible on top
+            m_mainLayer->addChild(m_previewPlayer, 10);
+        }
+    }
 
     // Add background effect for color picker area (like main popup)
     auto pickerBg = CCMenu::create();
@@ -147,6 +172,9 @@ void ColorPlayerSettingsPopup::onApplyRGB(cocos2d::CCObject *sender)
     if (m_colorPicker)
         m_colorPicker->setColorValue(m_selectedColor);
 
+    if (m_previewPlayer)
+        m_previewPlayer->setColor(m_selectedColor);
+
     m_rInput->setString(fmt::format("{}", r));
     m_gInput->setString(fmt::format("{}", g));
     m_bInput->setString(fmt::format("{}", b));
@@ -163,6 +191,9 @@ void ColorPlayerSettingsPopup::onColorChanged(cocos2d::CCObject *sender, cocos2d
         m_rInput->setString(fmt::format("{}", m_selectedColor.r));
         m_gInput->setString(fmt::format("{}", m_selectedColor.g));
         m_bInput->setString(fmt::format("{}", m_selectedColor.b));
+
+        if (m_previewPlayer)
+            m_previewPlayer->setColor(m_selectedColor);
     };
 };
 

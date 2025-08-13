@@ -18,6 +18,7 @@ protected:
     TextInput *m_rInput = nullptr;
     TextInput *m_gInput = nullptr;
     TextInput *m_bInput = nullptr;
+    class SimplePlayer* m_previewPlayer = nullptr;
 
     void onApplyRGB(cocos2d::CCObject *sender);
     bool setup() override;
