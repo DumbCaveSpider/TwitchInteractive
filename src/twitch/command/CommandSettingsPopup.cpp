@@ -1886,6 +1886,44 @@ void CommandSettingsPopup::onRemoveAction(CCObject *sender)
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size()))
         return;
 
+    if (m_actionContent)
+    {
+        auto children = m_actionContent->getChildren();
+        if (children)
+        {
+            int maxCount = std::min(static_cast<int>(children->count()), static_cast<int>(m_commandActions.size()));
+            for (int i = 0; i < maxCount; ++i)
+            {
+                std::string lower = m_commandActions[i];
+                geode::utils::string::toLowerIP(lower);
+                if (lower.rfind("wait:", 0) == 0)
+                {
+                    if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
+                    {
+                        std::string waitInputId = "wait-delay-input-" + std::to_string(i);
+                        if (auto waitInput = typeinfo_cast<TextInput *>(node->getChildByID(waitInputId)))
+                        {
+                            std::string val = waitInput->getString();
+                            // Trim whitespace
+                            val.erase(0, val.find_first_not_of(" \t\n\r"));
+                            size_t last = val.find_last_not_of(" \t\n\r");
+                            if (last != std::string::npos)
+                                val.erase(last + 1);
+                            if (!val.empty())
+                            {
+                                if (auto parsed = numFromString<float>(val))
+                                {
+                                    float f = std::round(parsed.unwrap() * 1000.0f) / 1000.0f;
+                                    m_commandActions[i] = "wait:" + fmt::format("{:.2f}", f);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     m_commandActions.erase(m_commandActions.begin() + idx);
 
     refreshActionsList();
@@ -2472,6 +2510,45 @@ void CommandSettingsPopup::onCopyAction(CCObject *sender)
         idx = static_cast<CCInteger *>(btn->getUserObject())->getValue();
     if (idx < 0 || idx >= static_cast<int>(m_commandActions.size()))
         return;
+
+    // Persist all current wait input values before copying (same as add logic)
+    if (m_actionContent)
+    {
+        auto children = m_actionContent->getChildren();
+        if (children)
+        {
+            int maxCount = std::min(static_cast<int>(children->count()), static_cast<int>(m_commandActions.size()));
+            for (int i = 0; i < maxCount; ++i)
+            {
+                std::string lower = m_commandActions[i];
+                geode::utils::string::toLowerIP(lower);
+                if (lower.rfind("wait:", 0) == 0)
+                {
+                    if (auto node = static_cast<CCNode *>(children->objectAtIndex(i)))
+                    {
+                        std::string waitInputId = "wait-delay-input-" + std::to_string(i);
+                        if (auto waitInput = typeinfo_cast<TextInput *>(node->getChildByID(waitInputId)))
+                        {
+                            std::string val = waitInput->getString();
+                            // Trim whitespace
+                            val.erase(0, val.find_first_not_of(" \t\n\r"));
+                            size_t last = val.find_last_not_of(" \t\n\r");
+                            if (last != std::string::npos)
+                                val.erase(last + 1);
+                            if (!val.empty())
+                            {
+                                if (auto parsed = numFromString<float>(val))
+                                {
+                                    float f = std::round(parsed.unwrap() * 1000.0f) / 1000.0f;
+                                    m_commandActions[i] = "wait:" + fmt::format("{:.2f}", f);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Start with the raw action string
     std::string actionIdRaw = m_commandActions[idx];
