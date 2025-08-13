@@ -64,6 +64,12 @@
 			"name": "Easter Egg",
 			"description": "Enable the Easter Egg feature. <cy>That might be unless for everyone but special for ArcticWoof XD</c>",
 			"default": true
+		},
+		"tutorial": {
+			"type": "bool",
+			"name": "Tutorial",
+			"description": "Enable Tutorial Popup. Only enable if you forgot how to use the mod.",
+			"default": true
 		}
 	}
 }

@@ -144,9 +144,49 @@ bool TwitchDashboard::setup()
     setupCommandInput();     // Add command input area
     setupCommandListening(); // Register message callback for custom commands
 
+    // If Tutorial setting is enabled, schedule showing the tutorial prompt once the popup is fully on screen
+    if (auto mod = Loader::get()->getLoadedMod("arcticwoof.twitch_interactive"))
+    {
+        if (mod->getSettingValue<bool>("tutorial"))
+        {
+            // Defer by a tiny amount so this popup stacks on top
+            this->scheduleOnce(schedule_selector(TwitchDashboard::showTutorialPrompt), 0.0f);
+        }
+    }
+
     log::debug("TwitchDashboard opened successfully for channel: {}", channelName);
     return true;
 };
+
+void TwitchDashboard::showTutorialPrompt(float)
+{
+    geode::createQuickPopup(
+        "Tutorial",
+        "Do you want to learn how to use the mod?",
+        "No",
+        "Yes",
+        [this](auto, bool confirmed)
+        {
+            if (confirmed)
+            {
+                if (auto popup = HandbookPopup::create())
+                    popup->show();
+                if (auto m = Loader::get()->getLoadedMod("arcticwoof.twitch_interactive"))
+                {
+                    m->setSettingValue("tutorial", false);
+                    log::info("Tutorial popup disabled by user (opened tutorial).");
+                }
+            }
+            else
+            {
+                if (auto m = Loader::get()->getLoadedMod("arcticwoof.twitch_interactive"))
+                {
+                    m->setSettingValue("tutorial", false);
+                    log::info("Tutorial popup disabled by user.");
+                }
+            }
+        });
+}
 
 void TwitchDashboard::setupCommandsList()
 {

@@ -31,6 +31,7 @@ protected:
     void setupCommandsList();
     void setupCommandInput();
     void setupCommandListening();
+    void showTutorialPrompt(float dt);
 
 public:
     void delayedRefreshCommandsList(float dt);
