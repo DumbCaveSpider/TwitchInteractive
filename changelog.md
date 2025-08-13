@@ -1,3 +1,6 @@
+# v0.1.14-beta.1
+- Added a "Change Account" button to the Twitch login popup
+
 # v0.1.13-beta.1
 - Fixing codebase
   - Fixed the hash mismatch

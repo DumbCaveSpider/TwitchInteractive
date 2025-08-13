@@ -12,6 +12,9 @@ protected:
     CCMenu *m_loggedInMenu = nullptr;
 
     CCLabelBMFont *m_statusLabel = nullptr;
+    CCMenuItemSpriteExtra* m_changeBtn = nullptr;
+    CCLabelBMFont* m_changeStatusLabel = nullptr;
+    CCLabelBMFont* m_userLabel = nullptr;
 
     bool m_isActive = true;
     bool m_isWaitingForAuth = false;
@@ -27,6 +30,7 @@ protected:
     void retryAuthenticationProcess();
     void openDashboard();
     void resetToLogin();
+    void onChangeAccount(CCObject* sender);
 
     bool checkTwitchChannelExists();
 

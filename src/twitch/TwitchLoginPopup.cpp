@@ -50,18 +50,36 @@ bool TwitchLoginPopup::setup()
     m_loginMenu->addChild(loginBtn);
     m_loginMenu->setPosition(layerSize.width / 2, layerSize.height / 2);
 
+    // If already configured, add a "Change Account" button under the main button
+    if (!channelName.empty())
+    {
+        m_changeBtn = CCMenuItemSpriteExtra::create(
+            ButtonSprite::create("Change Account", "bigFont.fnt", "GJ_button_05.png", 0.5f),
+            this,
+            menu_selector(TwitchLoginPopup::onChangeAccount));
+        m_changeBtn->setID("twitch-login-change-account-btn");
+
+        float spacing = 12.f;
+        float loginH = loginBtn->getContentSize().height * loginBtn->getScale();
+        float changeH = m_changeBtn->getContentSize().height * m_changeBtn->getScale();
+
+        m_changeBtn->setPosition(0, -(loginH / 2.f) - (spacing / 2.f) - 20.f);
+
+        m_loginMenu->addChild(m_changeBtn);
+    }
+
     m_mainLayer->addChild(m_loginMenu);
 
     if (!channelName.empty())
     {
         // Create a label to show the authenticated channel
-        auto userLabel = CCLabelBMFont::create(("Login as: " + channelName).c_str(), "bigFont.fnt");
-        userLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 50);
-        userLabel->setScale(0.4f);
-        userLabel->setAlignment(kCCTextAlignmentCenter);
-        userLabel->setID("twitch-login-user-label");
+        m_userLabel = CCLabelBMFont::create(("Login as: " + channelName).c_str(), "bigFont.fnt");
+        m_userLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 50);
+        m_userLabel->setScale(0.4f);
+        m_userLabel->setAlignment(kCCTextAlignmentCenter);
+        m_userLabel->setID("twitch-login-user-label");
 
-        m_mainLayer->addChild(userLabel);
+        m_mainLayer->addChild(m_userLabel);
     };
 
     // Create status label for showing login status
@@ -84,6 +102,75 @@ bool TwitchLoginPopup::setup()
 
     return true;
 };
+
+void TwitchLoginPopup::onChangeAccount(CCObject *)
+{
+    auto api = TwitchChatAPI::get();
+    if (!api)
+    {
+        log::error("TwitchChatAPI is not available for Change Account");
+        return;
+    }
+    // Hide the button and show a temporary status label
+    if (m_changeBtn)
+        m_changeBtn->setVisible(false);
+    if (!m_changeStatusLabel)
+    {
+        m_changeStatusLabel = CCLabelBMFont::create("Changing account...", "bigFont.fnt");
+        m_changeStatusLabel->setScale(0.4f);
+        m_changeStatusLabel->setAlignment(kCCTextAlignmentCenter);
+        m_changeStatusLabel->setID("twitch-login-change-status");
+        // Place near where the button was
+        if (m_changeBtn)
+            m_changeStatusLabel->setPosition(m_changeBtn->getPosition());
+        else
+            m_changeStatusLabel->setPosition(0, -30.f);
+        if (m_loginMenu)
+            m_loginMenu->addChild(m_changeStatusLabel);
+        else
+            m_mainLayer->addChild(m_changeStatusLabel);
+    }
+    else
+    {
+        m_changeStatusLabel->setVisible(true);
+    }
+
+    // Register a callback for when reconnection occurs to update the user label
+    auto validityFlag = m_validityFlag;
+    api->registerOnConnectedCallback([this, validityFlag]()
+                                     {
+        if (!validityFlag || !*validityFlag)
+            return;
+        std::string newChannel;
+        if (auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api"))
+        {
+            newChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
+        }
+        if (!newChannel.empty())
+        {
+            if (!m_userLabel)
+            {
+                auto layerSize = m_mainLayer->getContentSize();
+                m_userLabel = CCLabelBMFont::create((std::string("Login as: ") + newChannel).c_str(), "bigFont.fnt");
+                m_userLabel->setPosition(layerSize.width / 2, layerSize.height / 2 + 50);
+                m_userLabel->setScale(0.4f);
+                m_userLabel->setAlignment(kCCTextAlignmentCenter);
+                m_userLabel->setID("twitch-login-user-label");
+                m_mainLayer->addChild(m_userLabel);
+            }
+            else
+            {
+                m_userLabel->setString((std::string("Login as: ") + newChannel).c_str());
+            }
+        }
+        if (m_changeStatusLabel)
+            m_changeStatusLabel->setVisible(false);
+        if (m_changeBtn)
+            m_changeBtn->setVisible(true); });
+
+    // Force login prompt to change account
+    api->promptLogin(true);
+}
 
 void TwitchLoginPopup::onLoginPressed(CCObject *)
 {
@@ -147,7 +234,7 @@ void TwitchLoginPopup::onLoginPressed(CCObject *)
             m_statusLabel->setString("Twitch channel not configured!\nRetrying authentication...");
 
             // Wait a moment then retry the authentication process
-            auto delayAction = CCDelayTime::create(3.0f);
+            auto delayAction = CCDelayTime::create(10.0f);
             auto retryAction = CCCallFunc::create(this, callfunc_selector(TwitchLoginPopup::retryAuthenticationProcess));
             auto sequence = CCSequence::create(delayAction, retryAction, nullptr);
 

@@ -15,25 +15,29 @@
 using namespace geode::prelude;
 class MyPauseLayer;
 
-extern void resetCommandCooldown(const std::string& commandName);
+extern void resetCommandCooldown(const std::string &commandName);
 
 static bool s_listening = false;
 
-static geode::Mod* getThisMod() {
+static geode::Mod *getThisMod()
+{
     return geode::Loader::get()->getLoadedMod("arcticwoof.twitch_interactive");
 };
 
-static void loadListenState() {
+static void loadListenState()
+{
     if (auto mod = getThisMod())
         s_listening = mod->getSavedValue<bool>("command-listen", true);
 };
 
-static void saveListenState() {
+static void saveListenState()
+{
     if (auto mod = getThisMod())
         mod->setSavedValue("command-listen", s_listening);
 };
 
-bool TwitchDashboard::setup() {
+bool TwitchDashboard::setup()
+{
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     setTitle("Twitch Dashboard");
@@ -46,7 +50,8 @@ bool TwitchDashboard::setup() {
     // Check if TwitchChatAPI is available
     auto api = TwitchChatAPI::get();
 
-    if (!api) {
+    if (!api)
+    {
         log::error("TwitchChatAPI is not available in TwitchDashboard::setup");
         return false;
     };
@@ -55,18 +60,22 @@ bool TwitchDashboard::setup() {
     std::string channelName = "Unknown";
     auto twitchMod = Loader::get()->getLoadedMod("alphalaneous.twitch_chat_api");
 
-    if (twitchMod) {
+    if (twitchMod)
+    {
         auto savedChannel = twitchMod->getSavedValue<std::string>("twitch-channel");
         if (!savedChannel.empty())
             channelName = savedChannel;
-    } else {
+    }
+    else
+    {
         log::error("TwitchChatAPI mod not found while getting Twitch channel name");
     };
 
     // Create welcome label
     std::string welcomeText = "Welcome, " + channelName + "!";
     m_welcomeLabel = CCLabelBMFont::create(welcomeText.c_str(), "bigFont.fnt");
-    m_welcomeLabel->setPosition(layerSize.width / 5 - 5.f, layerSize.height - 22.f);
+    m_welcomeLabel->setPosition(20.f, layerSize.height - 22.f);
+    m_welcomeLabel->setAnchorPoint({0.f, 0.5f});
     m_welcomeLabel->setScale(0.3f);
     m_welcomeLabel->setAlignment(kCCTextAlignmentLeft);
     m_welcomeLabel->setID("welcome-label");
@@ -93,11 +102,11 @@ bool TwitchDashboard::setup() {
 
     // Create a column layout for organizing commands vertically
     auto columnLayout = ColumnLayout::create()
-        ->setAxisReverse(true)
-        ->setAxisAlignment(AxisAlignment::End)
-        ->setCrossAxisAlignment(AxisAlignment::Center) // Center items horizontally
-        ->setAutoGrowAxis(scrollHeight)                // Allow vertical growth
-        ->setGap(5.0f);
+                            ->setAxisReverse(true)
+                            ->setAxisAlignment(AxisAlignment::End)
+                            ->setCrossAxisAlignment(AxisAlignment::Center) // Center items horizontally
+                            ->setAutoGrowAxis(scrollHeight)                // Allow vertical growth
+                            ->setGap(5.0f);
 
     // Set the layout to the content layer
     m_commandLayer = m_commandScrollLayer->m_contentLayer;
@@ -124,7 +133,7 @@ bool TwitchDashboard::setup() {
     handbookBtn->setPosition(menuWidth - btnWidth / 2.0f - 10.f, menuHeight - btnHeight / 2.0f - 10.f);
     handbookMenu->addChild(handbookBtn);
     handbookMenu->setPosition(0, 0); // Absolute positioning
-    handbookMenu->setAnchorPoint({ 1.0f, 1.0f });
+    handbookMenu->setAnchorPoint({1.0f, 1.0f});
     handbookMenu->setScale(0.8f);             // Scale down the menu
     m_mainLayer->addChild(handbookMenu, 100); // High z-order
 
@@ -139,7 +148,8 @@ bool TwitchDashboard::setup() {
     return true;
 };
 
-void TwitchDashboard::setupCommandsList() {
+void TwitchDashboard::setupCommandsList()
+{
     // Clear existing commands
     m_commandLayer->removeAllChildren();
 
@@ -163,13 +173,18 @@ void TwitchDashboard::setupCommandsList() {
 };
 
 // Helper to update all PauseLayer Twitch status labels
-static void updateAllPauseLayerTwitchStatus() {
-    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene()) {
-        auto& children = *scene->getChildren();
-        for (int i = 0; i < children.count(); ++i) {
-            auto node = static_cast<cocos2d::CCNode*>(children.objectAtIndex(i));
-            if (auto pause = typeinfo_cast<PauseLayer*>(node)) {
-                if (auto myPause = typeinfo_cast<MyPauseLayer*>(pause)) {
+static void updateAllPauseLayerTwitchStatus()
+{
+    if (auto scene = cocos2d::CCDirector::sharedDirector()->getRunningScene())
+    {
+        auto &children = *scene->getChildren();
+        for (int i = 0; i < children.count(); ++i)
+        {
+            auto node = static_cast<cocos2d::CCNode *>(children.objectAtIndex(i));
+            if (auto pause = typeinfo_cast<PauseLayer *>(node))
+            {
+                if (auto myPause = typeinfo_cast<MyPauseLayer *>(pause))
+                {
                     myPause->updateTwitchStatusLabel();
                 }
             }
@@ -177,27 +192,29 @@ static void updateAllPauseLayerTwitchStatus() {
     }
 }
 
-void TwitchDashboard::refreshCommandsList() {
+void TwitchDashboard::refreshCommandsList()
+{
     // Remove all existing command items
     m_commandLayer->removeAllChildren();
 
     log::debug("Cleared all command nodes");
 
     auto commandManager = TwitchCommandManager::getInstance();
-    auto& commands = commandManager->getCommands();
+    auto &commands = commandManager->getCommands();
 
     // Reset the column layout to ensure proper spacing
     auto columnLayout = ColumnLayout::create()
-        ->setAxisReverse(true)
-        ->setAxisAlignment(AxisAlignment::End)
-        ->setCrossAxisAlignment(AxisAlignment::Center)                   // Center items horizontally
-        ->setAutoGrowAxis(m_commandScrollLayer->getContentSize().height) // Allow vertical growth
-        ->setGap(7.0f);                                                  // Slightly larger gap between items
+                            ->setAxisReverse(true)
+                            ->setAxisAlignment(AxisAlignment::End)
+                            ->setCrossAxisAlignment(AxisAlignment::Center)                   // Center items horizontally
+                            ->setAutoGrowAxis(m_commandScrollLayer->getContentSize().height) // Allow vertical growth
+                            ->setGap(7.0f);                                                  // Slightly larger gap between items
 
     m_commandLayer->setLayout(columnLayout);
 
     // Check if there are no commands to display
-    if (commands.empty()) {
+    if (commands.empty())
+    {
         // Create a message when no commands are available
         auto noCommandsLabel = CCLabelBMFont::create("No commands available.\nClick 'Add Command' to create one.", "goldFont.fnt");
         noCommandsLabel->setScale(0.45f);
@@ -210,12 +227,15 @@ void TwitchDashboard::refreshCommandsList() {
         log::warn("No commands found");
 
         return; // Exit early since we don't need to create command items
-    } else {
+    }
+    else
+    {
         log::debug("Recreating {} commands", commands.size());
     };
 
     // Create command items
-    for (const auto& command : commands) {
+    for (const auto &command : commands)
+    {
         m_commandLayer->addChild(CommandActionEventNode::createCommandNode(
             this,
             command,
@@ -226,7 +246,8 @@ void TwitchDashboard::refreshCommandsList() {
     m_commandLayer->updateLayout();
 };
 
-void TwitchDashboard::setupCommandInput() {
+void TwitchDashboard::setupCommandInput()
+{
     // Create "Add Command" button that opens a popup
     m_commandControlsMenu = CCMenu::create();
     m_commandControlsMenu->setID("command-controls-menu");
@@ -257,19 +278,22 @@ void TwitchDashboard::setupCommandInput() {
     listenBtn->toggle(s_listening);
 
     // Set content size to match the menu's height
-    auto btnSprite = static_cast<ButtonSprite*>(addCommandBtn->getNormalImage());
-    if (btnSprite) {
+    auto btnSprite = static_cast<ButtonSprite *>(addCommandBtn->getNormalImage());
+    if (btnSprite)
+    {
         auto btnSize = btnSprite->getContentSize();
         btnSprite->setContentSize(CCSize(btnSize.width, 25.0f));
     };
 
-    auto listenBtnSprite = static_cast<ButtonSprite*>(listenOnSprite);
-    if (listenBtnSprite) {
+    auto listenBtnSprite = static_cast<ButtonSprite *>(listenOnSprite);
+    if (listenBtnSprite)
+    {
         auto btnSize = listenBtnSprite->getContentSize();
         listenBtnSprite->setContentSize(CCSize(btnSize.width, 25.0f));
     }
-    auto listenBtnOffSprite = static_cast<ButtonSprite*>(listenOffSprite);
-    if (listenBtnOffSprite) {
+    auto listenBtnOffSprite = static_cast<ButtonSprite *>(listenOffSprite);
+    if (listenBtnOffSprite)
+    {
         auto btnSize = listenBtnOffSprite->getContentSize();
         listenBtnOffSprite->setContentSize(CCSize(btnSize.width, 25.0f));
     }
@@ -289,7 +313,8 @@ void TwitchDashboard::setupCommandInput() {
     m_mainLayer->addChild(m_commandControlsMenu);
 };
 
-void TwitchDashboard::onToggleCommandListen(CCObject* sender) {
+void TwitchDashboard::onToggleCommandListen(CCObject *sender)
+{
     s_listening = !s_listening;
     saveListenState();
 
@@ -298,26 +323,31 @@ void TwitchDashboard::onToggleCommandListen(CCObject* sender) {
     updateAllPauseLayerTwitchStatus();
 };
 
-bool TwitchDashboard::isListening() {
+bool TwitchDashboard::isListening()
+{
     return s_listening;
 };
 
-void TwitchDashboard::setupCommandListening() {
+void TwitchDashboard::setupCommandListening()
+{
     loadListenState(); // Ensure listen state is loaded on startup
 
     static bool callbackRegistered = false;
-    if (callbackRegistered) {
+    if (callbackRegistered)
+    {
         log::debug("TwitchDashboard::setupCommandListening: Callback already registered, skipping.");
         return;
     };
 
     auto api = TwitchChatAPI::get();
-    if (!api) {
+    if (!api)
+    {
         log::error("TwitchChatAPI is not available for command listening");
         return;
     };
 
-    api->registerOnMessageCallback([this](const ChatMessage& chatMessage) {
+    api->registerOnMessageCallback([this](const ChatMessage &chatMessage)
+                                   {
         // Ignore all callbacks if not listening
         if (!s_listening) {
             log::debug("Command ignored: Not Listening");
@@ -329,7 +359,8 @@ void TwitchDashboard::setupCommandListening() {
     log::info("Command listening setup complete");
 };
 
-void TwitchDashboard::onClose(CCObject* sender) {
+void TwitchDashboard::onClose(CCObject *sender)
+{
     // Make sure to unschedule any delayed refreshes when closing
     unschedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList));
 
@@ -342,9 +373,11 @@ void TwitchDashboard::onClose(CCObject* sender) {
     updateAllPauseLayerTwitchStatus();
 };
 
-void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
+void TwitchDashboard::onAddCustomCommand(CCObject *sender)
+{
     // Open the command input popup
-    auto popup = CommandInputPopup::create([this](const std::string& commandName, const std::string& commandDesc) {
+    auto popup = CommandInputPopup::create([this](const std::string &commandName, const std::string &commandDesc)
+                                           {
         // This callback is called when user adds a command
         auto commandManager = TwitchCommandManager::getInstance();
 
@@ -385,15 +418,18 @@ void TwitchDashboard::onAddCustomCommand(CCObject* sender) {
         popup->show();
 };
 
-void TwitchDashboard::handleCommandDelete(const std::string& commandName) {
+void TwitchDashboard::handleCommandDelete(const std::string &commandName)
+{
     // Show confirmation popup before deleting
     geode::createQuickPopup(
         "Delete Command",
         "Are you sure you want to <cr>delete command</c> '!" + commandName + "'? This action cannot be undone.",
         "No",
         "Yes",
-        [this, commandName](auto, bool confirmed) {
-            if (confirmed) {
+        [this, commandName](auto, bool confirmed)
+        {
+            if (confirmed)
+            {
                 auto commandManager = TwitchCommandManager::getInstance();
                 commandManager->removeCommand(commandName);
                 log::info("Command deleted: {}", commandName);
@@ -401,13 +437,14 @@ void TwitchDashboard::handleCommandDelete(const std::string& commandName) {
                 FLAlertLayer::create(
                     "Delete Success",
                     "Command '<cg>!" + commandName + "</c>' deleted successfully!",
-                    "OK"
-                )->show();
+                    "OK")
+                    ->show();
             }
         });
 };
 
-void TwitchDashboard::delayedRefreshCommandsList(float dt) {
+void TwitchDashboard::delayedRefreshCommandsList(float dt)
+{
     // Unschedule to ensure this only runs once
     unschedule(schedule_selector(TwitchDashboard::delayedRefreshCommandsList));
 
@@ -418,7 +455,8 @@ void TwitchDashboard::delayedRefreshCommandsList(float dt) {
     log::debug("Commands list refreshed via delayed callback");
 };
 
-TwitchDashboard* TwitchDashboard::create() {
+TwitchDashboard *TwitchDashboard::create()
+{
     auto ret = new TwitchDashboard();
 
     // Calculate appropriate size based on window size (same logic as in setup())
@@ -443,7 +481,8 @@ TwitchDashboard* TwitchDashboard::create() {
     width = std::max(width, baseWidth - 80.f);
     height = std::max(height, baseHeight - 40.f);
 
-    if (ret && ret->initAnchored(width, height)) {
+    if (ret && ret->initAnchored(width, height))
+    {
         ret->autorelease();
         return ret;
     };
@@ -452,11 +491,13 @@ TwitchDashboard* TwitchDashboard::create() {
     return nullptr;
 };
 
-TwitchDashboard::~TwitchDashboard() {
+TwitchDashboard::~TwitchDashboard()
+{
     log::debug("TwitchDashboard destructor called");
 };
 
-void TwitchDashboard::handleCommandEdit(const std::string& originalName, const std::string& newName, const std::string& newDesc) {
+void TwitchDashboard::handleCommandEdit(const std::string &originalName, const std::string &newName, const std::string &newDesc)
+{
     auto commandManager = TwitchCommandManager::getInstance();
 
     // Always expect newName = name, newDesc = desc|cooldown
@@ -468,7 +509,8 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     size_t firstSep = newDesc.find('|');
     size_t lastSep = newDesc.rfind('|');
 
-    if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep) {
+    if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep)
+    {
         // Format: desc|cooldown
         desc = newDesc.substr(0, firstSep);
 
@@ -477,7 +519,9 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
 
         if (!cooldownStr.empty() && (cooldownStr.find_first_not_of("-0123456789") == std::string::npos))
             cooldown = numFromString<int>(cooldownStr).unwrapOrDefault();
-    } else if (firstSep != std::string::npos) {
+    }
+    else if (firstSep != std::string::npos)
+    {
         // Format: desc|cooldown (if only one sep)
         desc = newDesc.substr(0, firstSep);
 
@@ -492,15 +536,18 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     bool foundOld = false;
     TwitchCommand oldCommand("temp", "temp", 0);
 
-    for (const auto& cmd : commandManager->getCommands()) {
-        if (cmd.name == originalName) {
+    for (const auto &cmd : commandManager->getCommands())
+    {
+        if (cmd.name == originalName)
+        {
             oldCommand = cmd;
             foundOld = true;
             break;
         };
     };
 
-    if (!foundOld) {
+    if (!foundOld)
+    {
         log::error("Could not find command to edit: {}", originalName);
         return;
     };
@@ -509,16 +556,18 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     commandManager->removeCommand(originalName);
 
     // If cooldown changed, reset cooldown for this command
-    if (cooldown != oldCommand.cooldown) {
+    if (cooldown != oldCommand.cooldown)
+    {
         resetCommandCooldown(originalName);
         log::info("Cooldown for command '{}' was changed. Cooldown reset.", originalName);
     };
 
     // Create a new command with the updated values
     TwitchCommand newCmd(finalName, desc, cooldown);
-    newCmd.callback = [finalName, desc](const std::string& args) {
+    newCmd.callback = [finalName, desc](const std::string &args)
+    {
         log::info("Custom command '{}' ({}) triggered with args: '{}'", finalName, desc, args);
-        };
+    };
     // Copy the old command's properties to the new command when command properties has changed
     newCmd.enabled = oldCommand.enabled;
     newCmd.actions = oldCommand.actions;
@@ -534,39 +583,48 @@ void TwitchDashboard::handleCommandEdit(const std::string& originalName, const s
     FLAlertLayer::create(
         "Success",
         "Command '<cg>!" + finalName + "</c>' updated successfully!",
-        "OK"
-    )->show();
+        "OK")
+        ->show();
 };
 
-void TwitchDashboard::onEditCommand(CCObject* sender) {
+void TwitchDashboard::onEditCommand(CCObject *sender)
+{
     // Handle the edit button click
-    auto button = static_cast<CCMenuItemSpriteExtra*>(sender);
-    if (!button) return;
+    auto button = static_cast<CCMenuItemSpriteExtra *>(sender);
+    if (!button)
+        return;
 
     // The command name should be stored in the button's tag or parent node
-    auto node = static_cast<CommandActionEventNode*>(button->getParent()->getParent());
-    if (!node) return;
+    auto node = static_cast<CommandActionEventNode *>(button->getParent()->getParent());
+    if (!node)
+        return;
 
     std::string commandName = node->getCommandName();
     auto commandManager = TwitchCommandManager::getInstance();
 
-    for (const auto& cmd : commandManager->getCommands()) {
-        if (cmd.name == commandName) {
+    for (const auto &cmd : commandManager->getCommands())
+    {
+        if (cmd.name == commandName)
+        {
             // Always pass cooldown, even if 0
             std::string descForEdit = cmd.description + "|" + std::to_string(cmd.cooldown);
 
             auto popup = CommandInputPopup::createForEdit(
                 cmd.name,
                 descForEdit,
-                [this](const std::string& originalName, const std::string& nameDescCooldown) {
+                [this](const std::string &originalName, const std::string &nameDescCooldown)
+                {
                     // Always parse as name|desc|cooldown
                     size_t firstSep = nameDescCooldown.find('|');
                     size_t lastSep = nameDescCooldown.rfind('|');
-                    if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep) {
+                    if (firstSep != std::string::npos && lastSep != std::string::npos && firstSep != lastSep)
+                    {
                         std::string newName = nameDescCooldown.substr(0, firstSep);
                         std::string newDesc = nameDescCooldown.substr(firstSep + 1);
                         handleCommandEdit(originalName, newName, newDesc);
-                    } else {
+                    }
+                    else
+                    {
                         // Fallback: treat as name|desc
                         handleCommandEdit(originalName, nameDescCooldown.substr(0, firstSep), nameDescCooldown.substr(firstSep + 1));
                     };
@@ -579,13 +637,17 @@ void TwitchDashboard::onEditCommand(CCObject* sender) {
     };
 };
 
-void TwitchDashboard::triggerCommandCooldown(const std::string& commandName) {
+void TwitchDashboard::triggerCommandCooldown(const std::string &commandName)
+{
     if (!m_commandLayer)
         return;
 
-    for (auto child : CCArrayExt<CCNode*>(m_commandLayer->getChildren())) {
-        if (auto node = typeinfo_cast<CommandActionEventNode*>(child)) {
-            if (node->getCommandName() == commandName) {
+    for (auto child : CCArrayExt<CCNode *>(m_commandLayer->getChildren()))
+    {
+        if (auto node = typeinfo_cast<CommandActionEventNode *>(child))
+        {
+            if (node->getCommandName() == commandName)
+            {
                 node->triggerCommand();
                 break;
             };
@@ -594,7 +656,8 @@ void TwitchDashboard::triggerCommandCooldown(const std::string& commandName) {
 };
 
 // Handbook button callback
-void TwitchDashboard::onHandbook(CCObject* sender) {
+void TwitchDashboard::onHandbook(CCObject *sender)
+{
     // Show the Handbook popup
     auto popup = HandbookPopup::create();
     if (popup)
