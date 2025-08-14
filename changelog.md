@@ -1,3 +1,7 @@
+# v0.1.15-beta.1
+- Added Username & Identifier support for **Profile** action
+- Added **Level Info** Event, you can now force open a level by ID.
+
 # v0.1.14-beta.1
 - Added **Change Account** button to the Twitch login popup
 - Added **Player Effect** event, currently only supports inbuilt effects

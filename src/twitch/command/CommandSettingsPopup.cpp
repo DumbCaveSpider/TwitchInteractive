@@ -795,6 +795,11 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
             m_commandActions.push_back("notification:");
             refreshActionsList();
         }
+        else if (eventId == "open_level")
+        {
+            m_commandActions.push_back("open_level:");
+            refreshActionsList();
+        }
         else if (eventId == "keycode")
         {
             m_commandActions.push_back("keycode:");
@@ -1024,6 +1029,11 @@ void CommandSettingsPopup::refreshActionsList()
             btnId = "profile-settings-btn-" + std::to_string(actionIndex);
             hasSettingsHandler = true;
         }
+        else if (actionIdLower.rfind("open_level", 0) == 0)
+        {
+            btnId = "open-level-settings-btn-" + std::to_string(actionIndex);
+            hasSettingsHandler = true;
+        }
         else if (actionIdLower.rfind("move", 0) == 0)
         {
             btnId = "move-settings-btn-" + std::to_string(actionIndex);
@@ -1184,6 +1194,24 @@ void CommandSettingsPopup::refreshActionsList()
                 {
                     settingsLabelText = "Icon: Info | Text: -";
                 }
+            }
+            else if (actionIdLower.rfind("open_level", 0) == 0)
+            {
+                // open_level:<levelID>
+                std::string idText;
+                size_t firstColon = actionIdRaw.find(":");
+                if (firstColon != std::string::npos && firstColon + 1 < actionIdRaw.size())
+                {
+                    idText = actionIdRaw.substr(firstColon + 1);
+                    // trim
+                    idText.erase(0, idText.find_first_not_of(" \t\n\r"));
+                    size_t end = idText.find_last_not_of(" \t\n\r");
+                    if (end != std::string::npos) idText.erase(end + 1); else idText.clear();
+                }
+                if (!idText.empty())
+                    settingsLabelText = "Level ID: " + idText;
+                else
+                    settingsLabelText = "Level ID: -";
             }
             else if (actionIdLower.rfind("keycode", 0) == 0)
             {
@@ -2481,6 +2509,8 @@ void CommandSettingsPopup::onSettingsButtonUnified(cocos2d::CCObject *sender)
         SettingsHandler::handleKeyCodeSettings(this, sender);
     else if (actionStrLower.rfind("profile", 0) == 0)
         SettingsHandler::handleProfileSettings(this, sender);
+    else if (actionStrLower.rfind("open_level", 0) == 0)
+        SettingsHandler::handleOpenLevelSettings(this, sender);
     else if (actionStrLower.rfind("move", 0) == 0)
         SettingsHandler::handleMoveSettings(this, sender);
     else if (actionStrLower.rfind("jump:", 0) == 0)

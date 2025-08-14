@@ -12,6 +12,7 @@
 #include "SpeedSettingsPopup.hpp"
 #include "JumpscareSettingsPopup.hpp"
 #include "PlayerEffectSettingsPopup.hpp"
+#include "LevelSettingsPopup.hpp"
 
 #include <algorithm>
 
@@ -20,6 +21,31 @@ using namespace cocos2d;
 #include <Geode/utils/string.hpp>
 
 namespace SettingsHandler {
+    void handleOpenLevelSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
+        auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+        int idx = 0;
+        if (btn && btn->getUserObject())
+            idx = static_cast<CCInteger*>(btn->getUserObject())->getValue();
+        if (!popup || idx < 0 || idx >= static_cast<int>(popup->m_commandActions.size()))
+            return;
+
+        std::string& actionStr = popup->m_commandActions[idx];
+        std::string actionStrLower = actionStr;
+        geode::utils::string::toLowerIP(actionStrLower);
+        if (actionStrLower.rfind("open_level", 0) != 0)
+            return;
+
+        std::string value;
+        size_t colon = actionStr.find(":");
+        if (colon != std::string::npos && colon + 1 < actionStr.size())
+            value = actionStr.substr(colon + 1);
+
+        auto win = LevelSettingsPopup::create(value, [popup, idx](const std::string& newVal){
+            popup->m_commandActions[idx] = std::string("open_level:") + newVal;
+            popup->refreshActionsList();
+        });
+        if (win) win->show();
+    }
     void handlePlayerEffectSettings(CommandSettingsPopup* popup, cocos2d::CCObject* sender) {
         auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
         int idx = 0;
@@ -358,13 +384,13 @@ namespace SettingsHandler {
         if (actionStrLower.rfind("profile", 0) != 0)
             return;
 
-        std::string accountId = "7689052";
+        std::string accountId = "ArcticWoof";
         size_t colonPos = actionStr.find(":");
 
         if (colonPos != std::string::npos && colonPos + 1 < actionStr.size()) {
             accountId = actionStr.substr(colonPos + 1);
             if (accountId.empty())
-                accountId = "7689052";
+                accountId = "ArcticWoof";
         };
 
         ProfileSettingsPopup::create(

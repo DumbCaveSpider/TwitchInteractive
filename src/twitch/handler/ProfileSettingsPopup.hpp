@@ -3,6 +3,7 @@
 #include <cocos2d.h>
 #include <string>
 #include <functional>
+#include <Geode/utils/web.hpp>
 
 using namespace geode::prelude;
 using namespace cocos2d;

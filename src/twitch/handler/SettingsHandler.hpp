@@ -22,4 +22,5 @@ namespace SettingsHandler
     void handleSpeedSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
     void handleJumpscareSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
     void handlePlayerEffectSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
+    void handleOpenLevelSettings(CommandSettingsPopup *popup, cocos2d::CCObject *sender);
 }

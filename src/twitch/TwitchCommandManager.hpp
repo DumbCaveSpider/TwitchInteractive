@@ -19,8 +19,13 @@
 #include "command/events/KeyReleaseScheduler.hpp"
 
 #include <alphalaneous.twitch_chat_api/include/TwitchChatAPI.hpp>
+#include <Geode/utils/web.hpp>
+#include <Geode/binding/GameLevelManager.hpp>
+#include <Geode/binding/GJSearchObject.hpp>
+#include <Geode/binding/LevelInfoLayer.hpp>
 
 using namespace geode::prelude;
+namespace web = geode::utils::web;
 
 
 // Command arguments
@@ -268,7 +273,7 @@ struct ActionContext : public CCObject
         }
 
         return result;
-    };
+    }
 
     void execute(CCObject *obj)
     {
@@ -1337,17 +1342,163 @@ struct ActionContext : public CCObject
             }
             else if (processedArg.rfind("profile:", 0) == 0)
             {
-                int accountIdInt = 0;
                 size_t firstColon = processedArg.find(":");
-                if (firstColon != std::string::npos)
+                if (firstColon == std::string::npos)
+                    ;
+                else
                 {
-                    std::string idStr = processedArg.substr(firstColon + 1);
-                    if (!idStr.empty() && idStr.find_first_not_of("-0123456789") == std::string::npos)
-                        accountIdInt = numFromString<int>(idStr).unwrapOrDefault();
-                };
+                    std::string query = processedArg.substr(firstColon + 1);
+                    // trim
+                    query.erase(0, query.find_first_not_of(" \t\n\r"));
+                    if (!query.empty())
+                        query.erase(query.find_last_not_of(" \t\n\r") + 1);
 
-                if (auto page = ProfilePage::create(accountIdInt, false))
-                    page->show();
+                    // If numeric, open directly for backward-compat
+                    if (!query.empty() && query.find_first_not_of("-0123456789") == std::string::npos)
+                    {
+                        int accountIdInt = numFromString<int>(query).unwrapOrDefault();
+                        if (auto page = ProfilePage::create(accountIdInt, false))
+                            page->show();
+                    }
+                    else
+                    {
+                        int actionNum = static_cast<int>(ctx->index) + 1;
+                        std::string notFoundMsg = std::string("User cannot be found (action #") + std::to_string(actionNum) + ")";
+                        
+                        // insert funny meme from ProfileSettingsPopup
+                        auto url = std::string("https://www.boomlings.com/database/getGJUsers20.php");
+                        auto urlEncode = [](const std::string &s) {
+                            static const char hex[] = "0123456789ABCDEF";
+                            std::string out;
+                            out.reserve(s.size() * 3);
+                            for (unsigned char c : s) {
+                                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' || c == '~') {
+                                    out.push_back(static_cast<char>(c));
+                                } else if (c == ' ') {
+                                    out.push_back('+');
+                                } else {
+                                    out.push_back('%');
+                                    out.push_back(hex[(c >> 4) & 0xF]);
+                                    out.push_back(hex[c & 0xF]);
+                                }
+                            }
+                            return out;
+                        };
+
+                        std::string postData = "gameVersion=22&binaryVersion=40&gdw=0&str=" + urlEncode(query) + "&page=0&total=0&secret=Wmfd2893gb7";
+
+                        auto request = web::WebRequest();
+                        request.header("Content-Type", "application/x-www-form-urlencoded");
+                        request.bodyString(postData);
+
+                        request.post(url).listen(
+                            [query, notFoundMsg](web::WebResponse *res) {
+                                if (!res || !res->ok()) {
+                                    Notification::create(notFoundMsg, NotificationIcon::Error, 1.5f)->show();
+                                    return;
+                                }
+                                auto resp = res->string().unwrapOrDefault();
+                                if (resp == "-1") {
+                                    Notification::create(notFoundMsg, NotificationIcon::Error, 1.5f)->show();
+                                    return;
+                                }
+
+                                size_t pipe = resp.find('|');
+                                std::string firstUser = (pipe == std::string::npos ? resp : resp.substr(0, pipe));
+
+                                std::vector<std::string> fields;
+                                size_t start = 0;
+                                while (true) {
+                                    size_t pos = firstUser.find(":", start);
+                                    if (pos == std::string::npos) {
+                                        fields.push_back(firstUser.substr(start));
+                                        break;
+                                    }
+                                    fields.push_back(firstUser.substr(start, pos - start));
+                                    start = pos + 1;
+                                }
+
+                                int accountId = 0;
+                                for (size_t i = 0; i + 1 < fields.size(); i += 2) {
+                                    if (fields[i] == "16") {
+                                        const std::string &accountIdStr = fields[i + 1];
+                                        if (!accountIdStr.empty() && accountIdStr.find_first_not_of("-0123456789") == std::string::npos) {
+                                            accountId = numFromString<int>(accountIdStr).unwrapOrDefault();
+                                        }
+                                        break;
+                                    }
+                                }
+
+                                if (accountId > 0) {
+                                    if (auto page = ProfilePage::create(accountId, false)) {
+                                        page->show();
+                                        return;
+                                    }
+                                }
+                                Notification::create(notFoundMsg, NotificationIcon::Error, 1.5f)->show();
+                            },
+                            [](web::WebProgress *) {},
+                            [notFoundMsg]() {
+                                Notification::create(notFoundMsg, NotificationIcon::Error, 1.5f)->show();
+                            });
+                    }
+                }
+            }
+            // this thing sucks to work with :(
+            else if (processedArg.rfind("open_level:", 0) == 0)
+            {
+                size_t firstColon = processedArg.find(":");
+                std::string query = (firstColon == std::string::npos ? std::string() : processedArg.substr(firstColon + 1));
+                // trim
+                query.erase(0, query.find_first_not_of(" \t\n\r"));
+                if (!query.empty()) query.erase(query.find_last_not_of(" \t\n\r") + 1);
+
+                if (query.empty())
+                {
+                    int actionNum = static_cast<int>(ctx->index) + 1;
+                    std::string msg = std::string("(#") + std::to_string(actionNum) + ") No Level Provided";
+                    Notification::create(msg, NotificationIcon::Warning, 1.5f)->show();
+                }
+                else
+                {
+                    auto glm = GameLevelManager::sharedState();
+                    if (!glm)
+                    {
+                        Notification::create("Level manager unavailable", NotificationIcon::Error, 1.5f)->show();
+                    }
+                    else if (query.find_first_not_of("0123456789") == std::string::npos)
+                    {
+                        int levelID = numFromString<int>(query).unwrapOrDefault();
+                        if (levelID <= 0)
+                        {
+                            Notification::create("Invalid level ID", NotificationIcon::Error, 1.5f)->show();
+                        }
+                        else
+                        {
+                            if (auto lvl = glm->getSavedLevel(levelID))
+                            {
+                                if (auto scene = LevelInfoLayer::scene(lvl, false))
+                                    CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
+                            }
+                            else
+                            {
+                                // Try main level or search by ID string
+                                if (auto lvl = glm->getMainLevel(levelID, true)) {
+                                    if (auto scene = LevelInfoLayer::scene(lvl, false))
+                                        CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
+                                } else {
+                                    auto so = GJSearchObject::create(SearchType::Search, std::to_string(levelID));
+                                    glm->getOnlineLevels(so);
+                                    Notification::create("Fetching level...", NotificationIcon::Loading, 1.0f)->show();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Notification::create("Please provide a numeric level ID", NotificationIcon::Warning, 1.5f)->show();
+                    }
+                }
             };
         };
 
