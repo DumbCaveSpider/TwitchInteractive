@@ -36,12 +36,35 @@ namespace SettingsHandler {
             return;
 
         std::string value;
-        size_t colon = actionStr.find(":");
-        if (colon != std::string::npos && colon + 1 < actionStr.size())
-            value = actionStr.substr(colon + 1);
+        bool force = false;
+        // Expect: open_level:<id>:<true|false> (keep backward compat for legacy !force suffix)
+        size_t firstColon = actionStr.find(":");
+        size_t secondColon = (firstColon != std::string::npos ? actionStr.find(":", firstColon + 1) : std::string::npos);
+        if (firstColon != std::string::npos) {
+            if (secondColon != std::string::npos) {
+                value = actionStr.substr(firstColon + 1, secondColon - firstColon - 1);
+                std::string forceTok = actionStr.substr(secondColon + 1);
+                // trim
+                value.erase(0, value.find_first_not_of(" \t\n\r"));
+                if (!value.empty()) value.erase(value.find_last_not_of(" \t\n\r") + 1);
+                forceTok.erase(0, forceTok.find_first_not_of(" \t\n\r"));
+                if (!forceTok.empty()) forceTok.erase(forceTok.find_last_not_of(" \t\n\r") + 1);
+                geode::utils::string::toLowerIP(forceTok);
+                if (forceTok == "true") force = true;
+            } else {
+                value = actionStr.substr(firstColon + 1);
+                // Back-compat: detect legacy !force suffix in value
+                auto pos = value.find("!force");
+                if (pos != std::string::npos) { force = true; value.erase(pos, 6); }
+                // trim
+                value.erase(0, value.find_first_not_of(" \t\n\r"));
+                if (!value.empty()) value.erase(value.find_last_not_of(" \t\n\r") + 1);
+            }
+        }
 
-        auto win = LevelSettingsPopup::create(value, [popup, idx](const std::string& newVal){
-            popup->m_commandActions[idx] = std::string("open_level:") + newVal;
+        auto win = LevelSettingsPopup::create(value, force, [popup, idx](const std::string& newVal, bool force){
+            std::string stored = fmt::format("open_level:{}:{}", newVal, force ? "true" : "false");
+            popup->m_commandActions[idx] = stored;
             popup->refreshActionsList();
         });
         if (win) win->show();
@@ -93,10 +116,11 @@ namespace SettingsHandler {
             return;
 
         std::string& actionStr = popup->m_commandActions[idx];
-        // Format: jumpscare:<url>:<fade>[:<scale>]
+        // Format: jumpscare:<url|random>:<fade>:<scale>
         std::string url;
         float fade = 0.5f;
         float scaleMul = 1.0f;
+        bool randomize = false;
         size_t firstColon = actionStr.find(":");
         size_t secondColon = (firstColon != std::string::npos ? actionStr.find(":", firstColon + 1) : std::string::npos);
         size_t thirdColon = (secondColon != std::string::npos ? actionStr.find(":", secondColon + 1) : std::string::npos);
@@ -127,13 +151,22 @@ namespace SettingsHandler {
             }
         }
 
-    auto popupWindow = JumpscareSettingsPopup::create(url, fade, scaleMul, [popup, idx](const std::string& newUrl, float newFade, float newScale) {
-            std::string safeUrl = newUrl; // could be empty
-            float safeFade = newFade;
-            float safeScale = (newScale <= 0.f ? 1.f : newScale);
-            popup->m_commandActions[idx] = fmt::format("jumpscare:{}:{:.2f}:{:.2f}", safeUrl, safeFade, safeScale);
-            popup->refreshActionsList();
-        });
+        // detect random token
+        {
+            std::string lower = url;
+            geode::utils::string::toLowerIP(lower);
+            if (lower == "random")
+                randomize = true;
+        }
+
+        auto popupWindow = JumpscareSettingsPopup::create(url, fade, scaleMul, randomize,
+            [popup, idx](const std::string& newUrl, float newFade, float newScale, bool randomize_) {
+                std::string token = randomize_ ? std::string("random") : newUrl; // if random, ignore url
+                float safeFade = newFade;
+                float safeScale = (newScale <= 0.f ? 1.f : newScale);
+                popup->m_commandActions[idx] = fmt::format("jumpscare:{}:{:.2f}:{:.2f}", token, safeFade, safeScale);
+                popup->refreshActionsList();
+            });
         if (popupWindow) popupWindow->show();
     }
     // Process the gravity action settings

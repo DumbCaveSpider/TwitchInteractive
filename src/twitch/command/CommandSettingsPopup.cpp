@@ -797,7 +797,8 @@ void CommandSettingsPopup::onAddEventAction(cocos2d::CCObject *sender)
         }
         else if (eventId == "open_level")
         {
-            m_commandActions.push_back("open_level:");
+            // Initialize with empty ID and explicit force=false
+            m_commandActions.push_back("open_level::false");
             refreshActionsList();
         }
         else if (eventId == "keycode")
@@ -1197,19 +1198,39 @@ void CommandSettingsPopup::refreshActionsList()
             }
             else if (actionIdLower.rfind("open_level", 0) == 0)
             {
-                // open_level:<levelID>
+                // open_level:<levelID>:<true|false> (legacy: open_level:<levelID>[!force])
                 std::string idText;
+                bool force = false;
                 size_t firstColon = actionIdRaw.find(":");
-                if (firstColon != std::string::npos && firstColon + 1 < actionIdRaw.size())
+                if (firstColon != std::string::npos)
                 {
-                    idText = actionIdRaw.substr(firstColon + 1);
-                    // trim
-                    idText.erase(0, idText.find_first_not_of(" \t\n\r"));
-                    size_t end = idText.find_last_not_of(" \t\n\r");
-                    if (end != std::string::npos) idText.erase(end + 1); else idText.clear();
+                    size_t secondColon = actionIdRaw.find(":", firstColon + 1);
+                    if (secondColon != std::string::npos)
+                    {
+                        idText = actionIdRaw.substr(firstColon + 1, secondColon - firstColon - 1);
+                        std::string forceTok = actionIdRaw.substr(secondColon + 1);
+                        // trim
+                        auto trim = [](std::string &s){ if(s.empty()) return; s.erase(0, s.find_first_not_of(" \t\n\r")); size_t e=s.find_last_not_of(" \t\n\r"); if(e!=std::string::npos) s.erase(e+1); else s.clear(); };
+                        trim(idText);
+                        trim(forceTok);
+                        std::string fl = forceTok;
+                        geode::utils::string::toLowerIP(fl);
+                        if (fl == "true") force = true;
+                    }
+                    else if (firstColon + 1 < actionIdRaw.size())
+                    {
+                        idText = actionIdRaw.substr(firstColon + 1);
+                        // legacy !force suffix handling
+                        auto pos = idText.find("!force");
+                        if (pos != std::string::npos) { force = true; idText.erase(pos, 6); }
+                        // trim
+                        idText.erase(0, idText.find_first_not_of(" \t\n\r"));
+                        size_t end = idText.find_last_not_of(" \t\n\r");
+                        if (end != std::string::npos) idText.erase(end + 1); else idText.clear();
+                    }
                 }
                 if (!idText.empty())
-                    settingsLabelText = "Level ID: " + idText;
+                    settingsLabelText = std::string("Level ID: ") + idText + (force ? " | Force" : "");
                 else
                     settingsLabelText = "Level ID: -";
             }
@@ -1547,12 +1568,18 @@ void CommandSettingsPopup::refreshActionsList()
                     if (auto parsed = numFromString<float>(scaleStr))
                         scaleStr = fmt::format("{:.2f}", parsed.unwrap());
                 }
+                {
+                std::string urlPretty = url;
+                std::string lower = urlPretty;
+                geode::utils::string::toLowerIP(lower);
+                if (lower == "random") urlPretty = "Random";
                 settingsLabelText = fmt::format(
                     "File: {}{}{}",
-                    url.empty() ? std::string("-") : url,
+                    urlPretty.empty() ? std::string("-") : urlPretty,
                     !fadeStr.empty() ? fmt::format(" | Fade: {}s", fadeStr) : std::string(""),
                     !scaleStr.empty() ? fmt::format(" | Scale: {}x", scaleStr) : std::string("")
                 );
+                }
             }
             else if (actionIdLower.rfind("speed_player", 0) == 0)
             {

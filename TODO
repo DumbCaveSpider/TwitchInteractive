@@ -3,7 +3,7 @@ TODO:
 - Add a way to sort twitch commands (search, tags)
 - Add import and export commands
 [Minor]
-- add Open Level Info (allows users/viewers to directly open a level xd "LevelInfo" (broken atm cuz forgor how to do it properly))
+- make level info have option to force play level
 - custom global prefix command
 - Make commmands per user instead of global (add this at the CommandInputSettings)
 - Add a limit characters for notification and popup

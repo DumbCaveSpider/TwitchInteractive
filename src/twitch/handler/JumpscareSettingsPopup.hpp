@@ -11,6 +11,8 @@ using namespace geode::prelude;
 using namespace cocos2d;
 using namespace extension;
 
+class CCMenuItemToggler;
+
 class JumpscareSettingsPopup : public geode::Popup<>
 {
 protected:
@@ -23,10 +25,15 @@ protected:
 
     geode::TextInput *m_fadeInput = nullptr;
     geode::TextInput *m_scaleInput = nullptr;
-    std::function<void(const std::string &, float, float)> m_onSave;
+    std::function<void(const std::string &, float, float, bool)> m_onSave;
     std::string m_initUrl;
     float m_initFade = 0.5f;
     float m_initScale = 1.0f;
+    bool m_initRandom = false;
+
+    // Randomize toggle (top-right)
+    class CCMenuItemToggler *m_randomToggle = nullptr;
+    bool m_randomize = false;
 
     bool setup() override;
     void onSaveBtn(cocos2d::CCObject *);
@@ -36,11 +43,12 @@ protected:
     void onRightFile(cocos2d::CCObject *);
     void onRefreshFiles(cocos2d::CCObject *);
     void onTestJumpscare(cocos2d::CCObject *);
+    void onToggleRandomize(cocos2d::CCObject *);
     void cleanupTempNode(cocos2d::CCNode *node);
     void loadFiles();
     void updateFileLabel();
     void updateArrowPositions();
 
 public:
-    static JumpscareSettingsPopup *create(const std::string &initUrl, float initFade, float initScale, std::function<void(const std::string &, float, float)> onSave);
+    static JumpscareSettingsPopup *create(const std::string &initUrl, float initFade, float initScale, bool initRandom, std::function<void(const std::string &, float, float, bool)> onSave);
 };

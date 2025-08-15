@@ -1,9 +1,11 @@
 #include "JumpscareSettingsPopup.hpp"
+#include <Geode/Geode.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/LazySprite.hpp>
 #include <filesystem>
+#include <random>
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -67,6 +69,34 @@ bool JumpscareSettingsPopup::setup()
     auto menu = CCMenu::create();
     menu->setPosition(0, 0);
     m_mainLayer->addChild(menu);
+
+    // Randomize toggle at top-right
+    {
+        auto menu = CCMenu::create();
+        menu->setPosition(0, 0);
+        m_mainLayer->addChild(menu);
+
+        auto toggle = CCMenuItemToggler::create(
+            CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
+            CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+            this,
+            menu_selector(JumpscareSettingsPopup::onToggleRandomize));
+        toggle->setScale(0.65f);
+        float pad = 14.f;
+        toggle->setPosition(size.width - pad - 10.f, size.height - pad - 10.f);
+        m_randomToggle = toggle;
+        if (m_initRandom)
+            m_randomToggle->toggle(true);
+
+        auto label = CCLabelBMFont::create("Random", "bigFont.fnt");
+        label->setScale(0.35f);
+        label->setAnchorPoint({1.f, 0.5f});
+        float toggW = toggle->getContentSize().width * toggle->getScale();
+        label->setPosition(toggle->getPositionX() - (toggW / 2.f + 6.f), toggle->getPositionY());
+        m_mainLayer->addChild(label);
+
+        menu->addChild(toggle);
+    }
 
     // Info icon at the bottom center
     auto infoSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
@@ -183,8 +213,10 @@ void JumpscareSettingsPopup::onSaveBtn(cocos2d::CCObject *)
         if (auto parsed = numFromString<float>(scaleStr))
             scaleMul = parsed.unwrap();
 
+    m_randomize = (m_randomToggle && m_randomToggle->isOn());
+
     if (m_onSave)
-        m_onSave(url, fade, scaleMul);
+        m_onSave(url, fade, scaleMul, m_randomize);
     this->removeFromParentAndCleanup(true);
 }
 
@@ -318,20 +350,46 @@ void JumpscareSettingsPopup::onRefreshFiles(cocos2d::CCObject *)
 
 void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
 {
-    // Determine selected filename
-    if (m_selectedIdx < 0 || m_selectedIdx >= static_cast<int>(m_files.size()))
+    // Determine filename: if randomize is on, pick a random file; else use selected
+    std::string chosen;
+    bool useRandom = (m_randomToggle && m_randomToggle->isOn());
+    if (useRandom)
     {
-        geode::createQuickPopup(
-            "No Image",
-            "No image selected. Add images in the jumpscare folder and select one.",
-            "OK",
-            nullptr,
-            260.f,
-            [](FLAlertLayer *, bool) {},
-            false,
-            false)
-            ->show();
-        return;
+        if (m_files.empty())
+        {
+            geode::createQuickPopup(
+                "No Image",
+                "No images found. Add images in the jumpscare folder first.",
+                "OK",
+                nullptr,
+                260.f,
+                [](FLAlertLayer *, bool) {},
+                false,
+                false)
+                ->show();
+            return;
+        }
+        static std::mt19937 rng(std::random_device{}());
+        std::uniform_int_distribution<size_t> dist(0, m_files.size() - 1);
+        chosen = m_files[dist(rng)];
+    }
+    else
+    {
+        if (m_selectedIdx < 0 || m_selectedIdx >= static_cast<int>(m_files.size()))
+        {
+            geode::createQuickPopup(
+                "No Image",
+                "No image selected. Add images in the jumpscare folder and select one.",
+                "OK",
+                nullptr,
+                260.f,
+                [](FLAlertLayer *, bool) {},
+                false,
+                false)
+                ->show();
+            return;
+        }
+        chosen = m_files[m_selectedIdx];
     }
 
     // Parse fade time from input
@@ -368,7 +426,7 @@ void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
 
     // Build absolute path
     auto base = Mod::get()->getConfigDir();
-    auto absPath = (base / "jumpscare" / m_files[m_selectedIdx]).string();
+    auto absPath = (base / "jumpscare" / chosen).string();
 
     // Create a temporary layer and a screen-sized LazySprite like in TwitchCommandManager
     auto scene = CCDirector::sharedDirector()->getRunningScene();
@@ -430,7 +488,12 @@ void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
     layer->runAction(removeLayerSeq);
 }
 
-JumpscareSettingsPopup *JumpscareSettingsPopup::create(const std::string &initUrl, float initFade, float initScale, std::function<void(const std::string &, float, float)> onSave)
+void JumpscareSettingsPopup::onToggleRandomize(cocos2d::CCObject *)
+{
+    m_randomize = (m_randomToggle && m_randomToggle->isOn());
+}
+
+JumpscareSettingsPopup *JumpscareSettingsPopup::create(const std::string &initUrl, float initFade, float initScale, bool initRandom, std::function<void(const std::string &, float, float, bool)> onSave)
 {
     auto ret = new JumpscareSettingsPopup();
     if (ret)
@@ -439,7 +502,8 @@ JumpscareSettingsPopup *JumpscareSettingsPopup::create(const std::string &initUr
         ret->m_initUrl = initUrl;
         ret->m_initFade = initFade;
         ret->m_initScale = initScale;
-        // Reasonable default size
+        ret->m_initRandom = initRandom;
+        // Reasonable default size lol
         if (ret->initAnchored(360.f, 180.f))
         {
             ret->autorelease();

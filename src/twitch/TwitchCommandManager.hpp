@@ -652,7 +652,40 @@ struct ActionContext : public CCObject
 
                         // Build absolute path to custom jumpscare folder
                         auto base = Mod::get()->getConfigDir();
-                        auto fullPath = (base / "jumpscare" / imageJS).string();
+                        std::string fullPath;
+
+                        // If token is 'random', pick a random file in the folder
+                        std::string imgLower = imageJS; geode::utils::string::toLowerIP(imgLower);
+                        if (imgLower == "random")
+                        {
+                            std::vector<std::string> files;
+                            auto dir = (base / "jumpscare").string();
+                            if (auto rd = geode::utils::file::readDirectory(dir, false))
+                            {
+                                for (auto const &entry : rd.unwrap())
+                                {
+                                    std::filesystem::path p = entry;
+                                    std::filesystem::path full = p.is_absolute() ? p : (base / "jumpscare" / p);
+                                    std::error_code ec;
+                                    if (std::filesystem::is_regular_file(full, ec))
+                                        files.push_back(full.string());
+                                }
+                            }
+                            if (!files.empty())
+                            {
+                                static std::mt19937 rng(std::random_device{}());
+                                std::uniform_int_distribution<size_t> dist(0, files.size() - 1);
+                                fullPath = files[dist(rng)];
+                            }
+                            else
+                            {
+                                log::warn("[Jumpscare] No files found in jumpscare folder.");
+                            }
+                        }
+                        else
+                        {
+                            fullPath = (base / "jumpscare" / imageJS).string();
+                        }
                         if (!std::filesystem::exists(fullPath))
                         {
                             log::warn("[Jumpscare] Image file does not exist: {}", fullPath);
@@ -1447,11 +1480,31 @@ struct ActionContext : public CCObject
             // this thing sucks to work with :(
             else if (processedArg.rfind("open_level:", 0) == 0)
             {
+                // Format: open_level:<id>:<true|false> (legacy fallback supports !force suffix)
                 size_t firstColon = processedArg.find(":");
-                std::string query = (firstColon == std::string::npos ? std::string() : processedArg.substr(firstColon + 1));
-                // trim
-                query.erase(0, query.find_first_not_of(" \t\n\r"));
-                if (!query.empty()) query.erase(query.find_last_not_of(" \t\n\r") + 1);
+                size_t secondColon = (firstColon != std::string::npos ? processedArg.find(":", firstColon + 1) : std::string::npos);
+                std::string query;
+                bool force = false;
+                if (firstColon != std::string::npos) {
+                    if (secondColon != std::string::npos) {
+                        query = processedArg.substr(firstColon + 1, secondColon - firstColon - 1);
+                        std::string forceTok = processedArg.substr(secondColon + 1);
+                        // trim
+                        auto trim = [](std::string &s){ if(s.empty()) return; s.erase(0, s.find_first_not_of(" \t\n\r")); size_t e=s.find_last_not_of(" \t\n\r"); if(e!=std::string::npos) s.erase(e+1); else s.clear(); };
+                        trim(query);
+                        trim(forceTok);
+                        geode::utils::string::toLowerIP(forceTok);
+                        if (forceTok == "true") force = true;
+                    } else {
+                        query = processedArg.substr(firstColon + 1);
+                        // legacy !force
+                        auto posForce = query.find("!force");
+                        if (posForce != std::string::npos) { force = true; query.erase(posForce, 6); }
+                        // trim
+                        query.erase(0, query.find_first_not_of(" \t\n\r"));
+                        if (!query.empty()) query.erase(query.find_last_not_of(" \t\n\r") + 1);
+                    }
+                }
 
                 if (query.empty())
                 {
@@ -1475,14 +1528,20 @@ struct ActionContext : public CCObject
                         }
                         else
                         {
-                            if (auto lvl = glm->getSavedLevel(levelID))
+                            auto startInfo = [&](){
+                                if (auto lvl = glm->getSavedLevel(levelID))
+                                {
+                                    if (auto scene = LevelInfoLayer::scene(lvl, false))
+                                        CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
+                                    return true;
+                                }
+                                return false;
+                            };
+
+                            if (!force)
                             {
-                                if (auto scene = LevelInfoLayer::scene(lvl, false))
-                                    CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
-                            }
-                            else
-                            {
-                                // Try main level or search by ID string
+                                if (startInfo()) return; // showed info
+                                // Try main level or fetch
                                 if (auto lvl = glm->getMainLevel(levelID, true)) {
                                     if (auto scene = LevelInfoLayer::scene(lvl, false))
                                         CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
@@ -1490,6 +1549,31 @@ struct ActionContext : public CCObject
                                     auto so = GJSearchObject::create(SearchType::Search, std::to_string(levelID));
                                     glm->getOnlineLevels(so);
                                     Notification::create("Fetching level...", NotificationIcon::Loading, 1.0f)->show();
+                                }
+                            }
+                            else
+                            {
+                                Notification::create("Preparing level...", NotificationIcon::Loading, 1.0f)->show();
+                                auto so = GJSearchObject::create(SearchType::Search, std::to_string(levelID));
+                                glm->getOnlineLevels(so);
+                                struct ForcePlayRunner : public CCNode {
+                                    GameLevelManager* m_glm = nullptr; int m_levelID = 0; int m_attempts = 0; int m_maxAttempts = 100;
+                                    static ForcePlayRunner* create(GameLevelManager* glm, int id) { auto n = new ForcePlayRunner(); n->m_glm = glm; n->m_levelID = id; n->autorelease(); return n; }
+                                    void onTick(float){
+                                        if (!m_glm){ cleanupSelf(); return; }
+                                        if (auto lvl = m_glm->getSavedLevel(m_levelID)){
+                                            if (auto scene = PlayLayer::scene(lvl, false, false))
+                                                CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.3f, scene));
+                                            cleanupSelf(); return;
+                                        }
+                                        if (++m_attempts >= m_maxAttempts){ Notification::create("Level fetch timeout", NotificationIcon::Error, 1.5f)->show(); cleanupSelf(); }
+                                    }
+                                    void cleanupSelf(){ this->unschedule(schedule_selector(ForcePlayRunner::onTick)); this->removeFromParentAndCleanup(true); }
+                                };
+                                if (auto scene = CCDirector::sharedDirector()->getRunningScene()){
+                                    auto runner = ForcePlayRunner::create(glm, levelID);
+                                    scene->addChild(runner);
+                                    runner->schedule(schedule_selector(ForcePlayRunner::onTick), 0.1f);
                                 }
                             }
                         }
