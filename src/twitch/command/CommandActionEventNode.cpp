@@ -540,7 +540,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"sound_effect", "Sound Effect", "Plays a sound effect. <cg>Supports Custom SFX and & GD default SFX.</c>"},
         {"stop_all_sounds", "Stop All Sounds", "Stops all currently playing sound effects immediately"},
         {"gravity", "Gravity Player", "Sets the player's gravity to a specified value for a duration."},
-        {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration."},
+        {"speed_player", "Speed Player", "Sets the player's speed to a specified value for a duration. <cy>This is not the same as Timewarp!</c>"},
         {"restart_level", "Restart Level", "Restarts the entire level. <cy>For clarification, it does not go back to previous checkpoints.</c>"},
         {"jumpscare", "Jumpscare", "Shows a custom jumpscare image to scare the streamer. <cy>boo!</c>"},
         {"noclip", "Noclip", "Enables or disables noclip mode for the player. <cr>This does not have Safe Mode, use with caution!</c> <cy>Disables upon exiting the level.</c>"},

@@ -9,6 +9,7 @@ TODO:
 - Add a limit characters for notification and popup
 - Add timewarp
 - Add alias on the commands
+- Fix the issues with Level Info not loading levels when not saved before
 [Future-Features]
 - Loop conditions (conditions)
 - Change Player Gamemode

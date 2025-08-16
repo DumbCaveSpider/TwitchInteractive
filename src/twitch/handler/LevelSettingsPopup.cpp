@@ -98,15 +98,23 @@ void LevelSettingsPopup::onOpen(CCObject *sender)
         return;
     }
 
-    auto showLevel = [](GJGameLevel *lvl)
+    auto showLevel = [glm](GJGameLevel *lvl, int id)
     {
         if (!lvl)
+        {
+            log::debug("Level doesn't exist");
             return false;
+        }
+        if (glm)
+            glm->downloadLevel(id, false);
+            log::debug("Downloading level ID {}", id);
+
         if (auto scene = LevelInfoLayer::scene(lvl, false))
         {
             CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
             return true;
         }
+        Notification::create("Cannot download level", NotificationIcon::Error, 1.5f)->show();
         return false;
     };
 
@@ -129,57 +137,58 @@ void LevelSettingsPopup::onOpen(CCObject *sender)
                 320.f,
                 [this, levelID, glm](FLAlertLayer *, bool btn)
                 {
-                    if (!btn)
-                        return; // No
-                    // proceed with force play
-                    Notification::create("Preparing level...", NotificationIcon::Loading, 1.0f)->show();
-                    auto so = GJSearchObject::create(SearchType::Search, std::to_string(levelID));
-                    glm->getOnlineLevels(so);
-                    struct ForcePlayRunner : public CCNode
+                    if (btn)
                     {
-                        GameLevelManager *m_glm = nullptr;
-                        int m_levelID = 0;
-                        int m_attempts = 0;
-                        int m_maxAttempts = 100;
-                        static ForcePlayRunner *create(GameLevelManager *glm, int id)
+                        // proceed with force play
+                        Notification::create("Preparing level...", NotificationIcon::Loading, 1.0f)->show();
+                        auto so = GJSearchObject::create(SearchType::Search, std::to_string(levelID));
+                        glm->getOnlineLevels(so);
+                        struct ForcePlayRunner : public CCNode
                         {
-                            auto n = new ForcePlayRunner();
-                            n->m_glm = glm;
-                            n->m_levelID = id;
-                            n->autorelease();
-                            return n;
-                        }
-                        void onTick(float)
+                            GameLevelManager *m_glm = nullptr;
+                            int m_levelID = 0;
+                            int m_attempts = 0;
+                            int m_maxAttempts = 100;
+                            static ForcePlayRunner *create(GameLevelManager *glm, int id)
+                            {
+                                auto n = new ForcePlayRunner();
+                                n->m_glm = glm;
+                                n->m_levelID = id;
+                                n->autorelease();
+                                return n;
+                            }
+                            void onTick(float)
+                            {
+                                if (!m_glm)
+                                {
+                                    cleanupSelf();
+                                    return;
+                                }
+                                if (auto lvl = m_glm->getSavedLevel(m_levelID))
+                                {
+                                    if (auto scene = PlayLayer::scene(lvl, false, false))
+                                        CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.3f, scene));
+                                    cleanupSelf();
+                                    return;
+                                }
+                                if (++m_attempts >= m_maxAttempts)
+                                {
+                                    Notification::create("Level fetch timeout", NotificationIcon::Error, 1.5f)->show();
+                                    cleanupSelf();
+                                }
+                            }
+                            void cleanupSelf()
+                            {
+                                this->unschedule(schedule_selector(ForcePlayRunner::onTick));
+                                this->removeFromParentAndCleanup(true);
+                            }
+                        };
+                        if (auto scene = CCDirector::sharedDirector()->getRunningScene())
                         {
-                            if (!m_glm)
-                            {
-                                cleanupSelf();
-                                return;
-                            }
-                            if (auto lvl = m_glm->getSavedLevel(m_levelID))
-                            {
-                                if (auto scene = PlayLayer::scene(lvl, false, false))
-                                    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.3f, scene));
-                                cleanupSelf();
-                                return;
-                            }
-                            if (++m_attempts >= m_maxAttempts)
-                            {
-                                Notification::create("Level fetch timeout", NotificationIcon::Error, 1.5f)->show();
-                                cleanupSelf();
-                            }
+                            auto runner = ForcePlayRunner::create(glm, levelID);
+                            scene->addChild(runner);
+                            runner->schedule(schedule_selector(ForcePlayRunner::onTick), 0.1f);
                         }
-                        void cleanupSelf()
-                        {
-                            this->unschedule(schedule_selector(ForcePlayRunner::onTick));
-                            this->removeFromParentAndCleanup(true);
-                        }
-                    };
-                    if (auto scene = CCDirector::sharedDirector()->getRunningScene())
-                    {
-                        auto runner = ForcePlayRunner::create(glm, levelID);
-                        scene->addChild(runner);
-                        runner->schedule(schedule_selector(ForcePlayRunner::onTick), 0.1f);
                     }
                 },
                 false,
@@ -191,19 +200,67 @@ void LevelSettingsPopup::onOpen(CCObject *sender)
         {
             if (auto lvl = glm->getSavedLevel(levelID))
             {
-                if (showLevel(lvl))
+                if (showLevel(lvl, levelID))
                     return;
             }
-            // fun fact, you can get the main level of gd using this XDDD
-            if (auto lvl = glm->getMainLevel(levelID, true))
-            {
-                if (showLevel(lvl))
-                    return;
-            }
-            // Fallback: search by ID as text
+            // search by ID as text
             auto so = GJSearchObject::create(SearchType::Search, std::to_string(levelID));
             glm->getOnlineLevels(so);
             Notification::create("Fetching level...", NotificationIcon::Loading, 1.0f)->show();
+
+            // Poll until the level is saved, then download and open LevelInfoLayer
+            struct DownloadThenShowRunner : public CCNode
+            {
+                GameLevelManager *m_glm = nullptr;
+                int m_levelID = 0;
+                int m_attempts = 0;
+                int m_maxAttempts = 100; // ~10s @ 0.1s
+                static DownloadThenShowRunner *create(GameLevelManager *glm, int id)
+                {
+                    auto n = new DownloadThenShowRunner();
+                    n->m_glm = glm;
+                    n->m_levelID = id;
+                    n->autorelease();
+                    return n;
+                }
+                void onTick(float)
+                {
+                    if (!m_glm)
+                    {
+                        cleanupSelf();
+                        return;
+                    }
+                    if (auto lvl = m_glm->getSavedLevel(m_levelID))
+                    {
+                        // Start download through GameLevelManager before opening info
+                        m_glm->downloadLevel(m_levelID, false);
+                        if (auto scene = LevelInfoLayer::scene(lvl, false))
+                            CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.3f, scene));
+                        else
+                            Notification::create("Cannot download level", NotificationIcon::Error, 1.5f)->show();
+                        cleanupSelf();
+                        return;
+                    }
+                    if (++m_attempts >= m_maxAttempts)
+                    {
+                        Notification::create("Level fetch timeout", NotificationIcon::Error, 1.5f)->show();
+                        cleanupSelf();
+                    }
+                }
+                void cleanupSelf()
+                {
+                    this->unschedule(schedule_selector(DownloadThenShowRunner::onTick));
+                    this->removeFromParentAndCleanup(true);
+                }
+            };
+
+            if (auto scene = CCDirector::sharedDirector()->getRunningScene())
+            {
+                auto runner = DownloadThenShowRunner::create(glm, levelID);
+                scene->addChild(runner);
+                runner->schedule(schedule_selector(DownloadThenShowRunner::onTick), 0.1f);
+            }
+
             return;
         }
     }

@@ -37,7 +37,7 @@ namespace SettingsHandler {
 
         std::string value;
         bool force = false;
-        // Expect: open_level:<id>:<true|false> (keep backward compat for legacy !force suffix)
+        // Expect: open_level:<id>:<true|false>
         size_t firstColon = actionStr.find(":");
         size_t secondColon = (firstColon != std::string::npos ? actionStr.find(":", firstColon + 1) : std::string::npos);
         if (firstColon != std::string::npos) {
@@ -51,14 +51,6 @@ namespace SettingsHandler {
                 if (!forceTok.empty()) forceTok.erase(forceTok.find_last_not_of(" \t\n\r") + 1);
                 geode::utils::string::toLowerIP(forceTok);
                 if (forceTok == "true") force = true;
-            } else {
-                value = actionStr.substr(firstColon + 1);
-                // Back-compat: detect legacy !force suffix in value
-                auto pos = value.find("!force");
-                if (pos != std::string::npos) { force = true; value.erase(pos, 6); }
-                // trim
-                value.erase(0, value.find_first_not_of(" \t\n\r"));
-                if (!value.empty()) value.erase(value.find_last_not_of(" \t\n\r") + 1);
             }
         }
 

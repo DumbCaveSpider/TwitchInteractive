@@ -1480,7 +1480,7 @@ struct ActionContext : public CCObject
             // this thing sucks to work with :(
             else if (processedArg.rfind("open_level:", 0) == 0)
             {
-                // Format: open_level:<id>:<true|false> (legacy fallback supports !force suffix)
+                // Format: open_level:<id>:<true|false>
                 size_t firstColon = processedArg.find(":");
                 size_t secondColon = (firstColon != std::string::npos ? processedArg.find(":", firstColon + 1) : std::string::npos);
                 std::string query;
@@ -1497,9 +1497,6 @@ struct ActionContext : public CCObject
                         if (forceTok == "true") force = true;
                     } else {
                         query = processedArg.substr(firstColon + 1);
-                        // legacy !force
-                        auto posForce = query.find("!force");
-                        if (posForce != std::string::npos) { force = true; query.erase(posForce, 6); }
                         // trim
                         query.erase(0, query.find_first_not_of(" \t\n\r"));
                         if (!query.empty()) query.erase(query.find_last_not_of(" \t\n\r") + 1);
