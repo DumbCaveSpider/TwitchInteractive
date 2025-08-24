@@ -97,11 +97,11 @@ static std::vector<std::string> getAvailableSounds()
             if (!entry.is_regular_file(ec))
                 continue;
             auto path = entry.path();
-            std::string ext = path.extension().string();
+            std::string ext = geode::utils::string::pathToString(path.extension());
             geode::utils::string::toLowerIP(ext);
             if (ext == ".mp3" || ext == ".ogg")
             {
-                std::string name = path.filename().string();
+                std::string name = geode::utils::string::pathToString(path.filename());
                 if (std::find(sounds.begin(), sounds.end(), name) == sounds.end())
                     sounds.push_back(name);
             }
@@ -120,7 +120,7 @@ static std::string resolveSfxPath(const std::string &name)
 
     auto p = Mod::get()->getConfigDir() / "sfx" / name;
     if (std::filesystem::exists(p, ec))
-        return p.string();
+        return geode::utils::string::pathToString(p);
 
     return name; // fall back to original (builtin resource)
 }
@@ -544,7 +544,7 @@ void SoundSettingsPopup::onOpenCustomSfx(CCObject *)
 {
     // Ensure the directory exists then open it
     auto base = Mod::get()->getConfigDir();
-    auto sfx = (base / "sfx").string();
+    auto sfx = geode::utils::string::pathToString(base / "sfx");
     if (!geode::utils::file::createDirectoryAll(sfx))
     {
         log::warn("[SoundSettingsPopup] Failed to create sfx folder: {}", sfx);

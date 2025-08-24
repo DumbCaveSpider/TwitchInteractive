@@ -1,7 +1,9 @@
 # v0.1.15-beta.1
 - Added Username & Identifier support for **Profile** action
-- Added **Level Info** Event, you can now force open a level by ID.
+- Added **Level Info** Experimental Event, you can now force open a level by ID.
 - Added Randomized on **Jumpscare** Action
+- Fixed the absolute path crash with the unicode paths 
+  - *(`.string()` is replaced with `pathToString`)*
 
 # v0.1.14-beta.1
 - Added **Change Account** button to the Twitch login popup

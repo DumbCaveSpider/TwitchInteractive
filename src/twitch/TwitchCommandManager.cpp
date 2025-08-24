@@ -123,7 +123,7 @@ TwitchCommand TwitchCommand::fromJson(const matjson::Value &v)
 std::string TwitchCommandManager::getSavePath() const
 {
     // Use Geode's mod save directory for cross-platform compatibility
-    std::string saveDir = geode::dirs::getModsSaveDir().string();
+    std::string saveDir = geode::utils::string::pathToString(geode::dirs::getModsSaveDir());
     if (!geode::utils::file::createDirectoryAll(saveDir))
     {
         log::warn("[TwitchCommandManager] Failed to create save directory: {}", saveDir);
@@ -160,9 +160,9 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
     if (!loaded)
     {
     auto configDirPath = Mod::get()->getConfigDir();
-    log::debug("[TwitchCommandManager] Mod config dir: {}", configDirPath.string());
+    log::debug("[TwitchCommandManager] Mod config dir: {}", geode::utils::string::pathToString(configDirPath));
 
-    auto sfxDirPath = (configDirPath / "sfx").string();
+    auto sfxDirPath = geode::utils::string::pathToString(configDirPath / "sfx");
     if (!geode::utils::file::createDirectoryAll(sfxDirPath))
         {
             log::warn("[TwitchCommandManager] Failed to create sfx directory: \"{}\"", sfxDirPath);
@@ -173,7 +173,7 @@ TwitchCommandManager *TwitchCommandManager::getInstance()
         }
 
         // Ensure jumpscare image directory exists
-        auto jumpscareDirPath = (configDirPath / "jumpscare").string();
+    auto jumpscareDirPath = geode::utils::string::pathToString(configDirPath / "jumpscare");
         if (!geode::utils::file::createDirectoryAll(jumpscareDirPath))
         {
             log::warn("[TwitchCommandManager] Failed to create jumpscare directory: \"{}\"", jumpscareDirPath);

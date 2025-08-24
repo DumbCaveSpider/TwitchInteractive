@@ -659,7 +659,7 @@ struct ActionContext : public CCObject
                         if (imgLower == "random")
                         {
                             std::vector<std::string> files;
-                            auto dir = (base / "jumpscare").string();
+                            auto dir = geode::utils::string::pathToString(base / "jumpscare");
                             if (auto rd = geode::utils::file::readDirectory(dir, false))
                             {
                                 for (auto const &entry : rd.unwrap())
@@ -668,7 +668,7 @@ struct ActionContext : public CCObject
                                     std::filesystem::path full = p.is_absolute() ? p : (base / "jumpscare" / p);
                                     std::error_code ec;
                                     if (std::filesystem::is_regular_file(full, ec))
-                                        files.push_back(full.string());
+                                        files.push_back(geode::utils::string::pathToString(full));
                                 }
                             }
                             if (!files.empty())
@@ -684,7 +684,7 @@ struct ActionContext : public CCObject
                         }
                         else
                         {
-                            fullPath = (base / "jumpscare" / imageJS).string();
+                            fullPath = geode::utils::string::pathToString(base / "jumpscare" / imageJS);
                         }
                         if (!std::filesystem::exists(fullPath))
                         {
@@ -1147,7 +1147,7 @@ struct ActionContext : public CCObject
                             return name; // already a path
                         auto p = Mod::get()->getConfigDir() / "sfx" / name;
                         if (std::filesystem::exists(p, ec))
-                            return p.string();
+                            return geode::utils::string::pathToString(p);
                         return name; // fallback to builtin resource
                     };
 

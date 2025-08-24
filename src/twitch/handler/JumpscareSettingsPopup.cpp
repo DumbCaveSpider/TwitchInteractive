@@ -223,7 +223,7 @@ void JumpscareSettingsPopup::onSaveBtn(cocos2d::CCObject *)
 void JumpscareSettingsPopup::onOpenFolder(cocos2d::CCObject *)
 {
     auto base = Mod::get()->getConfigDir();
-    auto folder = (base / "jumpscare").string();
+    auto folder = geode::utils::string::pathToString(base / "jumpscare");
     if (auto mk = geode::utils::file::createDirectoryAll(folder); !mk)
     {
         log::warn("[JumpscareSettingsPopup] Failed to create jumpscare folder: {}", folder);
@@ -247,13 +247,13 @@ void JumpscareSettingsPopup::loadFiles()
     m_files.clear();
     auto base = Mod::get()->getConfigDir();
     auto dir = base / "jumpscare";
-    if (auto mk = geode::utils::file::createDirectoryAll(dir.string()); !mk)
+    if (auto mk = geode::utils::file::createDirectoryAll(geode::utils::string::pathToString(dir)); !mk)
     {
-        log::warn("[JumpscareSettingsPopup] Failed to ensure jumpscare directory exists: {}", dir.string());
+        log::warn("[JumpscareSettingsPopup] Failed to ensure jumpscare directory exists: {}", geode::utils::string::pathToString(dir));
     }
 
     // collect all files
-    if (auto res = geode::utils::file::readDirectory(dir.string(), false))
+    if (auto res = geode::utils::file::readDirectory(geode::utils::string::pathToString(dir), false))
     {
         for (auto const &entry : res.unwrap())
         {
@@ -262,7 +262,7 @@ void JumpscareSettingsPopup::loadFiles()
             std::error_code ec;
             if (!std::filesystem::is_regular_file(full, ec))
                 continue;
-            m_files.push_back(full.filename().string());
+            m_files.push_back(geode::utils::string::pathToString(full.filename()));
         }
     }
 
@@ -426,7 +426,7 @@ void JumpscareSettingsPopup::onTestJumpscare(cocos2d::CCObject *)
 
     // Build absolute path
     auto base = Mod::get()->getConfigDir();
-    auto absPath = (base / "jumpscare" / chosen).string();
+    auto absPath = geode::utils::string::pathToString(base / "jumpscare" / chosen);
 
     // Create a temporary layer and a screen-sized LazySprite like in TwitchCommandManager
     auto scene = CCDirector::sharedDirector()->getRunningScene();

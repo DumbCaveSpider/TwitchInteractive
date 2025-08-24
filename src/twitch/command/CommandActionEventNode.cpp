@@ -533,7 +533,6 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
         {"wait", "Wait", "Pauses the command sequence for a set amount of time (in seconds). <cg>Use as a delay between actions.</c>"},
         {"notification", "Notification", "Shows a notification message on the screen. <cg>Supports the use of identifiers.</c>"},
         {"alert_popup", "Alert Popup", "Shows an alert popup like this one you reading. <cg>Supports the use of identifiers.</c>"},
-        {"open_level", "Level Info", "Opens Level Info for a level by ID or force play a level. <cg>Supports identifiers.</c>"},
         {"profile", "Profile", "Opens the Player Profile in-game. <cg>Supports use of identifiers.</c>"},
         {"keycode", "Key Code", "Simulates a key press or release. <cr>Does not work on mobile users.</c>"},
         {"scale_player", "Scale Player", "Scales the player in-game. <cr>Does not affect the player hitbox.</c>"},
@@ -550,6 +549,7 @@ std::vector<EventNodeInfo> CommandActionEventNode::getAllEventNodes()
     if (mod && mod->getSettingValue<bool>("experimental"))
     {
         nodes.push_back({"edit_camera", "Edit Camera", "Edit Camera's Skew, Rotation, and Scale. <cy>Experimental Feature. May crash your game.</c>"});
+        nodes.push_back({"open_level", "Level Info", "Opens Level Info for a level by ID or force play a level.<cy>Experimental Feature.</c> <cg>Supports identifiers.</c>"});
     }
     return nodes;
 }
