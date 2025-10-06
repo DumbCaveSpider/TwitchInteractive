@@ -19,6 +19,7 @@ It provides lots of in-game events that makes your interactive streaming more <c
 - <cr>The mod is not a chatbot replacement, you may need an external way to moderate the usage of this mod.</c>
 - <cr>The mod doesn't support sending messages to your stream chat due to the API only limited to **Read-only**.</c>
 - <cr>There won't be any YouTube support at this moment, unless someone made a YouTube Chat API on Geode which I could use.</c>
+- <cr>**If Twitch Chat API breaks for some reason, this mod will also break since it's heavily relied on that API!**</cr>
 ## Support
 If you need help, suggestions or talk to me? Join my [Discord Server](https://discord.gg/gXcppxTNxC)
 
