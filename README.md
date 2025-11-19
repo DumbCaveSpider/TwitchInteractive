@@ -1,3 +1,5 @@
+# Due to Twitch Chat API being delisted from Geode, this mod has been discontinued. Likely going to be reworked.
+
 # Twitch Interactive
 <img alt="Mod Downloads" src="https://img.shields.io/github/downloads/DumbCaveSpider/TwitchInteractive/total?logo=geode&logoColor=ffffff&label=Downloads">
 
